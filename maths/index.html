@@ -77,13 +77,13 @@ button:active{transform:scale(.96)}
 .an-tail{transform-box:fill-box;transform-origin:left bottom;animation:tl 1.6s ease-in-out infinite alternate}@keyframes tl{from{transform:rotate(-12deg)}to{transform:rotate(18deg)}}
 @media (prefers-reduced-motion:reduce){[class^="an-"]{animation:none}}
 footer{text-align:center;font-size:12px;color:#93A0B7;margin-top:26px}footer button{border:none;background:none;color:#B9C3D6;font-size:11px;text-decoration:underline}
-</style>
+.credit{margin-top:10px;font-size:12px;color:#93A0B7;font-weight:600}.credit a{color:#0A66C2;text-decoration:none}</style>
 </head>
 <body>
 <div id="app">
  <div id="top"><button id="backB" style="visibility:hidden" onclick="goMap()">🏡 الخريطة</button><button id="sndB" onclick="toggleSound()" style="font-size:18px">🔊</button><span>⭐ <span id="stars">0</span></span></div>
  <div id="stage"></div>
- <footer>الرِّياضيَّات · الصَّفّ الثَّالث · الفصل الدِّراسيّ الأوَّل<br><button onclick="profAsk(true)">👧 تغيير الاسم</button> · <button onclick="exLog()">📊 سجل الاختبارات</button> · <button onclick="exportProgress()">حفظ نسخة</button> · <button onclick="importProgress()">استرجاع نسخة</button> · <button onclick="hardReset()">بداية جديدة (يمسح التَّقدُّم)</button></footer>
+ <footer>الرِّياضيَّات · الصَّفّ الثَّالث · الفصل الدِّراسيّ الأوَّل<br><button onclick="profAsk(true)">👧 تغيير الاسم</button> · <button onclick="exLog()">📊 سجل الاختبارات</button> · <button onclick="exportProgress()">حفظ نسخة</button> · <button onclick="importProgress()">استرجاع نسخة</button> · <button onclick="hardReset()">بداية جديدة (يمسح التَّقدُّم)</button><div class="credit">© ٢٠٢٦ Dr. Asma Khattala · جميع الحقوق محفوظة · All rights reserved · <a href="https://www.linkedin.com/in/dr-asma-khattala/" target="_blank" rel="noopener">LinkedIn</a></div></footer>
 <input type="file" id="impF" accept=".json,application/json" style="display:none">
 </div>
 <div id="ovl"><div class="inner"></div></div><div id="toast"></div>
