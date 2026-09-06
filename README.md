@@ -1,6 +1,6 @@
-# ألعاب ماريا 🌟 Maria's Learning Games
+# ألعاب الصف الثالث 🌟 Third Grade Games
 
-Two offline-friendly Arabic (RTL) learning games for Grade 3 (Saudi curriculum, term 1):
+Three offline-friendly Arabic (RTL) learning games for Grade 3 (Saudi curriculum, term 1):
 
 - **maths/** — برج ماريا 🏙️ (36 lessons, star shop, tower building)
 - **science/** — مغامرة العالمة ماريا 🌱 (12 lessons, badges, farm)
