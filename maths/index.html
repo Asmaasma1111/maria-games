@@ -83,7 +83,7 @@ footer{text-align:center;font-size:12px;color:#93A0B7;margin-top:26px}footer but
 <div id="app">
  <div id="top"><button id="backB" style="visibility:hidden" onclick="goMap()">🏡 الخريطة</button><button id="sndB" onclick="toggleSound()" style="font-size:18px">🔊</button><span>⭐ <span id="stars">0</span></span></div>
  <div id="stage"></div>
- <footer>الرِّياضيَّات · الصَّفّ الثَّالث · الفصل الدِّراسيّ الأوَّل<br><button onclick="exLog()">📊 سجل الاختبارات</button> · <button onclick="exportProgress()">حفظ نسخة</button> · <button onclick="importProgress()">استرجاع نسخة</button> · <button onclick="hardReset()">بداية جديدة (يمسح التَّقدُّم)</button></footer>
+ <footer>الرِّياضيَّات · الصَّفّ الثَّالث · الفصل الدِّراسيّ الأوَّل<br><button onclick="profAsk(true)">👧 تغيير الاسم</button> · <button onclick="exLog()">📊 سجل الاختبارات</button> · <button onclick="exportProgress()">حفظ نسخة</button> · <button onclick="importProgress()">استرجاع نسخة</button> · <button onclick="hardReset()">بداية جديدة (يمسح التَّقدُّم)</button></footer>
 <input type="file" id="impF" accept=".json,application/json" style="display:none">
 </div>
 <div id="ovl"><div class="inner"></div></div><div id="toast"></div>
@@ -223,19 +223,40 @@ const N_TEST=8,N_THINK=4;
 const DECOR=[{id:'flag',n:'علم على القمَّة',ic:'🚩',p:10},{id:'garden',n:'حديقة أمام البُرج',ic:'🌳',p:15},{id:'lights',n:'أضواء النَّوافذ',ic:'💡',p:20},{id:'cat',n:'قطَّة على السَّطح',ic:'🐈',p:25},{id:'balloon',n:'منطاد',ic:'🎈',p:30},{id:'tele',n:'مرصد للنُّجوم',ic:'🔭',p:40}];
 
 /* ============ state ============ */
+const SKEY_BASE='maria_math_t1';const SKEY=()=>SKEY_BASE+profSuffix();
+/* ==================== 👧 الملف الشخصي (اسم اللاعبة وتقدّمها على هذا الجهاز) ==================== */
+const PROF_KEY='maria_games_profile';let PROFILE=null;try{PROFILE=JSON.parse(localStorage.getItem(PROF_KEY)||'null');}catch(e){}
+function profName(){return (PROFILE&&PROFILE.name)||'ماريا';}
+function profSuffix(){return PROFILE&&PROFILE.name&&PROFILE.name!=='ماريا'?'::'+PROFILE.name:'';}
+function profURL(){return '/progress?u='+encodeURIComponent(profName());}
+function profSub(v){const n=profName();return n==='ماريا'?v:String(v).replace(/ماريا/g,n);}
+(function(){try{const d=Object.getOwnPropertyDescriptor(Element.prototype,'innerHTML');const hook=el=>{if(!el)return;Object.defineProperty(el,'innerHTML',{set(v){d.set.call(this,profSub(v));},get(){return d.get.call(this);},configurable:true});};hook(document.getElementById('stage'));hook(document.querySelector('#ovl .inner'));
+ const td=Object.getOwnPropertyDescriptor(Node.prototype,'textContent');const t=document.getElementById('toast');if(t)Object.defineProperty(t,'textContent',{set(v){td.set.call(this,profSub(v));},get(){return td.get.call(this);},configurable:true});document.title=profSub(document.title);}catch(e){}})();
+function profKnown(base){const names=new Set();try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith(base+'::'))names.add(k.slice(base.length+2));}if(localStorage.getItem(base))names.add('ماريا');}catch(e){}if(PROFILE&&PROFILE.name)names.add(PROFILE.name);return [...names];}
+function profAsk(change){document.getElementById('backB').style.visibility=change?'visible':'hidden';const known=profKnown(SKEY_BASE);const cur=PROFILE?PROFILE.name:'';
+ stage.innerHTML=`<div class="card"><div class="big">👧✨</div><h1 style="font-size:22px">${change?'تغيير الاسم':'أهلًا بكِ يا بطلة!'}</h1>
+  <p class="sub">${change?'اكتبي اسمًا جديدًا، أو اختاري اسمًا محفوظًا على هذا الجهاز. لكل اسم تقدّمه ونجومه الخاصة.':'اكتبي اسمكِ مرة واحدة فقط؛ سيبقى محفوظًا على هذا الجهاز، وتُكملين دائمًا من حيث توقّفتِ.'}</p>
+  <input id="pname" maxlength="20" placeholder="اسمكِ هنا…" value="${cur.replace(/"/g,'')}" style="font-family:inherit;font-size:22px;font-weight:800;text-align:center;width:100%;max-width:320px;border:2px solid #C9D2DE;border-radius:16px;padding:10px 14px;margin:6px 0 10px;background:#fff">
+  ${known.length?`<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:10px">${known.map(n=>`<button style="font-size:14px;padding:6px 14px" onclick="document.getElementById('pname').value=${JSON.stringify(n)}">👧 ${n}</button>`).join('')}</div>`:''}
+  <button class="go" onclick="profSave()">${change?'احفظي ✔':'هيا نبدأ ✨'}</button>${change?'<div style="height:8px"></div><button onclick="goMap()">رجوع</button>':''}</div>`;
+ const inp=document.getElementById('pname');inp.onkeydown=e=>{if(e.key==='Enter')profSave();};if(!change)setTimeout(()=>inp.focus(),200);window.scrollTo({top:0});}
+function profSave(){const inp=document.getElementById('pname');const n=(inp.value||'').trim().replace(/\s+/g,' ');if(!n){inp.classList.add('wrong');inp.style.borderColor='#E39B9B';setTimeout(()=>inp.classList.remove('wrong'),400);return;}
+ PROFILE={name:n,d:new Date().toISOString()};try{localStorage.setItem(PROF_KEY,JSON.stringify(PROFILE));}catch(e){}location.reload();}
+function profBoot(){if(PROFILE){goMap();serverLoad();}else profAsk(false);}
+
 let ST={stars:0,before:[],after:[],think:[],bought:[]};
-function load(){try{const s=localStorage.getItem('maria_math_t1');if(s)ST={...ST,...JSON.parse(s)};}catch(e){}}
-function save(){try{localStorage.setItem('maria_math_t1',JSON.stringify(ST));}catch(e){}serverSave();}
+function load(){try{const s=localStorage.getItem(SKEY());if(s)ST={...ST,...JSON.parse(s)};}catch(e){}}
+function save(){try{localStorage.setItem(SKEY(),JSON.stringify(ST));}catch(e){}serverSave();}
 let __sv=null;
-function serverSave(){clearTimeout(__sv);__sv=setTimeout(()=>{try{fetch('/progress',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(ST)}).catch(()=>{});}catch(e){}},250);}
+function serverSave(){clearTimeout(__sv);__sv=setTimeout(()=>{try{fetch(profURL(),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(ST)}).catch(()=>{});}catch(e){}},250);}
 function mergeST(a,b){const u=(x,y)=>Array.from(new Set([...(x||[]),...(y||[])]));const m={...a,...b};m.stars=Math.max(+a.stars||0,+b.stars||0);['before','after','think','bought'].forEach(k=>m[k]=u(a[k],b[k]));m.exams=exMergeAttempts(a.exams,b.exams);return m;}
-function serverLoad(){try{fetch('/progress').then(r=>r.ok?r.json():null).then(j=>{if(!j||typeof j!=='object'||Array.isArray(j))return;ST=mergeST(ST,j);try{localStorage.setItem('maria_math_t1',JSON.stringify(ST))}catch(e){};drawStars();applySound();if(cur===-1)goMap();}).catch(()=>{});}catch(e){}}
+function serverLoad(){try{fetch(profURL()).then(r=>r.ok?r.json():null).then(j=>{if(!j||typeof j!=='object'||Array.isArray(j))return;ST=mergeST(ST,j);try{localStorage.setItem(SKEY(),JSON.stringify(ST))}catch(e){};drawStars();applySound();if(cur===-1)goMap();}).catch(()=>{});}catch(e){}}
 function sndOn(){return ST.sound!==false;}
 function applySound(){const b=document.getElementById('sndB');if(b)b.textContent=sndOn()?'\u{1F50A}':'\u{1F507}';}
 function toggleSound(){ST.sound=sndOn()?false:true;save();applySound();}
 function exportProgress(){const blob=new Blob([JSON.stringify(ST,null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='maria-maths-progress.json';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},600);}
 function importProgress(){const f=document.getElementById('impF');f.value='';f.onchange=()=>{const file=f.files[0];if(!file)return;const rd=new FileReader();rd.onload=()=>{try{const j=JSON.parse(rd.result);if(!j||typeof j!=='object'||Array.isArray(j))throw 0;ST=mergeST(ST,j);save();drawStars();applySound();alert('\u062a\u0645\u064e\u0651 \u0627\u0633\u062a\u0631\u062c\u0627\u0639 \u0627\u0644\u0646\u064f\u0651\u0633\u062e\u0629 \u0628\u0646\u062c\u0627\u062d! \u{1F31F}');goMap();}catch(e){alert('\u0627\u0644\u0645\u0644\u0641\u064f\u0651 \u063a\u064a\u0631 \u0635\u0627\u0644\u062d.');}};rd.readAsText(file);};f.click();}
-function hardReset(){if(confirm('هل تُريدين البدء من جديد؟ سيُمسح كلّ التَّقدُّم.')){ST={stars:0,before:[],after:[],think:[],bought:[]};try{localStorage.removeItem('maria_math_t1')}catch(e){}try{fetch('/progress',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(ST)}).catch(()=>{}).finally(()=>location.reload());setTimeout(()=>location.reload(),800);}catch(e){location.reload();}}}
+function hardReset(){if(confirm('هل تُريدين البدء من جديد؟ سيُمسح كلّ التَّقدُّم.')){ST={stars:0,before:[],after:[],think:[],bought:[]};try{localStorage.removeItem(SKEY())}catch(e){}try{fetch(profURL(),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(ST)}).catch(()=>{}).finally(()=>location.reload());setTimeout(()=>location.reload(),800);}catch(e){location.reload();}}}
 load();
 const stage=document.getElementById('stage');let Q=[],qi=0,cur=-1;
 function drawStars(){document.getElementById('stars').textContent=A(ST.stars);}
@@ -624,30 +645,39 @@ function exBuild(lessons,short){const plan=short?EXAM_CFG.plan10:EXAM_CFG.plan20
   if(tfx.length)secs.push({t:'tf',title:XTITLE.tf,items:tfx.map(it=>Object.assign({},it,{m:1})),marks:tfx.length});}
  return secs;}
 
+/* ---------- النماذج الثابتة ---------- */
+function exNorm(it){it=Object.assign({},it);if(it.t==='label'&&!it.targets&&EXAM_CFG.label)it=Object.assign(it,EXAM_CFG.label(it.fig,it));return it;}
+function exPaperBest(id){const A=(ST.exams||[]).filter(a=>a.pid===id);if(!A.length)return null;return A.reduce((b,a)=>a.m>b.m?a:b);}
+function exStartPaper(id){const P=(typeof EXAM_PAPERS!=='undefined'?EXAM_PAPERS:[]).find(x=>x.id===id);if(!P)return;
+ EX.kind=P.kind;EX.short=false;EX.pid=P.id;EX.pname=P.name;
+ EX.sec=P.secs.map(sec=>{const items=sec.items.map(it=>Object.assign(exNorm(it),{m:sec.m}));const o={t:sec.t,title:sec.title||XTITLE[sec.t],items,marks:items.length*sec.m};if(sec.t==='passage'){o.text=sec.text;o.L=sec.L;}return o;});
+ EX.ans=EX.sec.map(s=>s.items.map(()=>null));EX.on=true;
+ EX.left=15*60;clearInterval(EX.timer);EX.timer=setInterval(()=>{EX.left--;const t=document.getElementById('xtimer');if(t)t.textContent='⏱ '+XAR(String(Math.floor(EX.left/60)).padStart(2,'0'))+':'+XAR(String(EX.left%60).padStart(2,'0'));if(EX.left<=0){clearInterval(EX.timer);exSubmit(true);}},1000);
+ exRender();}
+
 /* ---------- اختيار نوع الاختبار ---------- */
 function exChoose(){EX.on=false;document.getElementById('backB').style.visibility='visible';if(typeof cur!=='undefined')cur=-1;if(typeof curLesson!=='undefined')curLesson=-1;
- const n=EXAM_CFG.nLessons,half=Math.ceil(n/2);const done=ST.after||[];
+ const n=EXAM_CFG.nLessons,half=Math.ceil(n/2);const done=ST.after||[];const PAP=(typeof EXAM_PAPERS!=='undefined'?EXAM_PAPERS:[]);
  const kinds=[{k:'p1',n:'اختبار الفترة الأولى',rng:[...Array(half).keys()]},{k:'p2',n:'اختبار الفترة الثانية',rng:[...Array(n-half).keys()].map(i=>i+half)},{k:'fin',n:'اختبار نهاية الفصل',rng:[...Array(n).keys()]}];
- stage.innerHTML=`${chip('📝 اختبار تجريبي')}<div class="card"><div class="big">📝✏️</div><h1 style="font-size:22px">اختبار تجريبي في ${EXAM_CFG.subject}</h1>
-  <p class="sub">ورقة مثل ورقة المدرسة: ${XAR(20)} درجة و ${XAR(15)} دقيقة. لا نجوم ولا أصوات أثناء الاختبار، وفي النهاية ورقة مصحّحة واحتفال 🎉</p>
-  ${kinds.map(K=>{const el=K.rng.filter(i=>done.includes(i));const ok=el.length>=EXAM_CFG.minLessons;const some=el.length>0;
+ stage.innerHTML=`${chip('📝 اختبار تجريبي')}<div class="card"><div class="big">📝✏️</div><h1 style="font-size:22px">اختبارات ${EXAM_CFG.subject} التجريبية</h1>
+  <p class="sub">كل ورقة مثل ورقة المدرسة: ${XAR(20)} درجة و ${XAR(15)} دقيقة. لا نجوم ولا أصوات أثناء الاختبار، وفي النهاية تظهر الدرجة فورًا ثم الورقة المصحّحة 🎉</p>
+  ${kinds.map(K=>{const el=K.rng.filter(i=>done.includes(i));const few=el.length<Math.ceil(K.rng.length/2);const papers=PAP.filter(p=>p.kind===K.k);
    return `<div style="background:#F7F9FC;border:2px solid #E1E7F0;border-radius:16px;padding:12px;margin:10px 0;text-align:right">
-    <b style="font-size:17px">${K.n}</b><div style="font-size:13px;color:#5B6B85;margin:4px 0 8px">الدروس المنجزة (بعد الحصة): ${XAR(el.length)} من ${XAR(K.rng.length)}</div>
-    ${ok?`<button class="go" style="font-size:15px;padding:9px 22px" onclick="exStart('${K.k}',${JSON.stringify(el)},false)">ابدئي الورقة الكاملة (${XAR(20)} درجة)</button>`
-      :some?`<div style="font-size:13.5px;color:#9A3B3B;margin-bottom:6px">أنجزتِ ${XAR(el.length)} من الدروس فقط؛ الورقة الكاملة تحتاج ${XAR(EXAM_CFG.minLessons)} دروس على الأقل.</div><button style="font-size:14px;padding:8px 18px" onclick="exStart('${K.k}',${JSON.stringify(el)},true)">ورقة قصيرة من الدروس المنجزة (${XAR(10)} درجات)</button>`
-      :`<div style="font-size:13.5px;color:#9A3B3B">أنهي درسًا واحدًا على الأقل (✏️ بعد الحصة) من هذه الفترة أولًا.</div>`}
+    <b style="font-size:17px">${K.n}</b><div style="font-size:13px;color:#5B6B85;margin:4px 0 8px">الدروس المنجزة (✏️ بعد الحصة): ${XAR(el.length)} من ${XAR(K.rng.length)}${few?' · <span style="color:#9A7A17">يُفضَّل إكمال دروس هذه الفترة أولًا</span>':''}</div>
+    ${papers.map(p=>{const b=exPaperBest(p.id);return `<div style="display:flex;align-items:center;gap:8px;margin:6px 0;flex-wrap:wrap"><button class="go" style="font-size:14px;padding:8px 16px" onclick="exStartPaper('${p.id}')">${b?'🔁 ':'📄 '}${p.name}</button><span style="font-size:13px;color:${b?'#227A63':'#9AA9BE'}">${b?'أفضل درجة: '+XAR(b.m)+' / '+XAR(b.max)+' ✓':'لم تُحلّ بعد'}</span></div>`;}).join('')}
+    ${el.length?`<div style="margin-top:6px"><button style="font-size:13px;padding:7px 14px" onclick="exStart('${K.k}',${JSON.stringify(el)},${el.length<EXAM_CFG.minLessons})">🎲 ورقة عشوائية جديدة من الدروس المنجزة (${XAR(el.length<EXAM_CFG.minLessons?10:20)} درجة)</button></div>`:''}
    </div>`;}).join('')}
   <button onclick="goMap()" style="margin-top:6px">الخريطة 🏡</button></div>`;window.scrollTo({top:0});}
 
 /* ---------- بدء الورقة ---------- */
-function exStart(kind,lessons,short){EX.kind=kind;EX.short=!!short;EX.sec=exBuild(lessons,short);EX.ans=EX.sec.map(s=>s.items.map(()=>null));EX.on=true;
+function exStart(kind,lessons,short){EX.kind=kind;EX.short=!!short;EX.pid=null;EX.pname=null;EX.sec=exBuild(lessons,short);EX.ans=EX.sec.map(s=>s.items.map(()=>null));EX.on=true;
  EX.left=15*60;clearInterval(EX.timer);EX.timer=setInterval(()=>{EX.left--;const t=document.getElementById('xtimer');if(t)t.textContent='⏱ '+XAR(String(Math.floor(EX.left/60)).padStart(2,'0'))+':'+XAR(String(EX.left%60).padStart(2,'0'));if(EX.left<=0){clearInterval(EX.timer);exSubmit(true);}},1000);
  exRender();}
 function exKindName(k){return k==='p1'?'اختبار الفترة الأولى':k==='p2'?'اختبار الفترة الثانية':'اختبار نهاية الفصل';}
 function exRender(){const total=EX.sec.reduce((a,s)=>a+s.marks,0);
  let html=`<div class="xpaper">
   <div class="xhead"><div><b>الصف:</b> الثالث الابتدائي</div><div><b>المادة:</b> ${EXAM_CFG.subject}</div><div><b>اسم الطالبة:</b> ماريا</div><div><b>الدرجة:</b> ____ / ${XAR(total)}</div></div>
-  <div class="xtitle">${exKindName(EX.kind)} · الفصل الدراسي الأول <span id="xtimer" class="xtimer">⏱ ١٥:٠٠</span></div>`;
+  <div class="xtitle">${EX.pname||exKindName(EX.kind)} · الفصل الدراسي الأول </div><div class="xfloat"><span id="xtimer" class="xtimer">⏱ ١٥:٠٠</span></div>`;
  EX.sec.forEach((s,si)=>{html+=`<div class="xsec"><div class="xsech">السؤال ${XORD[si]||XAR(si+1)}: ${s.title} <span class="xmarks">(${XAR(s.marks)} ${s.marks===1?'درجة':s.marks===2?'درجتان':s.marks<=10?'درجات':'درجة'})</span></div>`;
   if(s.t==='passage')html+=`<div class="xpass">${xesc(s.text)}</div>`;
   s.items.forEach((it,ii)=>{html+=`<div class="xitem" id="xi_${si}_${ii}">${exItemHtml(it,si,ii)}</div>`;});
@@ -673,7 +703,7 @@ function exItemHtml(it,si,ii){const id=`${si}_${ii}`;const num=`<span class="xn"
    <div class="xstep"><b>٢ أخطط:</b> أي عملية أستعمل؟ <div class="xopts xplan">${['جمع','طرح','تقدير بالتقريب'].map((o,k)=>`<button data-p="${k}">${o}</button>`).join('')}</div></div>
    <div class="xstep"><b>٣ أحل:</b><div class="xnum"><div class="xdisp">&nbsp;</div><div class="xkb">${[1,2,3,4,5,6,7,8,9].map(d=>`<button data-d="${d}">${XAR(d)}</button>`).join('')}<button data-d="del">⌫</button><button data-d="0">٠</button><button data-d="clr">مسح</button></div></div></div>
    <div class="xstep"><b>٤ أتحقق:</b> هل الجواب معقول؟ <button class="xchk" style="font-size:13px;padding:5px 12px">راجعتُ جوابي ✔</button></div></div>`;
- case 'dictation':return `${num}<div class="xq">اقرئي الجملة جيدًا؛ ستختفي بعد ${XAR(10)} ثوانٍ، ثم اكتبيها كما هي.</div><div class="xdict"><div class="xdtext">${xesc(it.text)}</div><div class="xdcount">⏳ ${XAR(10)}</div></div><textarea class="xta" placeholder="اكتبي الجملة هنا بعد اختفائها…" disabled></textarea>`;
+ case 'dictation':return `${num}<div class="xq">اقرئي الجملة جيدًا؛ ستختفي بعد ${XAR(30)} ثانية، ثم اكتبيها كما هي.</div><div class="xdict"><div class="xdtext">${xesc(it.text)}</div><div class="xdcount">⏳ ${XAR(30)}</div></div><textarea class="xta" placeholder="اكتبي الجملة هنا بعد اختفائها…" disabled></textarea>`;
  default:return `${num}<div class="xq">${xesc(it.q||'')}</div>`;}}
 
 /* ---------- ربط التفاعل وتخزين الإجابات ---------- */
@@ -705,7 +735,7 @@ function exBind(it,si,ii){const el=document.getElementById(`xi_${si}_${ii}`);if(
  case 'short':el.querySelector('.xta').oninput=e=>set(e.target.value);break;
  case 'num':case 'word':{let v='';const disp=el.querySelector('.xdisp');el.querySelectorAll('.xkb button').forEach(b=>b.onclick=()=>{const d=b.dataset.d;if(d==='del')v=v.slice(0,-1);else if(d==='clr')v='';else if(v.length<6)v+=d;disp.textContent=v?XAR(v):' ';set(v);});
   if(it.t==='word'){el.querySelectorAll('.xplan button').forEach(b=>b.onclick=()=>{el.querySelectorAll('.xplan button').forEach(x=>x.classList.remove('xsel'));b.classList.add('xsel');});const c=el.querySelector('.xchk');c.onclick=()=>c.classList.toggle('xsel');}break;}
- case 'dictation':{let n=10;const cnt=el.querySelector('.xdcount'),tx=el.querySelector('.xdtext'),ta=el.querySelector('.xta');const iv=setInterval(()=>{n--;cnt.textContent='⏳ '+XAR(n);if(n<=0){clearInterval(iv);tx.textContent='(اختفت الجملة… اكتبيها الآن ✍️)';tx.classList.add('xhidden');cnt.textContent='';ta.disabled=false;ta.focus();}},1000);ta.oninput=e=>set(e.target.value);break;}}}
+ case 'dictation':{let n=30;const cnt=el.querySelector('.xdcount'),tx=el.querySelector('.xdtext'),ta=el.querySelector('.xta');const iv=setInterval(()=>{n--;cnt.textContent='⏳ '+XAR(n);if(n<=0){clearInterval(iv);tx.textContent='(اختفت الجملة… اكتبيها الآن ✍️)';tx.classList.add('xhidden');cnt.textContent='';ta.disabled=false;ta.focus();}},1000);ta.oninput=e=>set(e.target.value);break;}}}
 
 /* ---------- التصحيح ---------- */
 function exGrade(it,v){const m=it.m||1;const R=(got,c,g)=>({got:Math.round(got*2)/2,max:m,c,g,q:it.q||it.text||''});
@@ -726,17 +756,17 @@ function exSubmit(auto){if(!EX.on)return;if(!auto){const empty=EX.ans.flat().fil
  const total=EX.sec.reduce((a,s)=>a+s.marks,0);let mark=0,stars=0;const rows=[];
  EX.sec.forEach((s,si)=>s.items.forEach((it,ii)=>{const r=exGrade(it,EX.ans[si][ii]);mark+=r.got;if(r.got>=r.max)stars++;const Lname=EXAM_CFG.lessonName(it.L);rows.push(Object.assign(r,{ok:r.got>=r.max,tag:Lname,type:it.t}));}));
  mark=Math.round(mark*2)/2;
- const attempt={d:new Date().toISOString(),k:EX.kind,short:EX.short,m:mark,max:total,stars,missed:rows.filter(r=>!r.ok).map(r=>({q:r.q.slice(0,120),c:String(r.c).slice(0,140),g:String(r.g).slice(0,140),tag:r.tag,type:r.type}))};
+ const attempt={d:new Date().toISOString(),k:EX.kind,pid:EX.pid||null,pn:EX.pname||null,short:EX.short,m:mark,max:total,stars,missed:rows.filter(r=>!r.ok).map(r=>({q:r.q.slice(0,120),c:String(r.c).slice(0,140),g:String(r.g).slice(0,140),tag:r.tag,type:r.type}))};
  if(!Array.isArray(ST.exams))ST.exams=[];ST.exams.push(attempt);save();
- exShowCorrected(rows,mark,total,stars);}
+ EX.last={rows,mark,total,stars};exCelebrate(mark,total,stars);}
 function exShowCorrected(rows,mark,total,stars){const wrong=rows.filter(r=>!r.ok);
  stage.innerHTML=`<div class="xpaper"><div class="xtitle">📄 الورقة المصحّحة · الدرجة: <b>${XAR(mark)}</b> / ${XAR(total)}</div>
   ${wrong.length?`<p style="font-size:14px;color:#5B6B85;margin:6px 0 10px">هذه الأسئلة راجعيها مع ماما (إجابتكِ ← الصحيح):</p>`+wrong.map(r=>`<div class="xwrong"><div class="xq">${xesc(r.q)}</div><div class="xgiven">✗ إجابتكِ: ${xesc(r.g)}</div><div class="xcorrect">✓ الصحيح: ${xesc(r.c)}</div><div class="xtagl">📚 ${xesc(r.tag)}</div></div>`).join(''):`<p style="font-size:17px;text-align:center;margin:14px 0">كل الإجابات صحيحة! 🌟 ورقة كاملة!</p>`}
-  <div style="text-align:center;margin-top:14px"><button class="go" onclick="exCelebrate(${mark},${total},${stars})">شاهدي نتيجتكِ 🎉</button></div></div>`;window.scrollTo({top:0});}
-function exCelebrate(mark,total,stars){if(stars>0)addStar(stars);try{applause(mark>=total*0.75);tada();confetti();}catch(e){}
+  <div style="text-align:center;margin-top:14px"><button class="go" onclick="goMap()">الخريطة 🏡</button> <button onclick="exLog()" style="font-size:14px">📊 السجل</button></div></div>`;window.scrollTo({top:0});}
+function exCelebrate(mark,total,stars){if(stars>0)addStar(stars);try{applause(mark>=total*0.75);tada();confetti();}catch(e){}const wrongN=(EX.last&&EX.last.rows)?EX.last.rows.filter(r=>!r.ok).length:0;
  const pct=mark/total;const msg=pct>=0.9?'ممتازة يا ماريا! ورقة تفتخر بها 🏆':pct>=0.7?'أحسنتِ يا ماريا! نتيجة جميلة 🌟':pct>=0.5?'جيدة! راجعي الأسئلة المصحّحة وستكونين أفضل 💪':'لا بأس يا بطلة، المراجعة مع ماما ستصنع الفرق 🌱';
  stage.innerHTML=`<div class="card"><div class="big">🎉📝</div><h1>${XAR(mark)} من ${XAR(total)}</h1><p class="sub">${msg}</p><p class="sub">⭐ كسبتِ ${XAR(stars)} ${stars===1?'نجمة':stars===2?'نجمتين':stars<=10?'نجوم':'نجمة'} (نجمة لكل إجابة صحيحة)</p>
-  <button class="go" onclick="goMap()">الخريطة 🏡</button><div style="height:8px"></div><button onclick="exLog()" style="font-size:14px">📊 سجل الاختبارات</button></div>`;window.scrollTo({top:0});}
+  <button class="go" onclick="exShowCorrected(EX.last.rows,EX.last.mark,EX.last.total,EX.last.stars)">${wrongN?'شاهدي الورقة المصحّحة ('+XAR(wrongN)+') 📄':'شاهدي الورقة 📄'}</button><div style="height:8px"></div><button onclick="goMap()">الخريطة 🏡</button> <button onclick="exLog()" style="font-size:14px">📊 السجل</button></div>`;window.scrollTo({top:0});}
 
 /* ---------- سجل الاختبارات (لوليّ الأمر) ---------- */
 function exLog(){document.getElementById('backB').style.visibility='visible';if(typeof cur!=='undefined')cur=-1;if(typeof curLesson!=='undefined')curLesson=-1;
@@ -745,19 +775,19 @@ function exLog(){document.getElementById('backB').style.visibility='visible';if(
  const fmt=d=>{try{const x=new Date(d);return XAR(x.getDate())+'/'+XAR(x.getMonth()+1)+' '+XAR(String(x.getHours()).padStart(2,'0'))+':'+XAR(String(x.getMinutes()).padStart(2,'0'));}catch(e){return '';}};
  stage.innerHTML=`${chip('📊 سجل الاختبارات · لوليّ الأمر')}<div class="card" style="text-align:right">
   <h2 style="text-align:center">📊 سجل اختبارات ماريا · ${EXAM_CFG.subject}</h2>
-  ${A.length?`<table class="xlog"><tr><th>التاريخ</th><th>الاختبار</th><th>الدرجة</th><th>أخطاء</th></tr>${A.map(a=>`<tr><td>${fmt(a.d)}</td><td>${exKindName(a.k)}${a.short?' (قصير)':''}</td><td><b>${XAR(a.m)}</b>/${XAR(a.max)}</td><td>${XAR((a.missed||[]).length)}</td></tr>`).join('')}</table>`:'<p class="sub" style="text-align:center">لا توجد محاولات بعد. ابدئي أول اختبار تجريبي من الخريطة 📝</p>'}
+  ${A.length?`<table class="xlog"><tr><th>التاريخ</th><th>الاختبار</th><th>الدرجة</th><th>أخطاء</th></tr>${A.map(a=>`<tr><td>${fmt(a.d)}</td><td>${a.pn||exKindName(a.k)}${a.short?' (قصير)':''}</td><td><b>${XAR(a.m)}</b>/${XAR(a.max)}</td><td>${XAR((a.missed||[]).length)}</td></tr>`).join('')}</table>`:'<p class="sub" style="text-align:center">لا توجد محاولات بعد. ابدئي أول اختبار تجريبي من الخريطة 📝</p>'}
   ${tags.length?`<h3 style="margin:16px 0 6px">🔎 أكثر ما تحتاج مراجعته (حسب عدد الأخطاء)</h3>${tags.map(([t,v])=>`<div class="xtagbox"><b>${xesc(t)}</b> <span style="color:#9A3B3B;font-weight:800">✗ ${XAR(v.n)}</span>${v.qs.map(q=>`<div class="xtagq">• ${xesc(q.q)}<br><span style="color:#227A63">✓ ${xesc(q.c)}</span></div>`).join('')}</div>`).join('')}`:''}
   <div style="text-align:center;margin-top:14px"><button class="go" onclick="goMap()">الخريطة 🏡</button> ${A.length?`<button onclick="if(confirm('تمسحين سجل الاختبارات؟ (لا يؤثر في النجوم والدروس)')){ST.exams=[];save();exLog();}" style="font-size:12px">مسح السجل</button>`:''}</div></div>`;window.scrollTo({top:0});}
 
 
 /* معاينة لوليّ الأمر: افتحي الرابط مع #exam-demo لعرض ورقة كاملة فورًا (لا يغيّر التقدّم) */
-if(location.hash==='#exam-demo'){setTimeout(()=>{try{exStart('fin',[...Array(EXAM_CFG.nLessons).keys()],false);}catch(e){}},400);}
+if(location.hash==='#exam-demo'){setTimeout(()=>{try{if(typeof EXAM_PAPERS!=='undefined'&&EXAM_PAPERS.length)exStartPaper(EXAM_PAPERS[Math.floor(Math.random()*EXAM_PAPERS.length)].id);else exStart('fin',[...Array(EXAM_CFG.nLessons).keys()],false);}catch(e){}},400);}
 /* ---------- ورقة الاختبار: التنسيق ---------- */
 document.head.insertAdjacentHTML('beforeend',`<style>
 .xpaper{background:#fff;border:1px solid #C9D2DE;border-radius:8px;padding:16px 14px 20px;color:#1E2A3A;text-align:right;box-shadow:0 2px 0 #C9D2DE,0 10px 24px rgba(30,42,58,.08);line-height:1.8}
 .xhead{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;border:2px solid #1E2A3A;border-radius:6px;padding:8px 12px;font-size:14px}
 .xtitle{text-align:center;font-weight:800;font-size:17px;margin:12px 0 4px;border-bottom:2px dashed #C9D2DE;padding-bottom:8px;display:flex;justify-content:center;gap:14px;align-items:center;flex-wrap:wrap}
-.xtimer{font-size:14px;font-weight:700;color:#6B7A90;background:#F2F5F9;border-radius:99px;padding:2px 12px}
+.xfloat{position:sticky;top:8px;z-index:20;display:flex;justify-content:center;pointer-events:none;margin:-4px 0 6px}.xtimer{font-size:15px;font-weight:800;color:#1E2A3A;background:#FFF9E3;border:2px solid #F0DBA0;border-radius:99px;padding:4px 16px;box-shadow:0 4px 12px rgba(30,42,58,.18)}
 .xsec{margin-top:16px}.xsech{background:#EEF2F7;border-right:5px solid #1E2A3A;padding:6px 12px;font-weight:800;font-size:15px;border-radius:4px}
 .xmarks{font-weight:700;color:#6B7A90;font-size:13px}
 .xitem{padding:10px 6px;border-bottom:1px solid #EEF2F7;font-size:15.5px}.xn{display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;border:1.5px solid #1E2A3A;border-radius:50%;font-size:12px;font-weight:800;margin-left:6px}
@@ -788,13 +818,13 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 </style>`);
 
 /* ---------- إعدادات اختبار الرياضيات ---------- */
-function exLabelPV(big){const n=big?rnd(10000,99999):rnd(1000,9999);const ds=String(n).split('');const names=big?['عشرات الألوف','الألوف','المئات','العشرات','الآحاد']:['الألوف','المئات','العشرات','الآحاد'];
+function exLabelPV(big,fixed){const n=fixed||(big?rnd(10000,99999):rnd(1000,9999));big=String(n).length>4;const ds=String(n).split('');const names=big?['عشرات الألوف','الألوف','المئات','العشرات','الآحاد']:['الألوف','المئات','العشرات','الآحاد'];
  const html=`<div class="xpv">${ds.map((d,k)=>`<div class="xtarget" data-t="${k}"><span class="xdig">${A(d)}</span><span class="xtl"></span></div>`).join('')}</div>`;
  return {t:'label',q:`العدد ${A(n)}: ضعي اسم المنزلة تحت كل رقم.`,chips:names,targets:ds.map((d,k)=>({n:A(d),c:k})),html};}
 const EXAM_CFG={subject:'الرياضيات',nLessons:L.length,minLessons:3,lessonName:i=>(L[i]||{}).name||'عام',
  plan20:[{t:'mcq',n:5,m:1},{t:'tf',n:4,m:1},{t:'num',n:4,m:1,title:'أكملي (اكتبي الناتج بلوحة الأرقام)'},{t:'order',n:1,m:2,title:'رتّبي الأعداد'},{t:'fill',n:1,m:2},{t:'label',n:1,m:1,title:'حدّدي على جدول المنازل'},{t:'word',n:1,m:2}],
  plan10:[{t:'mcq',n:3,m:1},{t:'tf',n:2,m:1},{t:'num',n:3,m:1,title:'أكملي'},{t:'word',n:1,m:2}],
- label(){return exLabelPV(false);},
+ label(fig,it){return exLabelPV(false,it&&it.num);},
  gen(Li){const l=L[Li];if(!l)return [];const out=[];const strip=s=>String(s).replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
   for(let k=0;k<4;k++){let s;try{s=l.g('test');}catch(e){break;}if(!s)break;
    if(s.t==='num'&&s.q)out.push({t:'num',q:strip(s.q),ans:s.ans});
@@ -807,7 +837,143 @@ const EXAM_CFG={subject:'الرياضيات',nLessons:L.length,minLessons:3,less
   if([9,10].includes(Li)){const a=rnd(21,49),b=rnd(21,49);const r=x=>Math.round(x/10)*10;out.push({t:'word',q:`اشترت ماريا كتابًا بـ ${A(a)} ريالًا ودفترًا بـ ${A(b)} ريالًا. كم ريالًا دفعت تقريبًا؟`,ans:r(a)+r(b),why:`${A(r(a))} + ${A(r(b))} = ${A(r(a)+r(b))}`});}
   return out;}};
 
-drawStars();goMap();applySound();serverLoad();
+/* ===================== نماذج اختبارات الرياضيات الثابتة (٦ نماذج · ٢٠ درجة) =====================
+   مبنية من الأوراق الحقيقية ومن اختبارات الفصل في كتاب الطالبة (اختبار منتصف الفصل، اختبار الفصل، الاختبار التراكمي). */
+const EXAM_PAPERS=[
+{id:'m-p1-a',kind:'p1',name:'اختبار الفترة الأولى (١)',secs:[
+ {t:'mcq',m:1,items:[
+  {L:0,t:'mcq',q:'العدد المناسب في الفراغ في النمط التالي ٣ ، ٦ ، ..... ، ١٢ هو:',o:['٥','٧','٨','٩'],a:3},
+  {L:2,t:'mcq',q:'كيف يكتب العدد (خمسة آلاف وثلاث مئة وتسعة عشر) بالصيغة القياسية؟',o:['٥١٩٣','٥٣٠٩','٥٣١٩','٥٣٩١'],a:2},
+  {L:3,t:'mcq',q:'ما الرقم الذي يقع في منزلة عشرات الألوف في العدد ٩٢١٠٨؟',o:['٠','١','٢','٩'],a:3},
+  {L:6,t:'mcq',q:'أي الأعداد التالية يمثل تقريبًا للعدد ٣٧٣٧ إلى أقرب عشرة؟',o:['٣٧٤٠','٣٧٨٠','٣٨٠٠','٤٠٠٠'],a:0},
+  {L:8,t:'mcq',q:'الخاصية المستعملة في الجملة العددية (٢٣ + ١٤ = ١٤ + ٢٣) هي خاصية:',o:['الإبدال','التجميع','العنصر المحايد'],a:0}]},
+ {t:'tf',m:1,items:[
+  {L:2,t:'tf',q:'العدد ٣٥٧٨ مكتوب بالصيغة القياسية.',a:true},
+  {L:2,t:'tf',q:'الصيغة التحليلية هي كتابة العدد بالكلمات.',a:false},
+  {L:4,t:'tf',q:'٨٥٤١ > ٨٤١٥',a:true},
+  {L:7,t:'tf',q:'عندما نقرب العدد ٣٦٨٢ إلى أقرب ألف يصبح ٤٠٠٠.',a:true}]},
+ {t:'num',m:1,title:'أكملي (اكتبي الناتج بلوحة الأرقام)',items:[
+  {L:0,t:'num',q:'أحدد النمط ثم أكتب العدد المناسب: ٥ ، ١٠ ، ١٥ ، ٢٠ ، ◯ ، ٣٠',ans:25},
+  {L:6,t:'num',q:'قربي ٦٨١ إلى أقرب مئة:',ans:700},
+  {L:11,t:'num',q:'أوجدي ناتج: ٢٣ + ٤٧ =',ans:70},
+  {L:13,t:'num',q:'أوجدي ناتج: ٣٦٥ + ١٥٢ =',ans:517}]},
+ {t:'order',m:2,title:'رتّبي الأعداد',items:[{L:5,t:'order',q:'رتبي الأعداد التالية من الأصغر إلى الأكبر:',seq:['٤٤٠٨','٤٨٠٤','٨٤٤٠']}]},
+ {t:'fill',m:2,items:[{L:8,t:'fill',q:'اكتبي العدد المناسب في ◯ وحددي الخاصية:',bank:['٠','٣','العنصر المحايد','الإبدال'],items:[['٥ + ٣ = ◯ + ٥ ← العدد','٣'],['٥ + ٣ = ٣ + ٥ ← الخاصية','الإبدال'],['٢ + ◯ = ٢ ← العدد','٠'],['٢ + ٠ = ٢ ← الخاصية','العنصر المحايد']]}]},
+ {t:'label',m:1,title:'حدّدي على جدول المنازل',items:[{L:2,t:'label',fig:'pv',num:3720,q:'العدد ٣٧٢٠: ضعي اسم المنزلة تحت كل رقم.'}]},
+ {t:'word',m:2,items:[{L:9,t:'word',q:'صرف خالد ٣٧٨ ريالًا وصرف أخوه ٢٩١ ريالًا. أقدري كم ريالًا صرف الاثنان؟',ans:700,why:'٤٠٠ + ٣٠٠ = ٧٠٠'}]}]},
+
+{id:'m-p1-b',kind:'p1',name:'اختبار الفترة الأولى (٢)',secs:[
+ {t:'mcq',m:1,items:[
+  {L:0,t:'mcq',q:'العدد التالي في النمط ٤ ، ١٠ ، ١٦ ، ٢٢ ، ٢٨ ، ٣٤ ، ...:',o:['٣٨','٤٠','٤٢','٤٤'],a:1},
+  {L:2,t:'mcq',q:'في مزرعة عبدالله ١٣٧٢ نخلة، أي مما يلي يساوي ١٣٧٢؟',o:['١ + ٣ + ٧ + ٢','١ + ٣٠ + ٧٠ + ٢٠٠','٢ + ٧٠ + ٣٠٠ + ١٠٠٠'],a:2},
+  {L:3,t:'mcq',q:'بلغ عدد الطلاب خمسة وثلاثين ألفًا وثلاث مئة وسبعة، أي الخيارات يمثل هذا العدد؟',o:['٣٥٧٣٠','٣٥٣٧٠','٣٥٧٠٣','٣٥٣٠٧'],a:3},
+  {L:8,t:'mcq',q:'العدد الذي يجعل الجملة العددية (٧ + ٢) + ٩ = ◯ صحيحة:',o:['١٨','٢٣','٨١','١٢٦'],a:0},
+  {L:9,t:'mcq',q:'باع مقصف المدرسة ٦٤ شطيرة في الاستراحة الأولى، و ٢٩ شطيرة في الاستراحة الثانية، فما عدد الشطائر التي باعها؟',o:['٩٠','٩٣','١٠٣','١١٣'],a:1}]},
+ {t:'tf',m:1,items:[
+  {L:4,t:'tf',q:'٩ + ٨٠ + ٥٠٠ = ٥٨٩',a:true},
+  {L:8,t:'tf',q:'تغيير الترتيب في عملية الجمع لا يغير ناتج الجمع.',a:true},
+  {L:2,t:'tf',q:'العدد ٤١٩٨ مكتوب بالصيغة اللفظية.',a:false},
+  {L:9,t:'tf',q:'الأعداد المتقاربة هي الأعداد التي يسهل التعامل معها عند جمعها.',a:true}]},
+ {t:'num',m:1,title:'أكملي (اكتبي الناتج بلوحة الأرقام)',items:[
+  {L:0,t:'num',q:'أحدد النمط ثم أكتب العدد المناسب: ١٣ ، ◯ ، ١٧ ، ١٩ ، ٢١ ، ٢٣',ans:15},
+  {L:7,t:'num',q:'قربي ٦٦٣٩ إلى أقرب ألف:',ans:7000},
+  {L:9,t:'num',q:'قدري ناتج الجمع بالتقريب: ٥٤ + ٢٩',ans:80},
+  {L:13,t:'num',q:'أوجدي ناتج: ٢٨١ + ٦٧٤ =',ans:955}]},
+ {t:'order',m:2,title:'رتّبي الأعداد',items:[{L:5,t:'order',q:'تبرعات: صالح ٢٣٠٨ ، عمار ٢٨٠٣ ، أمجد ٢٠٨٣. رتبي المبالغ من الأكبر إلى الأصغر:',seq:['٢٨٠٣','٢٣٠٨','٢٠٨٣']}]},
+ {t:'fill',m:2,items:[{L:8,t:'fill',q:'اكتبي العدد المناسب في ◯ وحددي الخاصية:',bank:['٣','٧','التجميع','الإبدال'],items:[['٢ + (٧ + ◯) = (٢ + ٧) + ٣ ← العدد','٣'],['٢ + (٧ + ٣) = (٢ + ٧) + ٣ ← الخاصية','التجميع'],['◯ + ٤ = ٤ + ٧ ← العدد','٧'],['٧ + ٤ = ٤ + ٧ ← الخاصية','الإبدال']]}]},
+ {t:'label',m:1,title:'حدّدي على جدول المنازل',items:[{L:3,t:'label',fig:'pv',num:16846,q:'العدد ١٦٨٤٦: ضعي اسم المنزلة تحت كل رقم.'}]},
+ {t:'word',m:2,items:[{L:12,t:'word',q:'أقلعت طائرتان من مطار الملك خالد بالرياض، وكانت إحداهما تقل ٢٤٣ مسافرًا والأخرى ١٧٩ مسافرًا. أوجدي عدد المسافرين على الطائرتين.',ans:422,why:'٢٤٣ + ١٧٩ = ٤٢٢'}]}]},
+
+{id:'m-p2-a',kind:'p2',name:'اختبار الفترة الثانية (١)',secs:[
+ {t:'mcq',m:1,items:[
+  {L:18,t:'mcq',q:'كم يزيد سعر الجهاز الأول (١٠٨ ريالات) على سعر الجهاز الثاني (٩١ ريالًا)؟',o:['٩ ريالات','١٧ ريالًا','٢٧ ريالًا','١١٧ ريالًا'],a:1},
+  {L:15,t:'mcq',q:'أفضل تقدير لناتج طرح ٧٢١ − ٢٩٣ عند تقريب العددين إلى أقرب مئة هو:',o:['٣٠٠','٤٠٠','٥٠٠','٣٥٠'],a:1},
+  {L:21,t:'mcq',q:'جملة الضرب المناسبة للشبكة (٣ صفوف في كل صف ٥ مربعات):',o:['٤ × ٥ = ٢٠','٥ × ٣ = ١٥','٥ × ٤ = ٩'],a:1},
+  {L:22,t:'mcq',q:'أكتب ٤ × ٣ بطريقة أخرى:',o:['٣ + ٣ + ٣','٣ + ٣ + ٣ + ٣','٤ + ٤ + ٤ + ٤'],a:1},
+  {L:28,t:'mcq',q:'ما العدد الذي إذا ضربته في ٩٢٥ كان الناتج ٩٢٥؟',o:['٠','١','٢','١٠'],a:1}]},
+ {t:'tf',m:1,items:[
+  {L:14,t:'tf',q:'أبدأ دائمًا بمنزلة العشرات عندما أطرح.',a:false},
+  {L:17,t:'tf',q:'في بعض الأحيان، وقبل أن أبدأ الطرح، علي أن أعيد التجميع أكثر من مرة.',a:true},
+  {L:21,t:'tf',q:'خاصية الإبدال لعملية الضرب تعني أن تغيير ترتيب الأعداد المضروبة لا يغير الناتج.',a:true},
+  {L:25,t:'tf',q:'عندما أضرب عددًا في ٥ فسوف أحصل دائمًا على ٥ أو صفر في منزلة الآحاد.',a:true}]},
+ {t:'num',m:1,title:'أكملي (اكتبي الناتج بلوحة الأرقام)',items:[
+  {L:14,t:'num',q:'أوجدي ناتج: ٩٩ − ٦٩ =',ans:30},
+  {L:18,t:'num',q:'أوجدي ناتج: ٣٩٤ − ٢٧١ =',ans:123},
+  {L:23,t:'num',q:'أوجدي ناتج الضرب: ٤ × ٦ =',ans:24},
+  {L:25,t:'num',q:'◯ × ٧ = ٣٥ ← العدد المناسب:',ans:5}]},
+ {t:'order',m:2,title:'رتّبي الأعداد',items:[{L:5,t:'order',q:'رتبي الأعداد من الأصغر إلى الأكبر:',seq:['١١٥','١١٩','١٢٢','١٢٧']}]},
+ {t:'fill',m:2,items:[{L:20,t:'fill',q:'أحدد أي العمليتين أنسب (الجمع أم الطرح) لحل كل مسألة:',bank:['الجمع','الطرح'],items:[['ما عدد حبات اللوز (٢٣) والفستق (٣٩) معًا؟','الجمع'],['مع أحمد ٨ مجلات، أعار صديقه ٣ مجلات، فكم بقي معه؟','الطرح']]}]},
+ {t:'label',m:1,title:'حدّدي على جدول المنازل',items:[{L:2,t:'label',fig:'pv',num:6191,q:'العدد ٦١٩١: ضعي اسم المنزلة تحت كل رقم.'}]},
+ {t:'word',m:2,items:[{L:26,t:'word',q:'في مسرح المدرسة ٦ صفوف من المقاعد، في كل صف ١٠ مقاعد، فكم شخصًا يسع المسرح؟',ans:60,why:'٦ × ١٠ = ٦٠'}]}]},
+
+{id:'m-p2-b',kind:'p2',name:'اختبار الفترة الثانية (٢)',secs:[
+ {t:'mcq',m:1,items:[
+  {L:18,t:'mcq',q:'يظهر الجدول أعداد الطلاب: الصف الأول ٢١٦ ، الثالث ٢٣٣. كم يزيد عدد طلاب الصف الثالث على عدد طلاب الصف الأول؟',o:['١٧','٣٩','١٩٤','٢٣٣'],a:0},
+  {L:14,t:'mcq',q:'ما الفرق بين العددين ٩٧ ، ٦٥؟',o:['٢٣','٣٢','٣٣','١٧٢'],a:1},
+  {L:23,t:'mcq',q:'إذا كان ٩ × ٤ = ٣٦، فأجد حاصل ضرب ٤ × ٩:',o:['٢٨','٣٢','٣٦','٤٠'],a:2},
+  {L:30,t:'mcq',q:'ما العدد الذي ناتج ضربه في ٦ يساوي ٤٢؟',o:['٥','٧','٨','٩'],a:1},
+  {L:32,t:'mcq',q:'اشترى محمد ٧ قطع من نوع واحد. فإذا دفع ٤٢ ريالًا ثمنًا لها، فأي نوع مما يأتي اشترى؟',o:['قلمًا ثمنه ٦ ريالات','علبة ألوان ثمنها ٧ ريالات','حذاء ثمنه ٣٥ ريالًا'],a:0}]},
+ {t:'tf',m:1,items:[
+  {L:14,t:'tf',q:'عملية طرح الأعداد هي عملية إبدالية.',a:false},
+  {L:15,t:'tf',q:'من الكلمات التي تدل على عملية الطرح كلمة (الباقي).',a:true},
+  {L:26,t:'tf',q:'عند الضرب في العدد ١٠ يكون رقم الآحاد في الناتج صفرًا دائمًا.',a:true},
+  {L:28,t:'tf',q:'٩ × ٠ = ٩',a:false}]},
+ {t:'num',m:1,title:'أكملي (اكتبي الناتج بلوحة الأرقام)',items:[
+  {L:17,t:'num',q:'أوجدي ناتج: ٤٥٤ − ١٢٨ =',ans:326},
+  {L:19,t:'num',q:'أوجدي ناتج: ٩٠٠ − ٥٢٢ =',ans:378},
+  {L:29,t:'num',q:'أوجدي ناتج الضرب: ٣ × ٩ =',ans:27},
+  {L:33,t:'num',q:'أوجدي ناتج الضرب: ٨ × ٨ =',ans:64}]},
+ {t:'order',m:2,title:'رتّبي الأعداد',items:[{L:5,t:'order',q:'رتبي الأعداد من الأصغر إلى الأكبر:',seq:['٣٤٥','٤٣٧','٤٤٩','٦٤٥']}]},
+ {t:'fill',m:2,items:[{L:31,t:'fill',q:'أحدد النمط ثم أكمل الجدول: الأول ٢ ، الثاني ٧ ، الثالث ١٢ ، الرابع ◯ ، الخامس ◯',bank:['١٧','٢٢'],items:[['الرابع','١٧'],['الخامس','٢٢']]}]},
+ {t:'label',m:1,title:'حدّدي على جدول المنازل',items:[{L:3,t:'label',fig:'pv',num:54761,q:'العدد ٥٤٧٦١: ضعي اسم المنزلة تحت كل رقم.'}]},
+ {t:'word',m:2,items:[{L:27,t:'word',q:'يوجد أمام مجمع تجاري ساحتان لوقوف السيارات، كل منها تتكون من ٤ صفوف، يتسع كل صف منها لـ ٨ سيارات، فكم سيارة تسع هاتان الساحتان معًا؟',ans:64,why:'٤ × ٨ = ٣٢ لكل ساحة، و ٣٢ + ٣٢ = ٦٤'}]}]},
+
+{id:'m-fin-a',kind:'fin',name:'اختبار نهاية الفصل (١)',secs:[
+ {t:'mcq',m:1,items:[
+  {L:2,t:'mcq',q:'الرقم الذي يقع في منزلة المئات في العدد ٩٤٧٢ هو:',o:['٩','٢','٤','٧'],a:2},
+  {L:6,t:'mcq',q:'العدد ٨٣ مقربًا إلى أقرب عشرة يساوي:',o:['٧٠','٨٠','٩٠','١٠٠'],a:1},
+  {L:13,t:'mcq',q:'في محفظة أحمد ٢١٤ ريال وفي محفظة طارق ١٢٠ ريال. ما مجموع ما في المحفظتين؟',o:['٤٣١','٤٣٣','٣٣٤','٣٤٣'],a:2},
+  {L:18,t:'mcq',q:'في العام الماضي أنفق محمد ٦٢٥ ريالًا، وفي هذا العام أنفق ٩١٠ ريالات. فكم ريالًا أنفق هذا العام زيادة على العام الماضي؟',o:['٢٨٥','٣١٥','٣٢٥','٣٩٥'],a:0},
+  {L:21,t:'mcq',q:'رتبت هدى الأزرار في ٤ صفوف، في كل صف ٦ أزرار. العملية التي تبين كيف رتبت هدى الأزرار هي:',o:['٦ + ٤','٦ − ٤','٤ × ٦'],a:2}]},
+ {t:'tf',m:1,items:[
+  {L:2,t:'tf',q:'العدد ٩٦٠ مكتوب بالصورة القياسية.',a:true},
+  {L:8,t:'tf',q:'العنصر المحايد الجمعي هو الصفر.',a:true},
+  {L:4,t:'tf',q:'٦٤٩٥٨ > ٦٤٩٨٥',a:false},
+  {L:22,t:'tf',q:'٢ × ٥ تعني ٥ + ٥',a:true}]},
+ {t:'num',m:1,title:'أكملي (اكتبي الناتج بلوحة الأرقام)',items:[
+  {L:2,t:'num',q:'اكتبي العدد بالصيغة القياسية: ألف وخمس مئة وستة',ans:1506},
+  {L:11,t:'num',q:'أوجدي ناتج: ٥٤ + ٣٤ =',ans:88},
+  {L:14,t:'num',q:'أوجدي ناتج: ٤٩ − ٣٥ =',ans:14},
+  {L:31,t:'num',q:'أوجدي ناتج الضرب: ٧ × ٤ =',ans:28}]},
+ {t:'order',m:2,title:'رتّبي الأعداد',items:[{L:5,t:'order',q:'رتبي الأعداد التالية من الأصغر إلى الأكبر:',seq:['٢٠','٢٠٢','٢٠٠٢']}]},
+ {t:'fill',m:2,items:[{L:8,t:'fill',q:'صلي كل جملة عددية بخاصيتها:',bank:['التجميع','الإبدال','العنصر المحايد'],items:[['٢ + (٣ + ٤) = (٢ + ٣) + ٤','التجميع'],['٤ + ٧ = ٧ + ٤','الإبدال'],['٦ + ٠ = ٦','العنصر المحايد']]}]},
+ {t:'label',m:1,title:'حدّدي على جدول المنازل',items:[{L:2,t:'label',fig:'pv',num:1602,q:'العدد ١٦٠٢: ضعي اسم المنزلة تحت كل رقم.'}]},
+ {t:'word',m:2,items:[{L:20,t:'word',q:'باع طلاب المدرسة فطائر وعصيرًا في مهرجان الطبق الخيري، فكسبوا ١٢٥ ريالًا مقابل بيع الفطائر. فإذا كان مكسبهم الكلي ١٤٠ ريالًا، فكم ريالًا كسبوا من بيع العصير؟',ans:15,why:'١٤٠ − ١٢٥ = ١٥'}]}]},
+
+{id:'m-fin-b',kind:'fin',name:'اختبار نهاية الفصل (٢)',secs:[
+ {t:'mcq',m:1,items:[
+  {L:3,t:'mcq',q:'الرقم الذي يقع في منزلة عشرات الألوف في العدد ٥٤٧٦١ هو:',o:['١','٦','٥','٤'],a:2},
+  {L:9,t:'mcq',q:'لدى عادل معرض للسيارات، باع في شهر ٨٢ سيارة، وفي شهر آخر ٤٧ سيارة. أقدري مجموع السيارات التي باعها خلال الشهرين:',o:['١١٠','١٢٠','١٣٠','١٤٠'],a:2},
+  {L:16,t:'mcq',q:'مع راشد ٤٣ قلمًا. إذا أعطى أخته ١٣ قلمًا، وأعطى أخاه ١٨ قلمًا، فكم قلمًا سيبقى معه؟',o:['٥','١٢','١٣','٣٠'],a:1},
+  {L:21,t:'mcq',q:'اشترى أسامة ٤ صناديق في كل صندوق ٨ علب حليب. ما الجملة العددية التي تمثل عدد علب الحليب كلها؟',o:['٤ + ٨ = ١٢','٨ − ٤ = ٤','٤ × ٨ = ٣٢'],a:2},
+  {L:35,t:'mcq',q:'إذا كان ٣ × ٥ × ٢ = ٣٠، فما ناتج ٢ × ٣ × ٥؟',o:['١٠','٢٥','٣٠','٦٠'],a:2}]},
+ {t:'tf',m:1,items:[
+  {L:2,t:'tf',q:'الصيغة اللفظية للعدد ١٤٥ هي: مئة وخمس وأربعون.',a:true},
+  {L:6,t:'tf',q:'العدد ٤٩ مقربًا إلى أقرب عشرة يساوي ٤٠.',a:false},
+  {L:24,t:'tf',q:'في المسألة: «اشترى وليد ٥ أقلام، وأعطى أخاه قلمين، فكم ريالًا دفع؟» المعلومات ناقصة.',a:true},
+  {L:26,t:'tf',q:'٧ × ١٠ = ٧٠',a:true}]},
+ {t:'num',m:1,title:'أكملي (اكتبي الناتج بلوحة الأرقام)',items:[
+  {L:0,t:'num',q:'أحدد النمط ثم أكتب العدد المناسب: ١٢ ، ١٨ ، ٢٤ ، ٣٠ ، ◯',ans:36},
+  {L:13,t:'num',q:'أوجدي ناتج: ٥٤٥ + ٣٤٥ =',ans:890},
+  {L:18,t:'num',q:'أوجدي ناتج: ٩٢٧ − ٤٣٩ =',ans:488},
+  {L:34,t:'num',q:'◯ × ٩ = ٥٤ ← العدد المناسب:',ans:6}]},
+ {t:'order',m:2,title:'رتّبي الأعداد',items:[{L:5,t:'order',q:'رتبي الأعداد من الأكبر إلى الأصغر:',seq:['٦٠٠٦','٦٠٠','٦٠']}]},
+ {t:'fill',m:2,items:[{L:20,t:'fill',q:'ضعي العملية المناسبة في كل فراغ لتحصلي على جملة عددية صحيحة:',bank:['×','+','−'],items:[['٧ ◯ ٤ = ٢٨','×'],['٢٢ ◯ ٦ = ٢٨','+'],['٨ ◯ ٢ = ٦','−']]}]},
+ {t:'label',m:1,title:'حدّدي على جدول المنازل',items:[{L:3,t:'label',fig:'pv',num:17523,q:'العدد ١٧٥٢٣: ضعي اسم المنزلة تحت كل رقم.'}]},
+ {t:'word',m:2,items:[{L:27,t:'word',q:'يقف ٤٥ مصليًا في ٩ صفوف متساوية. كم مصليًا في كل صف؟',ans:5,why:'٩ × ٥ = ٤٥'}]}]}
+];
+
+drawStars();applySound();profBoot();
 </script>
 </body>
 </html>
