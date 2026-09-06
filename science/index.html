@@ -1094,6 +1094,7 @@ const EXAM_BANK=[
 {src:'S2',L:2,t:'mcq',q:'يسمى انتقال حبوب اللقاح من الجزء الذكري إلى الأنثوي:',o:['التلقيح','التحول','الأزهار'],a:0},
 {src:'S2',L:0,t:'mcq',q:'ينتج المخلوق الحي أفرادًا من نوعه:',o:['التكاثر','الجذور','المكان'],a:0},
 {src:'S2',L:0,t:'match',q:'صلي كل مصطلح علمي بالعبارة المناسبة له:',pairs:[['الخلايا','وحدات بنائية تكون أجسام المخلوقات الحية'],['البناء الضوئي','عملية تصنع فيها النباتات غذاءها'],['البذرة','تركيب يمكن أن ينبت لينمو ويصير نبات جديد'],['التحول','سلسلة من التغيرات يمر بها المخلوق الحي في نموه']]},
+{src:'S2',L:0,t:'fill',q:'من خلال الصور التالية نستنتج حاجات المخلوقات:',bank:['المكان','الماء','الغازات','الغذاء'],items:[['🏠 بيت الكلب ←','المكان'],['🐘🦒 حيوانات تشرب من النهر ←','الماء'],['😮‍💨 طفل يتنفس ←','الغازات'],['🐰🥕 أرنب يأكل ←','الغذاء']]},
 {src:'S2',L:0,t:'short',q:'اذكري حاجات المخلوقات الحية لتعيش.',a:'المكان، الماء، الغازات (الهواء)، الغذاء',keys:['مكان','ماء','هواء','غاز','غذاء']},
 {src:'S2',L:3,t:'tf',q:'البرمائيات والحشرات تبدأ دورة حياتها بالبيضة.',a:true},
 {src:'S2',L:2,t:'tf',q:'الجزء المذكر في الزهرة ينتج حبوب اللقاح.',a:true},
@@ -1195,6 +1196,29 @@ const EXAM_BANK=[
 {src:'S7',L:5,t:'tf',q:'التكيف الذي يساعد نبات الصبار على البقاء في البيئة الصحراوية الساق المغطاة بطبقة شمعية.',a:true,needsCheck:true}
 ];
 
+/* ---------- إعدادات اختبار العلوم ---------- */
+function exLabelPlant(){const parts=[{n:'الأوراق',x:98,y:172},{n:'الجذور',x:150,y:300},{n:'الزهرة',x:150,y:92},{n:'الساق',x:150,y:225}];const chips=['الجذور','الساق','الأوراق','الزهرة'];
+ const html=`<svg viewBox="0 0 300 340" width="100%"><rect x="0" y="258" width="300" height="82" rx="10" fill="#C9A27E"/><path d="M150 260 q-25 20 -45 45 M150 260 q25 20 45 45 M150 260 q0 30 0 60 M150 268 q-14 18 -22 48 M150 268 q14 18 22 48" stroke="#8A5A3B" stroke-width="5" fill="none" stroke-linecap="round"/><rect x="146" y="118" width="8" height="142" rx="4" fill="#4E9B57"/><ellipse cx="112" cy="178" rx="34" ry="15" fill="#5FB368" transform="rotate(-18 112 178)"/><ellipse cx="188" cy="205" rx="34" ry="15" fill="#5FB368" transform="rotate(18 188 205)"/>${[0,72,144,216,288].map(a=>`<circle cx="${150+22*Math.cos(a*Math.PI/180)}" cy="${92+22*Math.sin(a*Math.PI/180)}" r="14" fill="#F49BBB"/>`).join('')}<circle cx="150" cy="92" r="12" fill="#F5C544"/>${parts.map((p,k)=>`<circle class="xtarget" data-t="${k}" cx="${p.x}" cy="${p.y}" r="18"/><text data-tl="${k}" class="xtl" x="${p.x+(k===0?-44:k===3?40:0)}" y="${p.y+(k===2?-26:k===1?34:6)}" text-anchor="middle"></text>`).join('')}</svg>`;
+ return {t:'label',q:'ضعي اسم كل جزء من أجزاء النبات في مكانه على الرسم.',chips,targets:parts.map(p=>({n:p.n,c:chips.indexOf(p.n)})),html};}
+function exLabelSeed(){const parts=[{n:'غلاف البذرة',x:150,y:32},{n:'الفلقة',x:185,y:118},{n:'الجنين',x:88,y:112}];const chips=['الجنين','غلاف البذرة','الفلقة'];
+ const html=`<svg viewBox="0 0 300 210" width="100%"><ellipse cx="150" cy="110" rx="120" ry="85" fill="#E8C98F" stroke="#8A5A3B" stroke-width="10"/><ellipse cx="172" cy="112" rx="78" ry="60" fill="#F3DDB2"/><path d="M95 140 q-12 -30 8 -52 q14 -16 28 -10 q-4 16 -12 30 q-8 16 -24 32z" fill="#5FB368" stroke="#3A7A44" stroke-width="3"/>${parts.map((p,k)=>`<circle class="xtarget" data-t="${k}" cx="${p.x}" cy="${p.y}" r="18"/><text data-tl="${k}" class="xtl" x="${p.x}" y="${p.y+(k===0?-24:34)}" text-anchor="middle"></text>`).join('')}</svg>`;
+ return {t:'label',q:'حددي على الرسم أجزاء البذرة.',chips,targets:parts.map(p=>({n:p.n,c:chips.indexOf(p.n)})),html};}
+const EXAM_CFG={subject:'العلوم',titles:{tf:'ضعي علامة ✓ أو ✗ أمام العبارات التالية',mcq:'اختاري الإجابة الصحيحة',match:'صلي كل مصطلح علمي بالعبارة المناسبة له',fill:'أكملي الفراغ بالكلمة المناسبة مما يلي',order:'رتّبي',label:'حدّدي على الرسم',short:'أجيبي عن المطلوب'},nLessons:LESSONS.length,minLessons:3,lessonName:i=>(LESSONS[i]||{}).name||'عام',
+ plan20:[{t:'tf',n:4,m:1},{t:'mcq',n:5,m:1},{t:'match',n:1,m:3},{t:'fill',n:1,m:3},{t:'order',n:1,m:2},{t:'label',n:1,m:2},{t:'short',n:1,m:1}],
+ plan10:[{t:'tf',n:3,m:1},{t:'mcq',n:3,m:1},{t:'match',n:1,m:2},{t:'fill',n:1,m:2}],
+ label(fig){return fig==='seed'?exLabelSeed():exLabelPlant();},
+ gen(Li){const Ls=LESSONS[Li];if(!Ls)return [];const out=[];
+  (Ls.test||[]).concat(Ls.think||[]).forEach(s=>{
+   if(s.t==='mcq')out.push({t:'mcq',q:s.q,o:s.o,a:s.c});
+   else if(s.t==='tf')out.push({t:'tf',q:s.q.replace(/^["«]|["»]$/g,''),a:s.c});
+   else if(s.t==='match')out.push({t:'match',q:s.q,pairs:s.pairs});
+   else if(s.t==='order')out.push({t:'order',q:s.q,seq:s.seq});
+   else if(s.t==='sort2')s.items.forEach(it=>out.push({t:'tf',q:`«${it[0].replace(/[^؀-ۿ\s]/g,'').trim()}» من: ${s.bins[0].replace(/[^؀-ۿ\s]/g,'').trim()}`,a:it[1]===0}));
+   else if(s.t==='plant')out.push(exLabelPlant());
+   else if(s.t==='seed')out.push(exLabelSeed());});
+  if(Ls.vocab&&Ls.vocab.length>=2){const v=xsh(Ls.vocab).slice(0,3);out.push({t:'fill',q:'أكملي الفراغ بالمصطلح العلمي المناسب:',bank:v.map(x=>x[0]),items:v.map(x=>[x[1],x[0]])});}
+  return out;}};
+
 /* ==================== 📝 اختبار تجريبي · محرك مشترك (يُضمَّن داخل كل تطبيق) ====================
    يعتمد على: EXAM_BANK (بنك الأوراق الحقيقية) و EXAM_CFG (إعدادات المادة) و دوال التطبيق: addStar, save, goMap,
    stage, applause, tada, confetti, ST.  لا أصوات ولا نجوم أثناء الاختبار؛ احتفال واحد في النهاية.           */
@@ -1206,7 +1230,28 @@ const XLET=['أ','ب','ج','د','هـ','و'];
 const xsh=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
 const xnorm=s=>String(s||'').replace(/[ً-ْٰـ]/g,'').replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').replace(/[^؀-ۿ0-9a-zA-Z\s]/g,' ').replace(/\s+/g,' ').trim();
 const xesc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
-const XTITLE={tf:'ضعي علامة ✓ أو ✗ أمام كل عبارة',mcq:'اختاري الإجابة الصحيحة',match:'صلي كل عبارة بما يناسبها',fill:'أكملي الفراغ من الكلمات التالية (كل كلمة تُستعمل مرة واحدة)',order:'رتّبي',label:'حدّدي على الرسم',short:'اكتبي الإجابة',num:'أكملي',word:'حلّي المسألة بالخطوات الأربع',passage:'اقرئي النص ثم أجيبي',dictation:'إملاء منظور',sort:'صنّفي'};
+const XTITLE0={tf:'ضعي علامة ✓ أو ✗ أمام كل عبارة',mcq:'اختاري الإجابة الصحيحة',match:'صلي كل عبارة بما يناسبها',fill:'أكملي الفراغ من الكلمات التالية (كل كلمة تُستعمل مرة واحدة)',order:'رتّبي',label:'حدّدي على الرسم',short:'اكتبي الإجابة',num:'أكملي',word:'حلّي المسألة بالخطوات الأربع',passage:'اقرئي النص ثم أجيبي',dictation:'إملاء منظور',sort:'صنّفي',extract:'استخرجي من النص'};
+const XTITLE=Object.assign({},XTITLE0,(typeof EXAM_CFG!=='undefined'&&EXAM_CFG.titles)||{});
+
+/* ---------- قواعد «استخرجي من النص» (كما في الأوراق) ---------- */
+const XSUN='تثدذرزسشصضطظلن',XMOON='ءابجحخعغفقكمهوي';
+const xstrip=w=>String(w||'').replace(/[،؛:.!؟()«»"'\-\[\]]/g,'');
+function xRule(rule,w){w=xstrip(w);if(!w)return false;const bare=w.replace(/[ً-ْٰ]/g,'');const voc=/[ً-ْ]/.test(w);const core=bare.replace(/^[وفبك]?ال/,'');
+ switch(rule){
+ case 'sun':{const m=bare.match(/^[وفبك]?ال(.)/);return !!m&&XSUN.includes(m[1])&&!/^[وفبك]?الله/.test(bare);}
+ case 'moon':{const m=bare.match(/^[وفبك]?ال(.)/);return !!m&&XMOON.includes(m[1]);}
+ case 'ta_marbuta':return /ة$/.test(bare);
+ case 'ta_maftuha':return /ت$/.test(bare)&&bare.length>2;
+ case 'tanween_fath':return /ً/.test(w);case 'tanween_kasr':return /ٍ/.test(w);case 'tanween_damm':return /ٌ/.test(w);
+ case 'hamza_qat':return /^[وف]?[أإآ]/.test(bare);
+ case 'hamza_wasl':return /^[وف]?ا(?!ل)/.test(bare);
+ case 'shadda':return /ّ/.test(w);
+ case 'madd_alif':{for(let i=1;i<w.length;i++){if(w[i]!=='ا'||w[i-1]==='ً')continue;const before=w.slice(0,i).replace(/[ً-ْٰ]/g,'');if(/^[وفبك]?$/.test(before))continue;return true;}return false;}
+ case 'madd_waw':return voc?/ُو(?![ً-ْ])/.test(w):core.slice(1).includes('و');
+ case 'madd_ya':return voc?/ِي(?![ً-ْ])/.test(w):core.slice(1).includes('ي');}
+ return false;}
+const XRULE_NAME={sun:'كلمة تحتوي (ال) الشمسية',moon:'كلمة تحتوي (ال) القمرية',ta_marbuta:'كلمة مختومة بتاء مربوطة',ta_maftuha:'كلمة مختومة بتاء مفتوحة',tanween_fath:'كلمة مختومة بتنوين الفتح',tanween_kasr:'كلمة مختومة بتنوين الكسر',tanween_damm:'كلمة مختومة بتنوين الضم',hamza_qat:'كلمة تبدأ بهمزة قطع',hamza_wasl:'كلمة تبدأ بهمزة وصل',shadda:'كلمة بها حرف مضعف (شدة)',madd_alif:'كلمة بها مد بالألف',madd_waw:'كلمة بها مد بالواو',madd_ya:'كلمة بها مد بالياء'};
+function xFirstMatch(text,rule){return (String(text||'').split(/\s+/).map(xstrip).find(w=>xRule(rule,w)))||'';}
 
 /* ---------- تجميع الأسئلة المتاحة ---------- */
 function exMergeAttempts(x,y){const m={};[...(x||[]),...(y||[])].forEach(a=>{if(a&&a.d)m[a.d]=a;});return Object.values(m).sort((p,q)=>p.d<q.d?-1:1);}
@@ -1234,9 +1279,7 @@ function exPaperBest(id){const A=(ST.exams||[]).filter(a=>a.pid===id);if(!A.leng
 function exStartPaper(id){const P=(typeof EXAM_PAPERS!=='undefined'?EXAM_PAPERS:[]).find(x=>x.id===id);if(!P)return;
  EX.kind=P.kind;EX.short=false;EX.pid=P.id;EX.pname=P.name;
  EX.sec=P.secs.map(sec=>{const items=sec.items.map(it=>Object.assign(exNorm(it),{m:sec.m}));const o={t:sec.t,title:sec.title||XTITLE[sec.t],items,marks:items.length*sec.m};if(sec.t==='passage'){o.text=sec.text;o.L=sec.L;}return o;});
- EX.ans=EX.sec.map(s=>s.items.map(()=>null));EX.on=true;
- EX.left=15*60;clearInterval(EX.timer);EX.timer=setInterval(()=>{EX.left--;const t=document.getElementById('xtimer');if(t)t.textContent='⏱ '+XAR(String(Math.floor(EX.left/60)).padStart(2,'0'))+':'+XAR(String(EX.left%60).padStart(2,'0'));if(EX.left<=0){clearInterval(EX.timer);exSubmit(true);}},1000);
- exRender();}
+ EX.ans=EX.sec.map(s=>s.items.map(()=>null));exIntro();}
 
 /* ---------- اختيار نوع الاختبار ---------- */
 function exChoose(){EX.on=false;document.getElementById('backB').style.visibility='visible';if(typeof cur!=='undefined')cur=-1;if(typeof curLesson!=='undefined')curLesson=-1;
@@ -1253,16 +1296,20 @@ function exChoose(){EX.on=false;document.getElementById('backB').style.visibilit
   <button onclick="goMap()" style="margin-top:6px">الخريطة 🏡</button></div>`;window.scrollTo({top:0});}
 
 /* ---------- بدء الورقة ---------- */
-function exStart(kind,lessons,short){EX.kind=kind;EX.short=!!short;EX.pid=null;EX.pname=null;EX.sec=exBuild(lessons,short);EX.ans=EX.sec.map(s=>s.items.map(()=>null));EX.on=true;
- EX.left=15*60;clearInterval(EX.timer);EX.timer=setInterval(()=>{EX.left--;const t=document.getElementById('xtimer');if(t)t.textContent='⏱ '+XAR(String(Math.floor(EX.left/60)).padStart(2,'0'))+':'+XAR(String(EX.left%60).padStart(2,'0'));if(EX.left<=0){clearInterval(EX.timer);exSubmit(true);}},1000);
- exRender();}
+function exStart(kind,lessons,short){EX.kind=kind;EX.short=!!short;EX.pid=null;EX.pname=null;EX.sec=exBuild(lessons,short);EX.ans=EX.sec.map(s=>s.items.map(()=>null));exIntro();}
+function exIntro(){EX.on=false;const total=EX.sec.reduce((a,s)=>a+s.marks,0);
+ stage.innerHTML=`<div class="xpaper"><div class="xhead"><div><b>المادة:</b> ${EXAM_CFG.subject}</div><div><b>الصف:</b> الثالث الابتدائي</div><div><b>الزمن:</b> ${XAR(15)} دقيقة</div><div><b>الدرجة:</b> ${XAR(total)}</div></div>
+  <div class="xtitle">${EX.pname||exKindName(EX.kind)}</div>
+  <div class="xsec"><div class="xsech">تعليمات الاختبار</div><ul class="xinstr"><li>اقرئي السؤال جيدًا قبل البدء في الإجابة.</li><li>أجيبي بهدوء، ولا تتركي سؤالًا بدون إجابة.</li><li>راجعي إجاباتكِ أكثر من مرة قبل التسليم.</li><li>الأسئلة: ${EX.sec.map((s,i)=>'السؤال '+(XORD[i]||XAR(i+1))+' ('+XAR(s.marks)+')').join(' · ')}</li></ul></div>
+  <div style="text-align:center;margin-top:14px"><button class="go" onclick="exBegin()">نستعين بالله ونبدأ ✍️</button><div style="height:8px"></div><button onclick="goMap()" style="font-size:13px">رجوع</button></div></div>`;window.scrollTo({top:0});}
+function exBegin(){EX.on=true;EX.left=15*60;clearInterval(EX.timer);EX.timer=setInterval(()=>{EX.left--;const t=document.getElementById('xtimer');if(t)t.textContent='⏱ '+XAR(String(Math.floor(EX.left/60)).padStart(2,'0'))+':'+XAR(String(EX.left%60).padStart(2,'0'));if(EX.left<=0){clearInterval(EX.timer);exSubmit(true);}},1000);exRender();}
 function exKindName(k){return k==='p1'?'اختبار الفترة الأولى':k==='p2'?'اختبار الفترة الثانية':'اختبار نهاية الفصل';}
 function exRender(){const total=EX.sec.reduce((a,s)=>a+s.marks,0);
  let html=`<div class="xpaper">
   <div class="xhead"><div><b>الصف:</b> الثالث الابتدائي</div><div><b>المادة:</b> ${EXAM_CFG.subject}</div><div><b>اسم الطالبة:</b> ماريا</div><div><b>الدرجة:</b> ____ / ${XAR(total)}</div></div>
   <div class="xtitle">${EX.pname||exKindName(EX.kind)} · الفصل الدراسي الأول </div><div class="xfloat"><span id="xtimer" class="xtimer">⏱ ١٥:٠٠</span></div>`;
- EX.sec.forEach((s,si)=>{html+=`<div class="xsec"><div class="xsech">السؤال ${XORD[si]||XAR(si+1)}: ${s.title} <span class="xmarks">(${XAR(s.marks)} ${s.marks===1?'درجة':s.marks===2?'درجتان':s.marks<=10?'درجات':'درجة'})</span></div>`;
-  if(s.t==='passage')html+=`<div class="xpass">${xesc(s.text)}</div>`;
+ EX.sec.forEach((s,si)=>{const part=s.part||(EXAM_CFG.partOf?EXAM_CFG.partOf(s.t):'');html+=`<div class="xsec"><div class="xsech">السؤال ${XORD[si]||XAR(si+1)}${part?' ('+part+')':''}: ${s.title} <span class="xmarks">(${s.marks===1?'درجة واحدة':s.marks===2?'درجتان':XAR(s.marks)+' درجات'})</span></div>`;
+  if(s.t==='passage'){const tap=s.items.some(it=>it.t==='extract');html+=`<div class="xpass ${tap?'xtap':''}" data-pass="${si}">${tap?String(s.text).split(/(\s+)/).map(tok=>/^\s+$/.test(tok)||!tok?tok:`<span class="xw">${xesc(tok)}</span>`).join(''):xesc(s.text)}</div>${tap?'<div class="xhint">لأسئلة «استخرجي»: اضغطي زر السؤال ثم اضغطي الكلمة المناسبة في النص 👆</div>':''}`;}
   s.items.forEach((it,ii)=>{html+=`<div class="xitem" id="xi_${si}_${ii}">${exItemHtml(it,si,ii)}</div>`;});
   html+='</div>';});
  html+=`<div style="text-align:center;margin-top:14px"><button class="go" onclick="exSubmit(false)">سلّمي الورقة ✅</button><div style="height:8px"></div><button onclick="if(confirm('تخرجين من الاختبار دون تسليم؟')){clearInterval(EX.timer);EX.on=false;goMap();}" style="font-size:13px">خروج بدون تسليم</button></div></div>`;
@@ -1286,6 +1333,7 @@ function exItemHtml(it,si,ii){const id=`${si}_${ii}`;const num=`<span class="xn"
    <div class="xstep"><b>٢ أخطط:</b> أي عملية أستعمل؟ <div class="xopts xplan">${['جمع','طرح','تقدير بالتقريب'].map((o,k)=>`<button data-p="${k}">${o}</button>`).join('')}</div></div>
    <div class="xstep"><b>٣ أحل:</b><div class="xnum"><div class="xdisp">&nbsp;</div><div class="xkb">${[1,2,3,4,5,6,7,8,9].map(d=>`<button data-d="${d}">${XAR(d)}</button>`).join('')}<button data-d="del">⌫</button><button data-d="0">٠</button><button data-d="clr">مسح</button></div></div></div>
    <div class="xstep"><b>٤ أتحقق:</b> هل الجواب معقول؟ <button class="xchk" style="font-size:13px;padding:5px 12px">راجعتُ جوابي ✔</button></div></div>`;
+ case 'extract':return `${num}<div class="xq">${xesc(it.q||('استخرجي من النص '+(XRULE_NAME[it.rule]||'')))}</div><div class="xpick"><button class="xpickbtn">اختاري الكلمة من النص 👆</button> <span class="xchosen">—</span></div>`;
  case 'dictation':return `${num}<div class="xq">اقرئي الجملة جيدًا؛ ستختفي بعد ${XAR(30)} ثانية، ثم اكتبيها كما هي.</div><div class="xdict"><div class="xdtext">${xesc(it.text)}</div><div class="xdcount">⏳ ${XAR(30)}</div></div><textarea class="xta" placeholder="اكتبي الجملة هنا بعد اختفائها…" disabled></textarea>`;
  default:return `${num}<div class="xq">${xesc(it.q||'')}</div>`;}}
 
@@ -1316,6 +1364,8 @@ function exBind(it,si,ii){const el=document.getElementById(`xi_${si}_${ii}`);if(
    map[k]=+pick.dataset.w;const lab=t.querySelector('.xtl')||t;if(t.tagName==='DIV'||t.tagName==='SPAN')lab.textContent=it.chips[map[k]];else{const tx=t.parentNode.querySelector(`[data-tl="${k}"]`);if(tx)tx.textContent=it.chips[map[k]];}
    t.classList.add('xfilled');if(!it.reuse)pick.classList.add('xused');pick.classList.remove('xsel');pick=null;}));break;}
  case 'short':el.querySelector('.xta').oninput=e=>set(e.target.value);break;
+ case 'extract':{const btn=el.querySelector('.xpickbtn');btn.onclick=()=>{document.querySelectorAll('.xpickbtn').forEach(b=>b.classList.remove('xsel'));btn.classList.add('xsel');EX.active={si,ii};const ps=document.querySelector(`.xpass[data-pass="${si}"]`);if(ps){document.querySelectorAll('.xpass').forEach(p=>p.classList.remove('xactive'));ps.classList.add('xactive');ps.scrollIntoView({behavior:'smooth',block:'center'});}};
+  const ps=document.querySelector(`.xpass[data-pass="${si}"]`);if(ps&&!ps.dataset.bound){ps.dataset.bound='1';ps.querySelectorAll('.xw').forEach(w=>w.onclick=()=>{if(!EX.active||EX.active.si!==si)return;const a=EX.active;EX.ans[a.si][a.ii]=w.textContent;const item=document.getElementById(`xi_${a.si}_${a.ii}`);if(item){item.querySelector('.xchosen').textContent=w.textContent;item.querySelector('.xpickbtn').classList.remove('xsel');}ps.querySelectorAll('.xw').forEach(x=>x.classList.remove('xhit'));w.classList.add('xhit');ps.classList.remove('xactive');EX.active=null;});}break;}
  case 'num':case 'word':{let v='';const disp=el.querySelector('.xdisp');el.querySelectorAll('.xkb button').forEach(b=>b.onclick=()=>{const d=b.dataset.d;if(d==='del')v=v.slice(0,-1);else if(d==='clr')v='';else if(v.length<6)v+=d;disp.textContent=v?XAR(v):' ';set(v);});
   if(it.t==='word'){el.querySelectorAll('.xplan button').forEach(b=>b.onclick=()=>{el.querySelectorAll('.xplan button').forEach(x=>x.classList.remove('xsel'));b.classList.add('xsel');});const c=el.querySelector('.xchk');c.onclick=()=>c.classList.toggle('xsel');}break;}
  case 'dictation':{let n=30;const cnt=el.querySelector('.xdcount'),tx=el.querySelector('.xdtext'),ta=el.querySelector('.xta');const iv=setInterval(()=>{n--;cnt.textContent='⏳ '+XAR(n);if(n<=0){clearInterval(iv);tx.textContent='(اختفت الجملة… اكتبيها الآن ✍️)';tx.classList.add('xhidden');cnt.textContent='';ta.disabled=false;ta.focus();}},1000);ta.oninput=e=>set(e.target.value);break;}}}
@@ -1330,6 +1380,7 @@ function exGrade(it,v){const m=it.m||1;const R=(got,c,g)=>({got:Math.round(got*2
  case 'sort':{const map=v||{};let ok=0;it.items.forEach((x,k)=>{if(map[k]===x[1])ok++;});return R(m*ok/it.items.length,it.items.map(x=>x[0]+' ← '+it.bins[x[1]]).join(' ؛ '),it.items.map((x,k)=>x[0]+' ← '+(map[k]!==undefined?it.bins[map[k]]:'—')).join(' ؛ '));}
  case 'order':{const arr=v||[];let ok=0;it.seq.forEach((s,k)=>{if(arr[k]===k)ok++;});return R(m*ok/it.seq.length,it.seq.join(' ← '),arr.length?arr.map(k=>it.seq[k]).join(' ← '):'—');}
  case 'label':{const map=v||{};let ok=0;it.targets.forEach((t,k)=>{if(map[k]===t.c)ok++;});return R(m*ok/it.targets.length,it.targets.map(t=>t.n+': '+it.chips[t.c]).join(' ؛ '),it.targets.map((t,k)=>t.n+': '+(map[k]!==undefined?it.chips[map[k]]:'—')).join(' ؛ '));}
+ case 'extract':{const w=v?xstrip(v):'';const ok=!!w&&(xRule(it.rule,w)||(it.accept||[]).map(xnorm).includes(xnorm(w)));const sec=EX.sec.find(x=>x.items.includes(it));const ex=(it.accept&&it.accept[0])||xFirstMatch(sec&&sec.text,it.rule)||'';return R(ok?m:0,'مثال: '+ex,w||'—');}
  case 'short':{const txt=xnorm(v||'');const keys=(it.keys||[]).map(xnorm);const hit=keys.filter(k=>k&&txt.includes(k)).length;const need=Math.max(1,Math.ceil(keys.length/2));const frac=!keys.length?(txt.length>2?1:0):Math.min(1,hit/need);return R(m*frac,it.a,v||'—');}
  case 'num':case 'word':{const g=v?parseInt(v,10):NaN;return R(g===it.ans?m:0,XAR(it.ans)+(it.why?' ('+it.why+')':''),v?XAR(v):'—');}
  case 'dictation':{const want=xnorm(it.text).split(' ').filter(Boolean),got=xnorm(v||'').split(' ').filter(Boolean);let ok=0;const used=new Set();want.forEach(w=>{const i=got.findIndex((g,idx)=>!used.has(idx)&&g===w);if(i>=0){used.add(i);ok++;}});return R(m*ok/Math.max(1,want.length),it.text,v||'—');}
@@ -1364,7 +1415,7 @@ function exLog(){document.getElementById('backB').style.visibility='visible';if(
 
 
 /* معاينة لوليّ الأمر: افتحي الرابط مع #exam-demo لعرض ورقة كاملة فورًا (لا يغيّر التقدّم) */
-if(location.hash==='#exam-demo'){setTimeout(()=>{try{if(typeof EXAM_PAPERS!=='undefined'&&EXAM_PAPERS.length)exStartPaper(EXAM_PAPERS[Math.floor(Math.random()*EXAM_PAPERS.length)].id);else exStart('fin',[...Array(EXAM_CFG.nLessons).keys()],false);}catch(e){}},400);}
+if(location.hash==='#exam-demo'){setTimeout(()=>{try{if(typeof EXAM_PAPERS!=='undefined'&&EXAM_PAPERS.length)exStartPaper(EXAM_PAPERS[Math.floor(Math.random()*EXAM_PAPERS.length)].id);else exStart('fin',[...Array(EXAM_CFG.nLessons).keys()],false);exBegin();}catch(e){}},400);}
 /* ---------- ورقة الاختبار: التنسيق ---------- */
 document.head.insertAdjacentHTML('beforeend',`<style>
 .xpaper{background:#fff;border:1px solid #C9D2DE;border-radius:8px;padding:16px 14px 20px;color:#1E2A3A;text-align:right;box-shadow:0 2px 0 #C9D2DE,0 10px 24px rgba(30,42,58,.08);line-height:1.8}
@@ -1392,6 +1443,7 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 .xnum{max-width:300px;margin:6px auto}.xdisp{border:2px solid #1E2A3A;border-radius:10px;min-height:44px;font-size:26px;font-weight:800;text-align:center;letter-spacing:2px;margin-bottom:6px;background:#fff}
 .xkb{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.xkb button{font-size:20px;padding:8px 0;background:#fff}
 .xsteps{margin-top:6px}.xstep{background:#F7F9FC;border-radius:10px;padding:8px 10px;margin:6px 0;font-size:14px}.xplan{flex-direction:row;flex-wrap:wrap}.xplan button{flex:1;text-align:center;font-size:13px}
+.xpass.xtap .xw{cursor:pointer;border-radius:6px;padding:0 2px}.xpass.xactive{border-color:#3F7CC9;box-shadow:0 0 0 3px rgba(63,124,201,.2)}.xpass.xactive .xw:hover{background:#DDEBFF}.xpass .xw.xhit{background:#DDEBFF;outline:2px solid #3F7CC9}.xhint{font-size:12.5px;color:#6B7A90;margin:4px 0 6px}.xpick{margin-top:6px}.xpickbtn{font-size:13px;padding:6px 12px;background:#fff}.xchosen{font-weight:800;color:#3F7CC9;margin-right:8px}.xinstr{font-size:15px;line-height:2;padding-right:22px}
 .xpass{background:#FBFCFE;border:1.5px solid #C9D2DE;border-radius:8px;padding:12px 14px;font-size:17px;line-height:2.1;margin:8px 0}
 .xdict{background:#FFF9E3;border:2px solid #F0DBA0;border-radius:12px;padding:10px;text-align:center;margin-top:6px}.xdtext{font-size:19px;font-weight:800;line-height:2}.xdtext.xhidden{color:#9AA9BE;font-weight:700;font-size:14px}.xdcount{font-size:13px;color:#6B7A90}
 .xwrong{border:1.5px solid #E39B9B;border-radius:12px;padding:8px 12px;margin:8px 0;font-size:14px;background:#FFF7F7}.xgiven{color:#9B3B3B;margin-top:2px}.xcorrect{color:#227A63}.xtagl{font-size:12px;color:#6B7A90}
@@ -1399,29 +1451,6 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 .xtagbox{border:1.5px solid #E1E7F0;border-radius:12px;padding:8px 12px;margin:6px 0;font-size:14px}.xtagq{font-size:13px;margin-top:4px;line-height:1.6}
 .xchk.xsel{background:#DDF3EC;border-color:#4EB39A}
 </style>`);
-
-/* ---------- إعدادات اختبار العلوم ---------- */
-function exLabelPlant(){const parts=[{n:'الأوراق',x:98,y:172},{n:'الجذور',x:150,y:300},{n:'الزهرة',x:150,y:92},{n:'الساق',x:150,y:225}];const chips=['الجذور','الساق','الأوراق','الزهرة'];
- const html=`<svg viewBox="0 0 300 340" width="100%"><rect x="0" y="258" width="300" height="82" rx="10" fill="#C9A27E"/><path d="M150 260 q-25 20 -45 45 M150 260 q25 20 45 45 M150 260 q0 30 0 60 M150 268 q-14 18 -22 48 M150 268 q14 18 22 48" stroke="#8A5A3B" stroke-width="5" fill="none" stroke-linecap="round"/><rect x="146" y="118" width="8" height="142" rx="4" fill="#4E9B57"/><ellipse cx="112" cy="178" rx="34" ry="15" fill="#5FB368" transform="rotate(-18 112 178)"/><ellipse cx="188" cy="205" rx="34" ry="15" fill="#5FB368" transform="rotate(18 188 205)"/>${[0,72,144,216,288].map(a=>`<circle cx="${150+22*Math.cos(a*Math.PI/180)}" cy="${92+22*Math.sin(a*Math.PI/180)}" r="14" fill="#F49BBB"/>`).join('')}<circle cx="150" cy="92" r="12" fill="#F5C544"/>${parts.map((p,k)=>`<circle class="xtarget" data-t="${k}" cx="${p.x}" cy="${p.y}" r="18"/><text data-tl="${k}" class="xtl" x="${p.x+(k===0?-44:k===3?40:0)}" y="${p.y+(k===2?-26:k===1?34:6)}" text-anchor="middle"></text>`).join('')}</svg>`;
- return {t:'label',q:'ضعي اسم كل جزء من أجزاء النبات في مكانه على الرسم.',chips,targets:parts.map(p=>({n:p.n,c:chips.indexOf(p.n)})),html};}
-function exLabelSeed(){const parts=[{n:'غلاف البذرة',x:150,y:32},{n:'الفلقة',x:185,y:118},{n:'الجنين',x:88,y:112}];const chips=['الجنين','غلاف البذرة','الفلقة'];
- const html=`<svg viewBox="0 0 300 210" width="100%"><ellipse cx="150" cy="110" rx="120" ry="85" fill="#E8C98F" stroke="#8A5A3B" stroke-width="10"/><ellipse cx="172" cy="112" rx="78" ry="60" fill="#F3DDB2"/><path d="M95 140 q-12 -30 8 -52 q14 -16 28 -10 q-4 16 -12 30 q-8 16 -24 32z" fill="#5FB368" stroke="#3A7A44" stroke-width="3"/>${parts.map((p,k)=>`<circle class="xtarget" data-t="${k}" cx="${p.x}" cy="${p.y}" r="18"/><text data-tl="${k}" class="xtl" x="${p.x}" y="${p.y+(k===0?-24:34)}" text-anchor="middle"></text>`).join('')}</svg>`;
- return {t:'label',q:'حددي على الرسم أجزاء البذرة.',chips,targets:parts.map(p=>({n:p.n,c:chips.indexOf(p.n)})),html};}
-const EXAM_CFG={subject:'العلوم',nLessons:LESSONS.length,minLessons:3,lessonName:i=>(LESSONS[i]||{}).name||'عام',
- plan20:[{t:'tf',n:4,m:1},{t:'mcq',n:5,m:1},{t:'match',n:1,m:3},{t:'fill',n:1,m:3},{t:'order',n:1,m:2},{t:'label',n:1,m:2},{t:'short',n:1,m:1}],
- plan10:[{t:'tf',n:3,m:1},{t:'mcq',n:3,m:1},{t:'match',n:1,m:2},{t:'fill',n:1,m:2}],
- label(fig){return fig==='seed'?exLabelSeed():exLabelPlant();},
- gen(Li){const Ls=LESSONS[Li];if(!Ls)return [];const out=[];
-  (Ls.test||[]).concat(Ls.think||[]).forEach(s=>{
-   if(s.t==='mcq')out.push({t:'mcq',q:s.q,o:s.o,a:s.c});
-   else if(s.t==='tf')out.push({t:'tf',q:s.q.replace(/^["«]|["»]$/g,''),a:s.c});
-   else if(s.t==='match')out.push({t:'match',q:s.q,pairs:s.pairs});
-   else if(s.t==='order')out.push({t:'order',q:s.q,seq:s.seq});
-   else if(s.t==='sort2')s.items.forEach(it=>out.push({t:'tf',q:`«${it[0].replace(/[^؀-ۿ\s]/g,'').trim()}» من: ${s.bins[0].replace(/[^؀-ۿ\s]/g,'').trim()}`,a:it[1]===0}));
-   else if(s.t==='plant')out.push(exLabelPlant());
-   else if(s.t==='seed')out.push(exLabelSeed());});
-  if(Ls.vocab&&Ls.vocab.length>=2){const v=xsh(Ls.vocab).slice(0,3);out.push({t:'fill',q:'أكملي الفراغ بالمصطلح العلمي المناسب:',bank:v.map(x=>x[0]),items:v.map(x=>[x[1],x[0]])});}
-  return out;}};
 
 /* ===================== نماذج اختبارات العلوم الثابتة (٦ نماذج · ٢٠ درجة لكل نموذج) =====================
    مبنية من الأوراق الحقيقية ومن أسئلة مراجعة الفصل ونموذج الاختبار في كتاب الطالبة (ط١٤٤٨). L = رقم الدرس في التطبيق. */
@@ -1457,7 +1486,7 @@ const EXAM_PAPERS=[
   {L:3,t:'mcq',q:'ما الصفة المشتركة بين دورات حياة كل من الطيور والزواحف والأسماك؟',o:['جميع صغارها تمر بمرحلة التحول','جميع صغارها تمر بمرحلة اليرقة','أول مرحلة في حياتها هي مرحلة البيوض'],a:2},
   {L:4,t:'mcq',q:'مخلوق حي يتغذى على مخلوقات حية أخرى:',o:['منتج','مستهلك','محلل'],a:1}]},
  {t:'match',m:3,items:[{L:4,t:'match',q:'طابقي كل كلمة مع معناها:',pairs:[['المنتِج','يصنع غذاءه بنفسه مثل النباتات'],['المستهلِك','يتغذى على مخلوقات حية أخرى'],['المحلِّلات','تحلل البقايا وتعيدها إلى التربة']]}]},
- {t:'fill',m:3,items:[{L:1,t:'fill',q:'ما أجزاء النبات التي تقوم بالوظائف التالية؟',bank:['الأوراق','الساق','الجذور'],items:[['صنع الغذاء','الأوراق'],['نقل الماء والأملاح المعدنية','الساق'],['تثبيت النبات في التربة','الجذور']]}]},
+ {t:'fill',m:3,items:[{L:0,t:'fill',q:'من خلال الصور التالية نستنتج حاجات المخلوقات:',bank:['المكان','الماء','الغازات'],items:[['🏠 بيت الكلب ←','المكان'],['🐘🦒 حيوانات تشرب من النهر ←','الماء'],['😮‍💨 طفل يتنفس ←','الغازات']]}]},
  {t:'order',m:2,items:[{L:4,t:'order',q:'رتبي لتحصلي على سلسلة غذائية متكاملة:',seq:['ذرة','فأر','ثعبان','بومة']}]},
  {t:'label',m:2,items:[{L:2,t:'label',fig:'seed',q:'حددي على الرسم أجزاء البذرة.'}]},
  {t:'short',m:1,items:[{L:3,t:'short',q:'اكتبي دورة حياة الفراشة.',a:'بيضة ← يرقة ← عذراء ← فراشة',keys:['بيض','يرق','عذراء','فراش']}]}]},
