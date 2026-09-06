@@ -83,7 +83,7 @@ footer{text-align:center;font-size:12px;color:#93A0B7;margin-top:26px}footer but
 <div id="app">
  <div id="top"><button id="backB" style="visibility:hidden" onclick="goMap()">🏡 الخريطة</button><button id="sndB" onclick="toggleSound()" style="font-size:18px">🔊</button><span>⭐ <span id="stars">0</span></span></div>
  <div id="stage"></div>
- <footer>الرِّياضيَّات · الصَّفّ الثَّالث · الفصل الدِّراسيّ الأوَّل<br><button onclick="exportProgress()">حفظ نسخة</button> · <button onclick="importProgress()">استرجاع نسخة</button> · <button onclick="hardReset()">بداية جديدة (يمسح التَّقدُّم)</button></footer>
+ <footer>الرِّياضيَّات · الصَّفّ الثَّالث · الفصل الدِّراسيّ الأوَّل<br><button onclick="exLog()">📊 سجل الاختبارات</button> · <button onclick="exportProgress()">حفظ نسخة</button> · <button onclick="importProgress()">استرجاع نسخة</button> · <button onclick="hardReset()">بداية جديدة (يمسح التَّقدُّم)</button></footer>
 <input type="file" id="impF" accept=".json,application/json" style="display:none">
 </div>
 <div id="ovl"><div class="inner"></div></div><div id="toast"></div>
@@ -228,7 +228,7 @@ function load(){try{const s=localStorage.getItem('maria_math_t1');if(s)ST={...ST
 function save(){try{localStorage.setItem('maria_math_t1',JSON.stringify(ST));}catch(e){}serverSave();}
 let __sv=null;
 function serverSave(){clearTimeout(__sv);__sv=setTimeout(()=>{try{fetch('/progress',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(ST)}).catch(()=>{});}catch(e){}},250);}
-function mergeST(a,b){const u=(x,y)=>Array.from(new Set([...(x||[]),...(y||[])]));const m={...a,...b};m.stars=Math.max(+a.stars||0,+b.stars||0);['before','after','think','bought'].forEach(k=>m[k]=u(a[k],b[k]));return m;}
+function mergeST(a,b){const u=(x,y)=>Array.from(new Set([...(x||[]),...(y||[])]));const m={...a,...b};m.stars=Math.max(+a.stars||0,+b.stars||0);['before','after','think','bought'].forEach(k=>m[k]=u(a[k],b[k]));m.exams=exMergeAttempts(a.exams,b.exams);return m;}
 function serverLoad(){try{fetch('/progress').then(r=>r.ok?r.json():null).then(j=>{if(!j||typeof j!=='object'||Array.isArray(j))return;ST=mergeST(ST,j);try{localStorage.setItem('maria_math_t1',JSON.stringify(ST))}catch(e){};drawStars();applySound();if(cur===-1)goMap();}).catch(()=>{});}catch(e){}}
 function sndOn(){return ST.sound!==false;}
 function applySound(){const b=document.getElementById('sndB');if(b)b.textContent=sndOn()?'\u{1F50A}':'\u{1F507}';}
@@ -265,7 +265,7 @@ function goMap(){cur=-1;document.getElementById('backB').style.visibility='hidde
   <p class="sub" style="margin-bottom:6px">📖 قبل الحصَّة: مثال وتجربتان.<br>✏️ بعد الحصَّة: ٨ تمارين ← طابق جديد.<br>🧠 فكِّري أكثر: مسائل كلاميَّة.</p>
   <div class="pbar"><i style="width:${Math.round(doneN/L.length*100)}%"></i></div>
   <p class="sub" style="margin:0 0 10px">🏢 ${A(doneN)} من ${A(L.length)} طابقًا</p>
-  <button class="go" style="font-size:16px;padding:10px 26px" onclick="goTower()">🏙️ شاهدي برجكِ</button></div>`;
+  <button class="go" style="font-size:16px;padding:10px 26px" onclick="goTower()">🏙️ شاهدي برجكِ</button><div style="height:8px"></div><button class="go" style="font-size:15px;padding:9px 22px;background:#1E2A3A;border-color:#0F1826;box-shadow:0 4px 0 #0F1826" onclick="exChoose()">📝 اختبار تجريبي</button></div>`;
  let lastCh=-1;
  L.forEach((l,i)=>{if(l.ch!==lastCh){html+=`<div class="uhead">الفصل ${A(l.ch+1)}: ${CH[l.ch]}</div>`;lastCh=l.ch;}
   const bd=ST.before.includes(i),ad=ST.after.includes(i),td=ST.think.includes(i);const no=L.filter((x,k)=>k<i&&x.ch===l.ch).length+1;
@@ -366,6 +366,446 @@ function goTower(){cur=-1;document.getElementById('backB').style.visibility='vis
  stage.querySelectorAll('.shop button').forEach(b=>b.onclick=()=>{const d=DECOR.find(x=>x.id===b.dataset.id);if(has(d.id)||ST.stars<d.p)return;
   if(confirm(`تشترين «${d.n}» بـ ${A(d.p)} نجمةً؟ يبقى معكِ ${A(ST.stars-d.p)}.`)){ST.stars-=d.p;ST.bought.push(d.id);save();sparkle();confetti(10);goTower();}});
  window.scrollTo({top:0});}
+
+
+/* ==================== 📝 EXAM MODE ==================== */
+/* ===================== بنك أسئلة الرياضيات من الأوراق الحقيقية (١٤٤٧ · الفصل الأول) =====================
+   src: الورقة (M1..M12) · L: رقم الدرس في التطبيق (0 الأنماط، 2 القيمة المنزلية ضمن الألوف، 3 ضمن عشرات الألوف، 4 المقارنة،
+   5 الترتيب، 6 التقريب لعشرة ومئة، 7 التقريب لألف، 8 خصائص الجمع، 9 تقدير الجمع، 10 دقيق أم تقديري، 11 جمع رقمين،
+   12 مسائل الجمع، 13 جمع ٣ أرقام، 14 طرح رقمين، 15 تقدير الطرح، 18 طرح ٣ أرقام، 20 تحديد العملية، 21 الشبكات والضرب)
+   الأنواع: mcq | tf | num(إجابة رقمية بلوحة المفاتيح) | fill(بنك كلمات) | order | word(مسألة كلامية بالخطوات الأربع)
+   ans بالأرقام اللاتينية داخليًا ويعرض بالأرقام العربية الهندية · needsCheck: لا نموذج إجابة في الورقة   */
+const EXAM_BANK=[
+/* ---------- M1 ---------- */
+{src:'M1',L:0,t:'mcq',q:'العدد المناسب في الفراغ في النمط التالي ٣ ، ٦ ، ..... ، ١٢ هو:',o:['٥','٧','٨','٩'],a:3},
+{src:'M1',L:2,t:'mcq',q:'قيمة الرقم ٣ في العدد ٣٤١٨ هي:',o:['٣','٣٠٠','٣٠٠٠','٣٠٠٠٠'],a:2},
+{src:'M1',L:2,t:'mcq',q:'يكتب العدد (خمسة آلاف ومئة وواحد وثلاثون) بالصيغة القياسية كالتالي:',o:['٥١٣١','١٣١٥','١٣٥','٥٣١١'],a:0},
+{src:'M1',L:4,t:'mcq',q:'الرمز الصحيح للمقارنة بين العددين (٧٦٥ ..... ٥٧٦) هو:',o:['>','<','=','+'],a:0},
+{src:'M1',L:6,t:'mcq',q:'عندما نقرب العدد ٤٣ إلى أقرب عشرة يصبح:',o:['٥٠','٤٠','٤','١٤'],a:1},
+{src:'M1',L:2,t:'mcq',q:'العدد الذي فيه الرقم ٩ في منزلة الألوف هو:',o:['١٢٩٨','٩٨٧٣','٣٤٩','٨٩٥١'],a:1},
+{src:'M1',L:8,t:'mcq',q:'العدد الذي يجعل الجملة العددية التالية صحيحة (٥ + ....) + ٣ = ٥ + (٢ + ٣) هو:',o:['٢','٤','٥','١'],a:0},
+{src:'M1',L:8,t:'mcq',q:'الخاصية المستعملة في الجملة العددية التالية (٢٣ + ١٤ = ١٤ + ٢٣) هي خاصية:',o:['الإبدال','التجميع','العنصر المحايد','قاعدة طرح'],a:0},
+{src:'M1',L:6,t:'mcq',q:'عندما نقرب العدد ٢٨٥ إلى أقرب مئة يصبح:',o:['١٠٠','٢٠٠','٣٠٠','٤٠٠'],a:2},
+{src:'M1',L:9,t:'mcq',q:'تقدير ناتج ٤٢ + ٣٣ يساوي:',o:['٧٠','٦٠','٥٠','٣٠'],a:0},
+{src:'M1',L:2,t:'tf',q:'العدد ٤١٩٨ مكتوب بالصيغة اللفظية.',a:false},
+{src:'M1',L:4,t:'tf',q:'٦٥٤ > ٤ + ٣٠ + ٥٠٠',a:true},
+{src:'M1',L:8,t:'tf',q:'الخاصية في الجملة ٢ + ٠ = ٢ هي خاصية العنصر المحايد.',a:true},
+{src:'M1',L:7,t:'tf',q:'عندما نقرب العدد ٣٦٨٢ إلى أقرب ألف يصبح ٤٠٠٠.',a:true},
+{src:'M1',L:2,t:'mcq',q:'الصيغة التحليلية للعدد ١٤٢٩ هي:',o:['١٠٠٠ + ٤٠٠ + ٢٠ + ٩','١٠٠٠ + ٤٠٠ + ٢٩','١٤٠٠ + ٢٠ + ٩','١٠٠ + ٤٠ + ٢ + ٩'],a:0},
+{src:'M1',L:5,t:'order',q:'رتبي الأعداد التالية من الأصغر إلى الأكبر:',seq:['٢٠','٢٠٢','٢٠٠٢']},
+{src:'M1',L:11,t:'num',q:'أوجدي ناتج: ٢٣ + ٤٧ =',ans:70},
+{src:'M1',L:13,t:'num',q:'أوجدي ناتج: ٣٦٥ + ١٥٢ =',ans:517},
+{src:'M1',L:9,t:'word',q:'صرف خالد ٣٧٨ ريالًا وصرف أخوه ٢٩١ ريالًا. أقدري كم صرف الاثنان؟',ans:700,plan:'أقرب كل عدد إلى أقرب مئة ثم أجمع',why:'٤٠٠ + ٣٠٠ = ٧٠٠'},
+/* ---------- M2 ---------- */
+{src:'M2',L:0,t:'mcq',q:'حددي النمط ثم العدد المناسب في الفراغ: ٥ ، ١٠ ، ..... ، ٢٠ ، ٢٥',o:['١٥','٢٥','٣٠','٣٥'],a:0},
+{src:'M2',L:2,t:'mcq',q:'ما القيمة المنزلية للرقم ٣ في منزلة المئات في العدد ٧٣٨٣؟',o:['٣','٣٠','٣٠٠','٣٠٠٠'],a:2},
+{src:'M2',L:2,t:'mcq',q:'الصيغة التحليلية للعدد ٩١٢٣ هي:',o:['٩٠٠٠ + ١٠٠ + ٢٠ + ٣','٩٠٠ + ١٠٠ + ٢٠ + ٣','٩٠٠٠ + ١٠٠ + ٢٣','٩١٠٠ + ٢ + ٣'],a:0},
+{src:'M2',L:4,t:'mcq',q:'قارني: ٣٦ ◯ ٦٣',o:['>','<','='],a:1},
+{src:'M2',L:4,t:'mcq',q:'قارني: ٢١٠٥٦ ◯ ٢١٠٥٦',o:['>','<','='],a:2},
+{src:'M2',L:4,t:'mcq',q:'قارني: ٧٦٥ ◯ ٥٦٧',o:['>','<','='],a:0},
+{src:'M2',L:3,t:'mcq',q:'ثلاثون ألفا وثمانية عشر، تكتب بالصيغة القياسية:',o:['٣٠٠١٨','١٨٣٠٠','٣٠١٨٠','٣٠٠٨١'],a:0},
+{src:'M2',L:2,t:'mcq',q:'٥٤٣٢ تكتب بالصيغة اللفظية:',o:['خمسة آلاف وأربع مئة واثنان وثلاثون','خمس مئة واثنان وثلاثون','أربعة آلاف وخمس مئة واثنان وثلاثون','ألفان وثلاث مئة وأربعة وخمسون'],a:0},
+{src:'M2',L:6,t:'num',q:'قربي إلى أقرب عشرة: ٦٢',ans:60},
+{src:'M2',L:6,t:'num',q:'قربي إلى أقرب مئة: ٦٨١',ans:700},
+{src:'M2',L:7,t:'num',q:'قربي إلى أقرب ألف: ٨١٩٢',ans:8000},
+{src:'M2',L:5,t:'order',q:'رتبي الأعداد التالية من الأصغر إلى الأكبر:',seq:['١٢٣','٢١٣','٣١٢','٣٢١']},
+{src:'M2',L:8,t:'fill',q:'اكتبي العدد المناسب في الفراغ وحددي الخاصية:',bank:['٠','١٥','٦','العنصر المحايد','الإبدال','التجميع'],items:[['٥ + ◯ = ٥ ← العدد','٠'],['٥ + ٠ = ٥ ← الخاصية','العنصر المحايد'],['٢٤ + ◯ = ١٥ + ٢٤ ← العدد','١٥'],['٢٤ + ١٥ = ١٥ + ٢٤ ← الخاصية','الإبدال'],['(٣ + ٦) + ٢ = ٣ + (◯ + ٢) ← العدد','٦'],['(٣ + ٦) + ٢ = ٣ + (٦ + ٢) ← الخاصية','التجميع']]},
+{src:'M2',L:21,t:'mcq',q:'لدينا ٤ أرفف في كل رف ٣ كتب. كم عدد الكتب في الأرفف الأربعة؟',o:['٧','٩','١٠','١٢'],a:3},
+{src:'M2',L:9,t:'num',q:'قدري ناتج الجمع بالتقريب: ٤٨ + ٣٢',ans:80},
+/* ---------- M3 (لا نموذج إجابة) ---------- */
+{src:'M3',L:0,t:'fill',q:'أحدد النمط ثم أكتب العدد المناسب: ٥ ، ◯ ، ١٥ ، ◯ ، ٢٥ ، ◯',bank:['١٠','٢٠','٣٠'],items:[['بعد ٥','١٠'],['بعد ١٥','٢٠'],['بعد ٢٥','٣٠']],needsCheck:true},
+{src:'M3',L:2,t:'mcq',q:'اسم منزلة الرقم ٣ في العدد ٤٣٠٦٦:',o:['الآحاد','المئات','الآلاف','عشرات الآلاف'],a:2,needsCheck:true},
+{src:'M3',L:2,t:'mcq',q:'القيمة المنزلية للرقم ٥ في العدد ٥٦٠٨:',o:['٥','٥٠','٥٠٠','٥٠٠٠'],a:3,needsCheck:true},
+{src:'M3',L:4,t:'mcq',q:'أقارن: ٧٥٤ ◯ ٧٤٥',o:['>','<','='],a:0,needsCheck:true},
+{src:'M3',L:4,t:'mcq',q:'أقارن: ٥٦٤ ◯ ٦٥٤',o:['>','<','='],a:1,needsCheck:true},
+{src:'M3',L:5,t:'order',q:'أرتب الأعداد الآتية من الأكبر إلى الأصغر:',seq:['١٧٦٥','١٦٤٣','١٥٦٤'],needsCheck:true},
+{src:'M3',L:6,t:'num',q:'قربي ١٧٤ إلى أقرب عشرة:',ans:170,needsCheck:true},
+{src:'M3',L:6,t:'num',q:'قربي ٢٩٠ إلى أقرب مئة:',ans:300,needsCheck:true},
+{src:'M3',L:7,t:'num',q:'قربي ٣٤٨٧ إلى أقرب ألف:',ans:3000,needsCheck:true},
+{src:'M3',L:2,t:'num',q:'اكتبي العدد بالصيغة القياسية: ٩٠٠٠ + ٤٠٠ + ٣٠ + ٦ =',ans:9436,needsCheck:true},
+{src:'M3',L:2,t:'mcq',q:'الصيغة اللفظية للعدد ٢٨٥٥:',o:['ألفان وثمان مئة وخمسة وخمسون','ألفان وثمان مئة وخمسون','ثمانية آلاف ومئتان وخمسة وخمسون'],a:0,needsCheck:true},
+/* ---------- M4 ---------- */
+{src:'M4',L:0,t:'mcq',q:'العدد التالي في النمط ٥ ، ١٠ ، ١٥ ، ...... هو:',o:['٥','١٠','١٦','٢٠'],a:3},
+{src:'M4',L:3,t:'mcq',q:'قيمة الرقم ٩ في العدد ١٩٧٥٦ هي:',o:['٩','٩٠٠','٩٠٠٠','٩٠٠٠٠'],a:2},
+{src:'M4',L:3,t:'mcq',q:'الرقم المكتوب في منزلة الألوف في العدد ٩٢١٠٨ هو:',o:['١','٢','٨','٩'],a:1},
+{src:'M4',L:2,t:'mcq',q:'يكتب العدد (ثمانية آلاف وسبع مئة وستون) بالصيغة القياسية كالتالي:',o:['٨٧٦٠','٧٨٦٠','٧٨٠٦','٨٧٠٦'],a:0},
+{src:'M4',L:2,t:'mcq',q:'لدى وليد ١٢٧٠ ريالًا، أي مما يلي يساوي ١٢٧٠؟',o:['١ + ٢ + ٧ + ٠','١٠٠٠ + ٢٠٠ + ٧٠','١٠٠ + ٢٠ + ٧','١٠٠ + ٢٠٠ + ٧٠'],a:1},
+{src:'M4',L:6,t:'mcq',q:'عندما نقرب العدد ٦٢ إلى أقرب عشرة يصبح:',o:['٥٠','٦٠','٧٠','١٢'],a:1},
+{src:'M4',L:8,t:'mcq',q:'العدد الذي يجعل الجملة العددية التالية صحيحة (٧ + ٢) + ٩ = ◯ هو:',o:['١٨','٢٣','٤٥','٨١'],a:0},
+{src:'M4',L:4,t:'mcq',q:'العدد الذي أصغر من ٤٢٥٩ هو:',o:['٤٣٠٠','٤٢٦٠','٤٢٠٩','٤٢٩٥'],a:2},
+{src:'M4',L:6,t:'mcq',q:'أي عدد أقرب للعدد ٧٠٠:',o:['٦٢٨','٦٧٣','٧٦٠','٧٩٠'],a:1},
+{src:'M4',L:9,t:'mcq',q:'تقدير ناتج ٢٩ + ٤٧ باستعمال التقريب هو:',o:['٧٠','٦٠','٥٠','٣٠'],a:0},
+{src:'M4',L:5,t:'order',q:'رتبي الأعداد التالية من الأصغر إلى الأكبر:',seq:['١٣','٣٢','٣٩','٦٨']},
+{src:'M4',L:4,t:'mcq',q:'قارني: ٧٦٥ ◯ ٦٥٧',o:['>','<','='],a:0},
+{src:'M4',L:4,t:'mcq',q:'قارني: ٢٠٠ + ٩٠ ◯ ٢٠٩',o:['>','<','='],a:0},
+{src:'M4',L:8,t:'fill',q:'أكتبي العدد المناسب في ◯ ثم أذكري اسم الخاصية:',bank:['٣','٠','٢','الإبدال','العنصر المحايد','التجميع'],items:[['٥ + ٣ = ◯ + ٥ ← العدد','٣'],['٥ + ٣ = ٣ + ٥ ← الخاصية','الإبدال'],['٢ + ◯ = ٢ ← العدد','٠'],['٢ + ٠ = ٢ ← الخاصية','العنصر المحايد'],['(١ + ٢) + ٣ = ١ + (◯ + ٣) ← العدد','٢'],['(١ + ٢) + ٣ = ١ + (٢ + ٣) ← الخاصية','التجميع']]},
+{src:'M4',L:11,t:'num',q:'أوجدي ناتج: ٢٢ + ٦٨ =',ans:90},
+{src:'M4',L:13,t:'num',q:'أوجدي ناتج: ٥٤٥ + ٣٤٥ =',ans:890},
+{src:'M4',L:9,t:'word',q:'كانت مبيعات التذاكر في متحف في اليوم الأول ٥٧ تذكرة وفي اليوم الثاني ٧٢ تذكرة. كم شخصًا تقريبًا زار المتحف خلال اليومين؟',ans:130,plan:'أقرب كل عدد إلى أقرب عشرة ثم أجمع',why:'٦٠ + ٧٠ = ١٣٠'},
+/* ---------- M5 (لا نموذج إجابة) ---------- */
+{src:'M5',L:0,t:'num',q:'حددي النمط ثم اكتبي العدد المناسب: ١٠ ، ١٤ ، ١٨ ، ◯ ، ٢٦ ، ٣٠',ans:22,needsCheck:true},
+{src:'M5',L:2,t:'mcq',q:'القيمة المنزلية للرقم ٣ في العدد ٣١٧٦:',o:['٣','٣٠','٣٠٠','٣٠٠٠'],a:3,needsCheck:true},
+{src:'M5',L:2,t:'mcq',q:'الصيغة التحليلية للعدد ١٣٢٤:',o:['١٠٠٠ + ٣٠٠ + ٢٠ + ٤','١٠٠ + ٣٠ + ٢ + ٤','١٣٠٠ + ٢٤','١٠٠٠ + ٣٠٠ + ٢٤'],a:0,needsCheck:true},
+{src:'M5',L:4,t:'mcq',q:'قارني: ٣٨٠٨٠ ◯ ٣٨٠٠٨',o:['>','<','='],a:0,needsCheck:true},
+{src:'M5',L:4,t:'mcq',q:'قارني: ٩٩ ◯ ٩٩',o:['>','<','='],a:2,needsCheck:true},
+{src:'M5',L:6,t:'num',q:'قربي ٣٥٣ إلى أقرب مئة:',ans:400,needsCheck:true},
+{src:'M5',L:6,t:'num',q:'قربي ٧٤٩ إلى أقرب مئة:',ans:700,needsCheck:true},
+{src:'M5',L:8,t:'fill',q:'اكتبي العدد المناسب في ◯ وحددي الخاصية:',bank:['٠','٢','العنصر المحايد','التجميع'],items:[['٦ + ◯ = ٦ ← العدد','٠'],['٦ + ٠ = ٦ ← الخاصية','العنصر المحايد'],['(٨ + ٣) + ◯ = ٨ + (٣ + ٢) ← العدد','٢'],['(٨ + ٣) + ٢ = ٨ + (٣ + ٢) ← الخاصية','التجميع']],needsCheck:true},
+{src:'M5',L:11,t:'num',q:'أوجدي ناتج الجمع: ٧٥ + ١٢ =',ans:87,needsCheck:true},
+{src:'M5',L:13,t:'num',q:'أوجدي ناتج الجمع: ٣٤٥ + ٩٣ =',ans:438,needsCheck:true},
+/* ---------- M6 ---------- */
+{src:'M6',L:0,t:'mcq',q:'أكملي النمط: ١٠ - ٢٠ - ٣٠ - ٤٠ - ◯ - ٦٠',o:['٤٥','٥٠','٦٠','٧٠'],a:1},
+{src:'M6',L:2,t:'mcq',q:'اسم منزلة الرقم ٨ في العدد ٤٨١٠:',o:['آحاد','عشرات','مئات','ألوف'],a:2},
+{src:'M6',L:3,t:'mcq',q:'القيمة المنزلية للرقم ٩ في العدد ١٩٧٥٦:',o:['٩','٩٠','٩٠٠','٩٠٠٠'],a:3},
+{src:'M6',L:2,t:'mcq',q:'العدد الذي كُتب بالصيغة التحليلية هو:',o:['ثلاثة آلاف وثلاث مئة وثلاثة وثلاثون','٣٠٠٠ + ٣٠٠ + ٣٠ + ٣','٣٣٣٣'],a:1},
+{src:'M6',L:4,t:'mcq',q:'أقارن بوضع الإشارة المناسبة: ٦١ ◯ ٦٥',o:['>','<','=','+'],a:1},
+{src:'M6',L:5,t:'mcq',q:'أرتب الأعداد الآتية من الأصغر إلى الأكبر: ١٢٣ - ٧٨ - ٣٩',o:['١٢٣ - ٧٨ - ٣٩','٧٨ - ٣٩ - ١٢٣','٣٩ - ٧٨ - ١٢٣','١٢٣ - ٣٩ - ٧٨'],a:2},
+{src:'M6',L:7,t:'mcq',q:'في مزرعة والد أحمد ٥٨٢١ نخلة، أقرّب عدد النخيل إلى أقرب ألف:',o:['٥٠٠٠','٦٠٠٠','٧٠٠٠','٨٠٠٠'],a:1},
+{src:'M6',L:8,t:'mcq',q:'٠ + ٩ = ◯ ، الخاصية المستعملة:',o:['خاصية العنصر المحايد','خاصية الإبدال','خاصية التجميع'],a:0},
+{src:'M6',L:9,t:'num',q:'أقدر ناتج الجمع باستعمال التقريب: ٣١ + ٥٧',ans:90},
+{src:'M6',L:8,t:'mcq',q:'٩ + ٢ = ١١ و ٢ + ٩ = ١١ ، الخاصية المستعملة:',o:['الإبدال','التجميع','العنصر المحايد'],a:0},
+/* ---------- M7 ---------- */
+{src:'M7',L:3,t:'mcq',q:'الرقم المكتوب في منزلة الألوف في العدد ٩٢١٠٨:',o:['١','٢','٨','٩'],a:1},
+{src:'M7',L:2,t:'mcq',q:'يكتب العدد أربعة آلاف وثلاث مئة وواحد وعشرون بالصيغة القياسية:',o:['٣٤٢١','٤٢٣١','٤٣٢١','٣٤١٢'],a:2},
+{src:'M7',L:2,t:'mcq',q:'في مزرعة عبدالله ١٣٧٢ نخلة، أي مما يلي يساوي ١٣٧٢:',o:['١ + ٣ + ٢ + ٧','١ + ٣ + ٧٠ + ٢٠٠','٢ + ٧٠ + ٣٠٠ + ١٠٠','٢ + ٧٠ + ٣٠٠ + ١٠٠٠'],a:3},
+{src:'M7',L:0,t:'mcq',q:'العدد التالي في النمط ٤ ، ١٠ ، ١٦ ، ٢٢ ، ◯:',o:['٢٨','٤٢','٤٠','٣٨'],a:0},
+{src:'M7',L:9,t:'mcq',q:'قدري ناتج الجمع ٢١ + ٤٧ باستعمال التقريب:',o:['٦٠','٦٥','٦٨','٧٠'],a:3},
+{src:'M7',L:9,t:'mcq',q:'صرف خالد ٣٧٨ ريالًا وصرف أخوه ٢٩١ ريالًا. قدري كم ريالًا صرف الاثنان:',o:['٧٠٠','٦٠٠','٦٦٩','٤٠٠'],a:0},
+{src:'M7',L:8,t:'mcq',q:'العدد الذي يجعل الجملة العددية (٧ + ٢) + ٩ = ◯ صحيحة:',o:['١٨','٢٣','٨١','١٢٦'],a:0},
+{src:'M7',L:6,t:'mcq',q:'العدد الأقرب للعدد ٧٠٠:',o:['٦٢٨','٦٧٣','٧٥٠','٧٧٠'],a:1},
+{src:'M7',L:6,t:'mcq',q:'العدد ٧٢ مقربًا إلى أقرب عشرة:',o:['٨٠','٧٠','٩٠','٦٠'],a:1},
+{src:'M7',L:8,t:'mcq',q:'الخاصية في الجملة العددية ٨ + ٠ = ٨:',o:['عنصر محايد','خاصية التجميع','خاصية الإبدال','قاعدة طرح'],a:0},
+{src:'M7',L:2,t:'tf',q:'العدد ٥٦٤٧ مكتوب بالصيغة القياسية.',a:true},
+{src:'M7',L:2,t:'tf',q:'الصيغة التحليلية هي كتابة العدد بالكلمات.',a:false},
+{src:'M7',L:8,t:'tf',q:'تغيير الترتيب في عملية الجمع لا يغير ناتج الجمع.',a:true},
+{src:'M7',L:11,t:'num',q:'أوجدي ناتج الجمع: ٧٥ + ١٢ =',ans:87},
+{src:'M7',L:13,t:'num',q:'أوجدي ناتج الجمع: ٤٢٧ + ٢١٧ =',ans:644},
+{src:'M7',L:5,t:'order',q:'رتبي الأعداد التالية من الأكبر إلى الأصغر:',seq:['٦٨','٣٩','٣٢','٢٣']},
+/* ---------- M8 (لا نموذج إجابة) ---------- */
+{src:'M8',L:0,t:'mcq',q:'العدد المناسب في النمط: ١٠ ، ٢٠ ، ◯ ، ٤٠ ، ٥٠',o:['١٥','٢٥','٣٠','٣٥'],a:2,needsCheck:true},
+{src:'M8',L:3,t:'mcq',q:'اسم منزلة الرقم ٢ في العدد ٤٦٢٨٧:',o:['مئات','ألوف','عشرات','آحاد'],a:0,needsCheck:true},
+{src:'M8',L:3,t:'mcq',q:'القيمة المنزلية للرقم ٧ في العدد ١٧٤٩٢:',o:['٧٠','٧٠٠','٧٠٠٠','٧٠٠٠٠'],a:2,needsCheck:true},
+{src:'M8',L:2,t:'mcq',q:'الصيغة القياسية للعدد ٣ + ٥٠ + ٤٠٠ + ١٠٠٠:',o:['٣٥٤١','١٤٥٣','٥٤١٣','١٣٥٤'],a:1,needsCheck:true},
+{src:'M8',L:8,t:'mcq',q:'العنصر المحايد لعملية الجمع هو:',o:['صفر','١','١٠','٢٠'],a:0,needsCheck:true},
+{src:'M8',L:3,t:'mcq',q:'الرقم الذي يقع في منزلة عشرات الألوف في العدد ٣٩١٢٦:',o:['١','٣','٦','٢'],a:1,needsCheck:true},
+{src:'M8',L:4,t:'mcq',q:'٤٦٥٢٢ ◯ ٤٦٣٥٢',o:['<','>','=','+'],a:1,needsCheck:true},
+{src:'M8',L:7,t:'mcq',q:'في مزرعة والد أحمد ١٢٥٠ نخلة، عدد النخيل مقربًا إلى أقرب ألف =',o:['٥٠٠','١٠٠','١٠٠٠','٢٠٠٠'],a:2,needsCheck:true},
+{src:'M8',L:8,t:'mcq',q:'العدد المناسب: (٧ + ٩) + ٣ = (٩ + ◯) + ٣',o:['صفر','٧','٢','٣'],a:1,needsCheck:true},
+{src:'M8',L:8,t:'mcq',q:'٢٥ + ◯ = ٢٥',o:['صفر','١','١٠','٢٠'],a:0,needsCheck:true},
+{src:'M8',L:3,t:'mcq',q:'الصيغة اللفظية للعدد ٢٤٧٨٣:',o:['أربعة وعشرون ألفًا وسبع مئة وثلاثة وثمانون','أربعة وعشرون ألفًا وسبع مئة وثمانون','أربعة آلاف وسبع مئة وثلاثة وثمانون'],a:0,needsCheck:true},
+{src:'M8',L:3,t:'mcq',q:'الصيغة التحليلية للعدد ٢٤٧٨٣:',o:['٢٠٠٠٠ + ٤٠٠٠ + ٧٠٠ + ٨٠ + ٣','٢٠٠٠ + ٤٠٠ + ٧٠ + ٨ + ٣','٢٠٠٠٠ + ٤٠٠٠ + ٧٨٣'],a:0,needsCheck:true},
+{src:'M8',L:5,t:'order',q:'رتبي الأعداد التالية من الأكبر إلى الأصغر:',seq:['٣٧٨٩','٣٥٨٧','٨٧٥'],needsCheck:true},
+{src:'M8',L:9,t:'num',q:'قدري الناتج باستعمال التقريب: ٣١ + ٥٧',ans:90,needsCheck:true},
+{src:'M8',L:11,t:'num',q:'أجمعي: ٤٤ + ٢١ =',ans:65,needsCheck:true},
+{src:'M8',L:11,t:'num',q:'أجمعي: ٥٢ + ٣٩ =',ans:91,needsCheck:true},
+/* ---------- M9: مراجعة الفصل الأول ---------- */
+{src:'M9',L:2,t:'mcq',q:'الرقم الذي يقع في منزلة المئات في العدد ٩٤٧٢ هو:',o:['٩','٢','٤','٧'],a:2},
+{src:'M9',L:0,t:'mcq',q:'العدد التالي في النمط ٢ ، ٤ ، ٦ ، ٨ ، ......:',o:['٨','١٠','١١','١٢'],a:1},
+{src:'M9',L:14,t:'mcq',q:'عندما أطرح أبدأ دائمًا بمنزلة:',o:['الآحاد','العشرات','عشرات الألوف','الألوف'],a:0},
+{src:'M9',L:6,t:'mcq',q:'العدد ٨٣ مقربًا إلى أقرب عشرة يساوي:',o:['٧٠','٨٠','٩٠','١٠٠'],a:1},
+{src:'M9',L:14,t:'mcq',q:'لدى هند علبة أقلام تحوي (٢٥) قلمًا فإذا أعطت صديقاتها (١٠) أقلام فكم قلمًا يبقى معها؟',o:['١٥','١٦','١٧','١٨'],a:0},
+{src:'M9',L:10,t:'mcq',q:'لأجد جوابًا قريبًا من الجواب الدقيق أستعمل:',o:['التقدير','الصفر','الآحاد','التجميع'],a:0},
+{src:'M9',L:8,t:'mcq',q:'ناتج جمع (٨ + ٢) + ٥ يساوي:',o:['١٠','١٥','١٨','٢٠'],a:1},
+{src:'M9',L:2,t:'mcq',q:'الصيغة القياسية للعدد خمس مئة وثلاث وأربعون هي:',o:['٥٥٢','٥٤٤','٢٤٠','٥٤٣'],a:3},
+{src:'M9',L:20,t:'mcq',q:'أكملي الجملة التالية ٨ ....... ٢ = ٦',o:['+','−','÷','×'],a:1},
+{src:'M9',L:13,t:'mcq',q:'في محفظة أحمد ٢١٤ ريال وفي محفظة طارق ١٢٠ ريال. ما هو مجموع ما في المحفظتين؟',o:['٤٣١','٤٣٣','٣٣٤','٣٤٣'],a:2},
+{src:'M9',L:8,t:'mcq',q:'العدد الذي يجعل الجملة التالية صحيحة (٦ + ٤) + ٧ = ٦ + (◯ + ٧):',o:['٧','٦','٤','٠'],a:2},
+{src:'M9',L:2,t:'mcq',q:'الصيغة التحليلية للعدد ٧٢٤ هي:',o:['٢٠٠ + ٤٠ + ٧','٧٠٠ + ٤٠ + ٢','٧٠٠ + ٢٠ + ٤','٤٠٠ + ٧٠ + ٢'],a:2},
+{src:'M9',L:15,t:'fill',q:'املئي الفراغات التالية بما يناسبها مما بين القوسين:',bank:['الباقي','١٠٠','الإبدال','٥٠','التجميع','٢٠'],items:[['من الكلمات التي تدل على عملية الطرح كلمة','الباقي'],['تقدير ناتج طرح ٤٧٩ − ٣٨٩ =','١٠٠'],['٥ + ٦ = ٦ + ٥ تسمى خاصية','الإبدال'],['تحتاج ليلى ٤٧ ريالًا لتشتري حقيبة، فكم ريالًا تحتاج مقربًا إلى أقرب عشرة؟','٥٠'],['(٤ + ١) + ٩ = ٤ + (١ + ٩) تسمى خاصية','التجميع'],['العدد التالي في النمط ٥ ، ١٠ ، ١٥ ،','٢٠']]},
+{src:'M9',L:3,t:'fill',q:'املئي الفراغات التالية بما يناسبها مما بين القوسين:',bank:['٨٠٠','٧','المنزلية','١٢٠','النمط','٤٥'],items:[['القيمة المنزلية للرقم ٨ في العدد ٦٥٨٥٤','٨٠٠'],['باستخدام خاصية العنصر المحايد فإن ٧ + ٠ =','٧'],['القيمة التي يأخذها الرقم بحسب موقعه في العدد تسمى بالقيمة','المنزلية'],['حاصل طرح ٢٠٨ − ٨٨ =','١٢٠'],['سلسلة من الأعداد أو الأشكال التي تتبع قاعدة معينة تسمى بـ','النمط'],['حاصل جمع ٢٧ + ١٨ =','٤٥']]},
+{src:'M9',L:11,t:'num',q:'أوجدي ناتج: ٥٤ + ٣٤ =',ans:88},
+{src:'M9',L:14,t:'num',q:'أوجدي ناتج: ٤٩ − ٣٥ =',ans:14},
+{src:'M9',L:13,t:'num',q:'أوجدي ناتج: ٣٦٩ + ٤٢٥ =',ans:794},
+{src:'M9',L:18,t:'num',q:'أوجدي ناتج: ٤٥٤ − ١٢٨ =',ans:326},
+{src:'M9',L:13,t:'num',q:'أوجدي ناتج: ٦٤٥ + ٣٢٥ =',ans:970},
+{src:'M9',L:18,t:'num',q:'أوجدي ناتج: ٣٤٥ − ١٢٣ =',ans:222},
+{src:'M9',L:13,t:'num',q:'أوجدي ناتج: ٤٠٨ + ١٢٢ =',ans:530},
+{src:'M9',L:18,t:'num',q:'أوجدي ناتج: ٥٠٥ − ٣٦٧ =',ans:138},
+{src:'M9',L:4,t:'mcq',q:'عدد أعضاء نادي البراعم ١٣١، وعدد أعضاء نادي الزهو ١١٣، أيهما أكثر عددًا؟',o:['نادي البراعم','نادي الزهو','متساويان'],a:0},
+{src:'M9',L:14,t:'word',q:'مع أحمد ٨ مجلات تعليمية. أعار صديقه ٣ مجلات منها، فكم مجلة بقيت معه؟',ans:5,plan:'أطرح ما أعاره من العدد الكلي',why:'٨ − ٣ = ٥'},
+{src:'M9',L:2,t:'tf',q:'العدد ٩٦٠ مكتوب بالصورة القياسية.',a:true},
+{src:'M9',L:2,t:'tf',q:'الصيغة اللفظية للعدد ١٤٥ هي: مئة وخمس وأربعون.',a:true},
+{src:'M9',L:14,t:'tf',q:'عملية طرح الأعداد هي عملية إبدالية.',a:false},
+{src:'M9',L:2,t:'tf',q:'الصيغة التحليلية هي كتابة العدد بالكلمات.',a:false},
+{src:'M9',L:8,t:'tf',q:'العنصر المحايد الجمعي هو الصفر.',a:true},
+{src:'M9',L:9,t:'tf',q:'الأعداد المتقاربة هي الأعداد التي يسهل التعامل معها عند جمعها.',a:true},
+{src:'M9',L:4,t:'tf',q:'٦٤٩٥٨ > ٦٤٩٨٥',a:false},
+{src:'M9',L:2,t:'tf',q:'٩٠٠٠ + ٦٠٠ + ٤٠ + ٥ = ٩٦٤٥',a:true},
+{src:'M9',L:2,t:'tf',q:'الرقم الذي يقع في منزلة المئات في العدد ٢٣٤٥ هو ٣.',a:true},
+{src:'M9',L:5,t:'order',q:'رتبي الأعداد التالية من الأصغر إلى الأكبر:',seq:['٤٤٠٨','٥٤٤٠','٨٤٨٠']},
+{src:'M9',L:14,t:'word',q:'إذا كانت عطلة الصيف (٥٠) يومًا، وبقي منها (٢٥) يومًا، فكم يومًا انقضى منها؟',ans:25,plan:'أطرح ما بقي من المجموع',why:'٥٠ − ٢٥ = ٢٥'},
+{src:'M9',L:7,t:'num',q:'بلغ عدد حضور مباراة كرة قدم ٦٩٨٩ شخصًا، فما عدد الحضور مقربًا إلى أقرب ألف؟',ans:7000},
+{src:'M9',L:2,t:'mcq',q:'الصيغة التحليلية للعدد ٣٧٥:',o:['٣٠٠ + ٧٠ + ٥','٣٠ + ٧ + ٥','٣٠٠ + ٧٥'],a:0},
+{src:'M9',L:2,t:'num',q:'اكتبي العدد بالصيغة القياسية: ألفان وخمس مئة',ans:2500},
+{src:'M9',L:8,t:'num',q:'اكتبي العدد المفقود: ٨ + ٧ = ٧ + ◯',ans:8},
+{src:'M9',L:4,t:'mcq',q:'قارني: ٧٥٤ ◯ ٤٣٢',o:['>','<','='],a:0},
+{src:'M9',L:4,t:'mcq',q:'قارني: ٩٥٢ ◯ ٨٠٠',o:['>','<','='],a:0},
+{src:'M9',L:4,t:'mcq',q:'قارني: ٩٥٧٧ ◯ ٩٥٧٧',o:['>','<','='],a:2},
+{src:'M9',L:4,t:'mcq',q:'قارني: ١٣٢ ◯ ١٢٣',o:['>','<','='],a:0},
+{src:'M9',L:9,t:'mcq',q:'قدّر كل من ريان وخالد ناتج جمع ٤٧٨ + ٢١٣؛ ريان: ٥٠٠ + ٢٠٠ = ٧٠٠ ، خالد: ٣٠٠ + ٥٠٠ = ٨٠٠. أيهما إجابته صحيحة؟',o:['ريان','خالد','كلاهما'],a:0},
+{src:'M9',L:12,t:'word',q:'باع مقصف المدرسة (١٥) شطيرة في الاستراحة الأولى و(١٢) شطيرة في الاستراحة الثانية، فما عدد الشطائر التي باعها؟',ans:27,plan:'أجمع العددين',why:'١٥ + ١٢ = ٢٧'},
+{src:'M9',L:14,t:'word',q:'إذا كانت عطلة الصيف (٦٠) يومًا، وبقي منها (١٣) يومًا، فكم يومًا انقضى منها؟',ans:47,plan:'أطرح ما بقي من المجموع',why:'٦٠ − ١٣ = ٤٧'},
+/* ---------- M10 (لا نموذج إجابة) ---------- */
+{src:'M10',L:0,t:'mcq',q:'العدد التالي في النمط: ٧ ، ١٤ ، ٢١ ، ...... هو:',o:['٢٢','٢٥','٢٧','٢٨'],a:3,needsCheck:true},
+{src:'M10',L:3,t:'mcq',q:'الرقم الواقع في منزلة المئات من العدد ٧٦٣٩٨ هو:',o:['٨','٩','٣','٦'],a:2,needsCheck:true},
+{src:'M10',L:3,t:'mcq',q:'يكتب العدد (سبعة عشر ألفا وثلاث مئة وثمانية) بالصيغة القياسية:',o:['١٧٣٠٨','١٧٣٨٠','١٧٣٠٠٨','١٧٠٠٠٣٠٨'],a:0,needsCheck:true},
+{src:'M10',L:4,t:'mcq',q:'العدد الأكبر من ٥٦٨٤٣ هو:',o:['٤٨٦٥٣','٥٦٤٨٣','٥٦٨٣٤','٥٦٨٤٤'],a:3,needsCheck:true},
+{src:'M10',L:7,t:'mcq',q:'العدد ٧٦٩٢ مقربا إلى أقرب ألف يساوي تقريبا:',o:['٦٠٠٠','٧٠٠٠','٨٠٠٠','٩٠٠٠'],a:2,needsCheck:true},
+{src:'M10',L:8,t:'mcq',q:'من خصائص الجمع يكون ناتج ٩ + ٧ =',o:['٧ + ٩','٧ + ٧','٩ + ٩','١٧ + ٩'],a:0,needsCheck:true},
+{src:'M10',L:5,t:'mcq',q:'الأعداد المرتبة من الأصغر إلى الأكبر هي:',o:['١١ ، ٧٣ ، ٢٥','٢٥ ، ١١ ، ٧٣','١١ ، ٢٥ ، ٧٣','٧٣ ، ٢٥ ، ١١'],a:2,needsCheck:true},
+{src:'M10',L:3,t:'mcq',q:'الرقم ٩ في العدد (٩٣٥٢١) يقع في منزلة:',o:['الآحاد','المئات','آحاد الألوف','عشرات الألوف'],a:3,needsCheck:true},
+{src:'M10',L:11,t:'mcq',q:'رقم الآحاد في ناتج جمع ٦٧ + ١٥ =',o:['١','٢','٣','٤'],a:1,needsCheck:true},
+{src:'M10',L:14,t:'mcq',q:'اشترى فهد كتابا بـ ٧٠ ريالا، إذا أعطى البائع ورقتي نقد من فئة ٥٠ فكم يعيد له البائع؟',o:['١٠','٢٠','٣٠','٤٠'],a:2,needsCheck:true},
+/* ---------- M11 (لا نموذج إجابة) ---------- */
+{src:'M11',L:0,t:'num',q:'أحدد النمط ثم أكتب العدد المناسب: ١٠ ، ١٢ ، ١٤ ، ١٦ ، ◯ ، ٢٠',ans:18,needsCheck:true},
+{src:'M11',L:0,t:'num',q:'أحدد النمط ثم أكتب العدد المناسب: ٥ ، ١٠ ، ١٥ ، ٢٠ ، ◯ ، ٣٠',ans:25,needsCheck:true},
+{src:'M11',L:2,t:'mcq',q:'اسم منزلة الرقم ٨ في العدد ٨٧٠ وقيمته المنزلية:',o:['المئات ، ٨٠٠','العشرات ، ٨٠','الآحاد ، ٨'],a:0,needsCheck:true},
+{src:'M11',L:2,t:'mcq',q:'اسم منزلة الرقم ٢ الأول في العدد ٢٣١٢ وقيمته المنزلية:',o:['الألوف ، ٢٠٠٠','المئات ، ٢٠٠','الآحاد ، ٢'],a:0,needsCheck:true},
+{src:'M11',L:4,t:'mcq',q:'أقارن: ٩٩٩٩ ◯ ١٠٠٠',o:['>','<','='],a:0,needsCheck:true},
+{src:'M11',L:5,t:'order',q:'أرتب الأعداد الآتية من الأصغر إلى الأكبر:',seq:['١٢٤','٢٢٤','٤٤١'],needsCheck:true},
+{src:'M11',L:3,t:'mcq',q:'ما الرقم الذي يقع في منزلة عشرات الألوف في العدد ٩٢١٠٨؟',o:['٠','١','٢','٩'],a:3,needsCheck:true},
+{src:'M11',L:4,t:'mcq',q:'اشترى أبو أحمد ثلاجة بـ ١٥٩٩ ريالًا وغسالة بـ ١٣٩٠ ريالًا وفرنًا بـ ١٤٩٠ ريالًا، فأيها أغلى ثمنًا؟',o:['الثلاجة','الغسالة','الفرن'],a:0,needsCheck:true},
+{src:'M11',L:6,t:'num',q:'أقرب إلى أقرب عشرة: ٧٧',ans:80,needsCheck:true},
+{src:'M11',L:6,t:'num',q:'أقرب إلى أقرب عشرة: ٤٥',ans:50,needsCheck:true},
+{src:'M11',L:7,t:'num',q:'أقرب إلى أقرب ألف: ٨٦١١',ans:9000,needsCheck:true},
+{src:'M11',L:7,t:'num',q:'أقرب إلى أقرب ألف: ١٠٩٩',ans:1000,needsCheck:true},
+{src:'M11',L:8,t:'mcq',q:'(٥ + ٧) + ٣ = ٥ + (٧ + ٣) ← الخاصية:',o:['الإبدال','التجميع','العنصر المحايد'],a:1,needsCheck:true},
+{src:'M11',L:8,t:'mcq',q:'٠ + ١٢ = ١٢ ← الخاصية:',o:['الإبدال','التجميع','العنصر المحايد'],a:2,needsCheck:true},
+/* ---------- M12 ---------- */
+{src:'M12',L:0,t:'mcq',q:'العدد التالي في النمط ٣٠ ، ٤٠ ، ٥٠ ، ........ هو:',o:['٥١','٥٥','٥٧','٦٠'],a:3},
+{src:'M12',L:3,t:'mcq',q:'الرقم الذي يقع في منزلة عشرات الألوف في العدد ٥٤٧٦١ هو:',o:['١','٦','٥','٤'],a:2},
+{src:'M12',L:2,t:'mcq',q:'القيمة المنزلية للرقم ٢ في العدد ١٥٢٩ هي:',o:['٢','٢٠','٢٠٠','٢٠٠٠'],a:1},
+{src:'M12',L:2,t:'mcq',q:'يكتب العدد (أربعة آلاف وثلاث مئة وواحد وعشرون) بالصيغة القياسية كالتالي:',o:['٣٤٢١','٤٣٢١','٤٢٣١','٤٠٢١'],a:1},
+{src:'M12',L:5,t:'mcq',q:'أي مجموعة الأعداد التالية مرتبة من الأكبر إلى الأصغر:',o:['٦٠ ، ٦٠٠ ، ٦٠٠٦','٦٠ ، ٦٠٠٦ ، ٦٠٠','٦٠٠٦ ، ٦٠٠ ، ٦٠','٦٠٠ ، ٦٠ ، ٦٠٠٦'],a:2},
+{src:'M12',L:6,t:'mcq',q:'أي الأعداد التالية يمثل تقريبًا للعدد ٥٤٩ إلى أقرب عشرة:',o:['٥٠٠','٥٥٠','٥٤٠','٦٠٠'],a:1},
+{src:'M12',L:8,t:'mcq',q:'العدد الذي يجعل الجملة العددية التالية صحيحة ٥ + (٧ + ٣) = ....... هو:',o:['١٠','١٢','١٥','١٨'],a:2},
+{src:'M12',L:6,t:'mcq',q:'أي عدد أقرب للعدد ٧٠٠:',o:['٦٢٨','٦٧٣','٧٨٠','٧٩٠'],a:1},
+{src:'M12',L:9,t:'mcq',q:'تقدير ناتج ٣٣ + ٣٧ يساوي:',o:['٥٠','٧٠','٨٠','٩٠'],a:1},
+{src:'M12',L:11,t:'mcq',q:'أي الأعداد يزيد ٧ على العدد ١٠٩٧:',o:['١٠٠٤','١١٠٤','٤٠٠٢','٢٠٠٧'],a:1},
+{src:'M12',L:8,t:'match',q:'صلي كل جملة عددية بخاصيتها:',pairs:[['٢ + (٣ + ٤) = (٢ + ٣) + ٤','التجميع'],['٤ + ٧ = ٧ + ٤','الإبدال'],['٦ + ٠ = ٦','العنصر المحايد']]},
+{src:'M12',L:2,t:'mcq',q:'وفرت عبير ١٥٨ ريالًا. الصيغة التحليلية للعدد:',o:['١٠٠ + ٥٠ + ٨','١٠٠ + ٥٨','١٠ + ٥ + ٨'],a:0},
+{src:'M12',L:4,t:'mcq',q:'قارني: ٢٩ ◯ ٣٨',o:['>','<','='],a:1},
+{src:'M12',L:4,t:'mcq',q:'قارني: ٥٠٠ + ٨٠ + ٩ ◯ ٥٨٩',o:['>','<','='],a:2},
+{src:'M12',L:11,t:'num',q:'أوجدي ناتج الجمع: ٤٢ + ٩ =',ans:51},
+{src:'M12',L:13,t:'num',q:'أوجدي ناتج الجمع: ٥٩٧ + ١٥١ =',ans:748},
+{src:'M12',L:10,t:'word',q:'مع محمد ٦٨ ريالًا ومع علي ٥٣ ريالًا. كم ريالًا معهما تقريبًا؟',ans:120,plan:'المطلوب جواب تقديري: أقرب كل عدد إلى أقرب عشرة ثم أجمع',why:'٧٠ + ٥٠ = ١٢٠'}
+];
+
+/* ==================== 📝 اختبار تجريبي · محرك مشترك (يُضمَّن داخل كل تطبيق) ====================
+   يعتمد على: EXAM_BANK (بنك الأوراق الحقيقية) و EXAM_CFG (إعدادات المادة) و دوال التطبيق: addStar, save, goMap,
+   stage, applause, tada, confetti, ST.  لا أصوات ولا نجوم أثناء الاختبار؛ احتفال واحد في النهاية.           */
+const EX={sec:[],ans:[],timer:null,left:0,kind:'',on:false};
+const XAR=n=>String(n).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
+const XLAT=s=>String(s).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+const XORD=['الأول','الثاني','الثالث','الرابع','الخامس','السادس','السابع','الثامن','التاسع','العاشر'];
+const XLET=['أ','ب','ج','د','هـ','و'];
+const xsh=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const xnorm=s=>String(s||'').replace(/[ً-ْٰـ]/g,'').replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').replace(/[^؀-ۿ0-9a-zA-Z\s]/g,' ').replace(/\s+/g,' ').trim();
+const xesc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+const XTITLE={tf:'ضعي علامة ✓ أو ✗ أمام كل عبارة',mcq:'اختاري الإجابة الصحيحة',match:'صلي كل عبارة بما يناسبها',fill:'أكملي الفراغ من الكلمات التالية (كل كلمة تُستعمل مرة واحدة)',order:'رتّبي',label:'حدّدي على الرسم',short:'اكتبي الإجابة',num:'أكملي',word:'حلّي المسألة بالخطوات الأربع',passage:'اقرئي النص ثم أجيبي',dictation:'إملاء منظور',sort:'صنّفي'};
+
+/* ---------- تجميع الأسئلة المتاحة ---------- */
+function exMergeAttempts(x,y){const m={};[...(x||[]),...(y||[])].forEach(a=>{if(a&&a.d)m[a.d]=a;});return Object.values(m).sort((p,q)=>p.d<q.d?-1:1);}
+function exPool(lessons){const pool={};const add=it=>{(pool[it.t]=pool[it.t]||[]).push(it);};
+ EXAM_BANK.filter(b=>lessons.includes(b.L)).forEach(b=>{let it=Object.assign({},b);if(it.t==='label'&&!it.targets&&EXAM_CFG.label)it=Object.assign(it,EXAM_CFG.label(it.fig));add(it);});
+ lessons.forEach(L=>{try{(EXAM_CFG.gen(L)||[]).forEach(it=>{it.L=L;add(it);});}catch(e){}});
+ return pool;}
+function exDraw(pool,t,n){const src=xsh(pool[t]||[]);const out=[];const seen=new Set();
+ for(const it of src){if(out.length>=n)break;const k=xnorm(it.q||it.text||'')+(it.seq||it.pairs||it.items||'');if(seen.has(k))continue;seen.add(k);out.push(it);}
+ return out;}
+function exBuild(lessons,short){const plan=short?EXAM_CFG.plan10:EXAM_CFG.plan20;const pool=exPool(lessons);const secs=[];let deficit=0;
+ plan.forEach(p=>{let items=exDraw(pool,p.t,p.n);
+  if(p.t==='passage'){items=items.slice(0,1);if(items.length){const ps=items[0];const sub=xsh(ps.items).slice(0,p.m);secs.push({t:'passage',title:XTITLE.passage,text:ps.text,L:ps.L,items:sub.map(s=>Object.assign({},s,{L:ps.L,m:1})),marks:sub.length});deficit+=p.m-sub.length;}else deficit+=p.m;return;}
+  if(items.length<p.n)deficit+=(p.n-items.length)*p.m;
+  if(items.length)secs.push({t:p.t,title:p.title||XTITLE[p.t],items:items.map(it=>Object.assign({},it,{m:p.m})),marks:items.length*p.m});});
+ if(deficit>0){const extra=exDraw(pool,'mcq',deficit*3).filter(it=>!secs.some(s=>s.items.some(x=>x.q===it.q))).slice(0,deficit);
+  const more=deficit-extra.length;const tfx=more>0?exDraw(pool,'tf',more):[];
+  if(extra.length)secs.push({t:'mcq',title:XTITLE.mcq,items:extra.map(it=>Object.assign({},it,{m:1})),marks:extra.length});
+  if(tfx.length)secs.push({t:'tf',title:XTITLE.tf,items:tfx.map(it=>Object.assign({},it,{m:1})),marks:tfx.length});}
+ return secs;}
+
+/* ---------- اختيار نوع الاختبار ---------- */
+function exChoose(){EX.on=false;document.getElementById('backB').style.visibility='visible';if(typeof cur!=='undefined')cur=-1;if(typeof curLesson!=='undefined')curLesson=-1;
+ const n=EXAM_CFG.nLessons,half=Math.ceil(n/2);const done=ST.after||[];
+ const kinds=[{k:'p1',n:'اختبار الفترة الأولى',rng:[...Array(half).keys()]},{k:'p2',n:'اختبار الفترة الثانية',rng:[...Array(n-half).keys()].map(i=>i+half)},{k:'fin',n:'اختبار نهاية الفصل',rng:[...Array(n).keys()]}];
+ stage.innerHTML=`${chip('📝 اختبار تجريبي')}<div class="card"><div class="big">📝✏️</div><h1 style="font-size:22px">اختبار تجريبي في ${EXAM_CFG.subject}</h1>
+  <p class="sub">ورقة مثل ورقة المدرسة: ${XAR(20)} درجة و ${XAR(15)} دقيقة. لا نجوم ولا أصوات أثناء الاختبار، وفي النهاية ورقة مصحّحة واحتفال 🎉</p>
+  ${kinds.map(K=>{const el=K.rng.filter(i=>done.includes(i));const ok=el.length>=EXAM_CFG.minLessons;const some=el.length>0;
+   return `<div style="background:#F7F9FC;border:2px solid #E1E7F0;border-radius:16px;padding:12px;margin:10px 0;text-align:right">
+    <b style="font-size:17px">${K.n}</b><div style="font-size:13px;color:#5B6B85;margin:4px 0 8px">الدروس المنجزة (بعد الحصة): ${XAR(el.length)} من ${XAR(K.rng.length)}</div>
+    ${ok?`<button class="go" style="font-size:15px;padding:9px 22px" onclick="exStart('${K.k}',${JSON.stringify(el)},false)">ابدئي الورقة الكاملة (${XAR(20)} درجة)</button>`
+      :some?`<div style="font-size:13.5px;color:#9A3B3B;margin-bottom:6px">أنجزتِ ${XAR(el.length)} من الدروس فقط؛ الورقة الكاملة تحتاج ${XAR(EXAM_CFG.minLessons)} دروس على الأقل.</div><button style="font-size:14px;padding:8px 18px" onclick="exStart('${K.k}',${JSON.stringify(el)},true)">ورقة قصيرة من الدروس المنجزة (${XAR(10)} درجات)</button>`
+      :`<div style="font-size:13.5px;color:#9A3B3B">أنهي درسًا واحدًا على الأقل (✏️ بعد الحصة) من هذه الفترة أولًا.</div>`}
+   </div>`;}).join('')}
+  <button onclick="goMap()" style="margin-top:6px">الخريطة 🏡</button></div>`;window.scrollTo({top:0});}
+
+/* ---------- بدء الورقة ---------- */
+function exStart(kind,lessons,short){EX.kind=kind;EX.short=!!short;EX.sec=exBuild(lessons,short);EX.ans=EX.sec.map(s=>s.items.map(()=>null));EX.on=true;
+ EX.left=15*60;clearInterval(EX.timer);EX.timer=setInterval(()=>{EX.left--;const t=document.getElementById('xtimer');if(t)t.textContent='⏱ '+XAR(String(Math.floor(EX.left/60)).padStart(2,'0'))+':'+XAR(String(EX.left%60).padStart(2,'0'));if(EX.left<=0){clearInterval(EX.timer);exSubmit(true);}},1000);
+ exRender();}
+function exKindName(k){return k==='p1'?'اختبار الفترة الأولى':k==='p2'?'اختبار الفترة الثانية':'اختبار نهاية الفصل';}
+function exRender(){const total=EX.sec.reduce((a,s)=>a+s.marks,0);
+ let html=`<div class="xpaper">
+  <div class="xhead"><div><b>الصف:</b> الثالث الابتدائي</div><div><b>المادة:</b> ${EXAM_CFG.subject}</div><div><b>اسم الطالبة:</b> ماريا</div><div><b>الدرجة:</b> ____ / ${XAR(total)}</div></div>
+  <div class="xtitle">${exKindName(EX.kind)} · الفصل الدراسي الأول <span id="xtimer" class="xtimer">⏱ ١٥:٠٠</span></div>`;
+ EX.sec.forEach((s,si)=>{html+=`<div class="xsec"><div class="xsech">السؤال ${XORD[si]||XAR(si+1)}: ${s.title} <span class="xmarks">(${XAR(s.marks)} ${s.marks===1?'درجة':s.marks===2?'درجتان':s.marks<=10?'درجات':'درجة'})</span></div>`;
+  if(s.t==='passage')html+=`<div class="xpass">${xesc(s.text)}</div>`;
+  s.items.forEach((it,ii)=>{html+=`<div class="xitem" id="xi_${si}_${ii}">${exItemHtml(it,si,ii)}</div>`;});
+  html+='</div>';});
+ html+=`<div style="text-align:center;margin-top:14px"><button class="go" onclick="exSubmit(false)">سلّمي الورقة ✅</button><div style="height:8px"></div><button onclick="if(confirm('تخرجين من الاختبار دون تسليم؟')){clearInterval(EX.timer);EX.on=false;goMap();}" style="font-size:13px">خروج بدون تسليم</button></div></div>`;
+ stage.innerHTML=html;window.scrollTo({top:0});
+ EX.sec.forEach((s,si)=>s.items.forEach((it,ii)=>exBind(it,si,ii)));}
+
+/* ---------- عرض كل نوع ---------- */
+function exItemHtml(it,si,ii){const id=`${si}_${ii}`;const num=`<span class="xn">${XAR(ii+1)}</span>`;
+ switch(it.t){
+ case 'tf':return `<div class="xrow">${num}<div class="xq">${xesc(it.q)}</div><div class="xtf"><button data-v="1">✓</button><button data-v="0">✗</button></div></div>`;
+ case 'mcq':return `${num}<div class="xq">${xesc(it.q)}</div><div class="xopts">${it.o.map((o,k)=>`<button data-k="${k}"><span class="xlet">${XLET[k]}</span> ${xesc(o)}</button>`).join('')}</div>`;
+ case 'match':{const R=xsh(it.pairs.map((p,k)=>k));it._R=R;return `${num}<div class="xq">${xesc(it.q)}</div><div class="xmatch"><div class="xcol">${it.pairs.map((p,k)=>`<button data-l="${k}">${xesc(p[0])}</button>`).join('')}</div><div class="xcol">${R.map(k=>`<button data-r="${k}">${xesc(it.pairs[k][1])}</button>`).join('')}</div></div>`;}
+ case 'fill':{const bank=xsh(it.bank||it.items.map(x=>x[1]));return `${num}<div class="xq">${xesc(it.q)}</div><div class="xbank">${bank.map((w,k)=>`<button data-w="${k}">${xesc(w)}</button>`).join('')}</div>${it.items.map((x,k)=>`<div class="xblankrow"><span class="xn">${XAR(k+1)}</span> ${xesc(x[0]).replace(/\.{3,}|◯|_{2,}/,'<span class="xblank" data-b="'+k+'"></span>')}${/\.{3,}|◯|_{2,}/.test(x[0])?'':' <span class="xblank" data-b="'+k+'"></span>'}</div>`).join('')}`;}
+ case 'sort':return `${num}<div class="xq">${xesc(it.q)}</div><div class="xbank">${xsh(it.items.map((x,k)=>k)).map(k=>`<button data-w="${k}">${xesc(it.items[k][0])}</button>`).join('')}</div><div class="xbins">${it.bins.map((b,k)=>`<div class="xbin" data-bin="${k}"><h4>${xesc(b)}</h4><div class="xgot"></div></div>`).join('')}</div>`;
+ case 'order':return `${num}<div class="xq">${xesc(it.q)}</div><div class="xslots">${it.seq.map((_,k)=>`<div class="xslot" data-s="${k}">${XAR(k+1)}</div>`).join('')}</div><div class="xbank">${xsh(it.seq.map((x,k)=>k)).map(k=>`<button data-w="${k}">${xesc(it.seq[k])}</button>`).join('')}</div><div style="text-align:left"><button class="xreset" style="font-size:12px;padding:4px 10px">إعادة ↺</button></div>`;
+ case 'label':return `${num}<div class="xq">${xesc(it.q)}</div><div class="xbank">${it.chips.map((c,k)=>`<button data-w="${k}">${xesc(c)}</button>`).join('')}</div><div class="xfig">${it.html}</div>`;
+ case 'short':return `${num}<div class="xq">${xesc(it.q)}</div><textarea class="xta" placeholder="اكتبي إجابتكِ هنا…"></textarea>`;
+ case 'num':return `${num}<div class="xq">${xesc(it.q)}</div><div class="xnum"><div class="xdisp">&nbsp;</div><div class="xkb">${[1,2,3,4,5,6,7,8,9].map(d=>`<button data-d="${d}">${XAR(d)}</button>`).join('')}<button data-d="del">⌫</button><button data-d="0">٠</button><button data-d="clr">مسح</button></div></div>`;
+ case 'word':return `${num}<div class="xq">${xesc(it.q)}</div><div class="xsteps">
+   <div class="xstep"><b>١ أفهم:</b> ما المطلوب في المسألة؟ اقرئيها مرتين.</div>
+   <div class="xstep"><b>٢ أخطط:</b> أي عملية أستعمل؟ <div class="xopts xplan">${['جمع','طرح','تقدير بالتقريب'].map((o,k)=>`<button data-p="${k}">${o}</button>`).join('')}</div></div>
+   <div class="xstep"><b>٣ أحل:</b><div class="xnum"><div class="xdisp">&nbsp;</div><div class="xkb">${[1,2,3,4,5,6,7,8,9].map(d=>`<button data-d="${d}">${XAR(d)}</button>`).join('')}<button data-d="del">⌫</button><button data-d="0">٠</button><button data-d="clr">مسح</button></div></div></div>
+   <div class="xstep"><b>٤ أتحقق:</b> هل الجواب معقول؟ <button class="xchk" style="font-size:13px;padding:5px 12px">راجعتُ جوابي ✔</button></div></div>`;
+ case 'dictation':return `${num}<div class="xq">اقرئي الجملة جيدًا؛ ستختفي بعد ${XAR(10)} ثوانٍ، ثم اكتبيها كما هي.</div><div class="xdict"><div class="xdtext">${xesc(it.text)}</div><div class="xdcount">⏳ ${XAR(10)}</div></div><textarea class="xta" placeholder="اكتبي الجملة هنا بعد اختفائها…" disabled></textarea>`;
+ default:return `${num}<div class="xq">${xesc(it.q||'')}</div>`;}}
+
+/* ---------- ربط التفاعل وتخزين الإجابات ---------- */
+function exBind(it,si,ii){const el=document.getElementById(`xi_${si}_${ii}`);if(!el)return;const set=v=>{EX.ans[si][ii]=v;};
+ const pickOne=(sel,attr)=>{el.querySelectorAll(sel).forEach(b=>b.onclick=()=>{el.querySelectorAll(sel).forEach(x=>x.classList.remove('xsel'));b.classList.add('xsel');set(b.dataset[attr]);});};
+ switch(it.t){
+ case 'tf':pickOne('.xtf button','v');break;
+ case 'mcq':pickOne('.xopts button','k');break;
+ case 'match':{let pick=null;const map={};set(map);
+  el.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>{el.querySelectorAll('[data-l]').forEach(x=>x.classList.remove('xsel'));b.classList.add('xsel');pick=+b.dataset.l;});
+  el.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{if(pick===null)return;const r=+b.dataset.r;Object.keys(map).forEach(k=>{if(map[k]===r)delete map[k];});map[pick]=r;
+   el.querySelectorAll('[data-l]').forEach(x=>{x.classList.remove('xsel');const m=map[x.dataset.l];x.querySelector('.xtag')?.remove();if(m!==undefined)x.insertAdjacentHTML('beforeend',`<span class="xtag">${XAR(+x.dataset.l+1)}</span>`);});
+   el.querySelectorAll('[data-r]').forEach(x=>{x.querySelector('.xtag')?.remove();const l=Object.keys(map).find(k=>map[k]===+x.dataset.r);if(l!==undefined)x.insertAdjacentHTML('beforeend',`<span class="xtag">${XAR(+l+1)}</span>`);});pick=null;});break;}
+ case 'fill':{let pick=null;const map={};set(map);const words=el.querySelectorAll('.xbank button');
+  words.forEach(b=>b.onclick=()=>{if(b.classList.contains('xused'))return;words.forEach(x=>x.classList.remove('xsel'));b.classList.add('xsel');pick=b;});
+  el.querySelectorAll('.xblank').forEach(bl=>bl.onclick=()=>{const k=bl.dataset.b;if(map[k]!==undefined){const old=[...words].find(w=>w.textContent===map[k]);if(old)old.classList.remove('xused');delete map[k];bl.textContent='';bl.classList.remove('xfilled');if(!pick)return;}
+   if(!pick)return;map[k]=pick.textContent;bl.textContent=pick.textContent;bl.classList.add('xfilled');pick.classList.add('xused');pick.classList.remove('xsel');pick=null;});break;}
+ case 'sort':{let pick=null;const map={};set(map);const words=el.querySelectorAll('.xbank button');
+  words.forEach(b=>b.onclick=()=>{words.forEach(x=>x.classList.remove('xsel'));b.classList.add('xsel');pick=b;});
+  el.querySelectorAll('.xbin').forEach(bin=>bin.onclick=()=>{if(!pick)return;const k=+pick.dataset.w;map[k]=+bin.dataset.bin;bin.querySelector('.xgot').insertAdjacentHTML('beforeend',`<span>${xesc(it.items[k][0])}</span>`);pick.remove();pick=null;});break;}
+ case 'order':{const arr=[];set(arr);const words=el.querySelectorAll('.xbank button');
+  words.forEach(b=>b.onclick=()=>{if(arr.length>=it.seq.length)return;arr.push(+b.dataset.w);const sl=el.querySelector(`.xslot[data-s="${arr.length-1}"]`);sl.textContent=it.seq[+b.dataset.w];sl.classList.add('xfilled');b.classList.add('xused');});
+  el.querySelector('.xreset').onclick=()=>{arr.length=0;el.querySelectorAll('.xslot').forEach((s,k)=>{s.textContent=XAR(k+1);s.classList.remove('xfilled');});words.forEach(b=>b.classList.remove('xused'));};break;}
+ case 'label':{let pick=null;const map={};set(map);const chips=el.querySelectorAll('.xbank button');
+  chips.forEach(b=>b.onclick=()=>{if(b.classList.contains('xused'))return;chips.forEach(x=>x.classList.remove('xsel'));b.classList.add('xsel');pick=b;});
+  el.querySelectorAll('.xtarget').forEach(t=>t.addEventListener('click',()=>{if(!pick)return;const k=t.dataset.t;if(map[k]!==undefined&&!it.reuse){const old=[...chips].find(c=>+c.dataset.w===map[k]);if(old)old.classList.remove('xused');}
+   map[k]=+pick.dataset.w;const lab=t.querySelector('.xtl')||t;if(t.tagName==='DIV'||t.tagName==='SPAN')lab.textContent=it.chips[map[k]];else{const tx=t.parentNode.querySelector(`[data-tl="${k}"]`);if(tx)tx.textContent=it.chips[map[k]];}
+   t.classList.add('xfilled');if(!it.reuse)pick.classList.add('xused');pick.classList.remove('xsel');pick=null;}));break;}
+ case 'short':el.querySelector('.xta').oninput=e=>set(e.target.value);break;
+ case 'num':case 'word':{let v='';const disp=el.querySelector('.xdisp');el.querySelectorAll('.xkb button').forEach(b=>b.onclick=()=>{const d=b.dataset.d;if(d==='del')v=v.slice(0,-1);else if(d==='clr')v='';else if(v.length<6)v+=d;disp.textContent=v?XAR(v):' ';set(v);});
+  if(it.t==='word'){el.querySelectorAll('.xplan button').forEach(b=>b.onclick=()=>{el.querySelectorAll('.xplan button').forEach(x=>x.classList.remove('xsel'));b.classList.add('xsel');});const c=el.querySelector('.xchk');c.onclick=()=>c.classList.toggle('xsel');}break;}
+ case 'dictation':{let n=10;const cnt=el.querySelector('.xdcount'),tx=el.querySelector('.xdtext'),ta=el.querySelector('.xta');const iv=setInterval(()=>{n--;cnt.textContent='⏳ '+XAR(n);if(n<=0){clearInterval(iv);tx.textContent='(اختفت الجملة… اكتبيها الآن ✍️)';tx.classList.add('xhidden');cnt.textContent='';ta.disabled=false;ta.focus();}},1000);ta.oninput=e=>set(e.target.value);break;}}}
+
+/* ---------- التصحيح ---------- */
+function exGrade(it,v){const m=it.m||1;const R=(got,c,g)=>({got:Math.round(got*2)/2,max:m,c,g,q:it.q||it.text||''});
+ switch(it.t){
+ case 'tf':{const g=v===null?'—':v==='1'?'✓':'✗';return R(v!==null&&(v==='1')===!!it.a?m:0,it.a?'✓':'✗',g);}
+ case 'mcq':{const k=v===null?-1:+v;return R(k===it.a?m:0,it.o[it.a],k>=0?it.o[k]:'—');}
+ case 'match':{const map=v||{};let ok=0;it.pairs.forEach((p,k)=>{if(map[k]===k)ok++;});return R(m*ok/it.pairs.length,it.pairs.map(p=>p[0]+' ← '+p[1]).join(' ؛ '),it.pairs.map((p,k)=>p[0]+' ← '+(map[k]!==undefined?it.pairs[map[k]][1]:'—')).join(' ؛ '));}
+ case 'fill':{const map=v||{};let ok=0;it.items.forEach((x,k)=>{if(xnorm(map[k])===xnorm(x[1]))ok++;});return R(m*ok/it.items.length,it.items.map(x=>x[1]).join(' ، '),it.items.map((x,k)=>map[k]||'—').join(' ، '));}
+ case 'sort':{const map=v||{};let ok=0;it.items.forEach((x,k)=>{if(map[k]===x[1])ok++;});return R(m*ok/it.items.length,it.items.map(x=>x[0]+' ← '+it.bins[x[1]]).join(' ؛ '),it.items.map((x,k)=>x[0]+' ← '+(map[k]!==undefined?it.bins[map[k]]:'—')).join(' ؛ '));}
+ case 'order':{const arr=v||[];let ok=0;it.seq.forEach((s,k)=>{if(arr[k]===k)ok++;});return R(m*ok/it.seq.length,it.seq.join(' ← '),arr.length?arr.map(k=>it.seq[k]).join(' ← '):'—');}
+ case 'label':{const map=v||{};let ok=0;it.targets.forEach((t,k)=>{if(map[k]===t.c)ok++;});return R(m*ok/it.targets.length,it.targets.map(t=>t.n+': '+it.chips[t.c]).join(' ؛ '),it.targets.map((t,k)=>t.n+': '+(map[k]!==undefined?it.chips[map[k]]:'—')).join(' ؛ '));}
+ case 'short':{const txt=xnorm(v||'');const keys=(it.keys||[]).map(xnorm);const hit=keys.filter(k=>k&&txt.includes(k)).length;const need=Math.max(1,Math.ceil(keys.length/2));const frac=!keys.length?(txt.length>2?1:0):Math.min(1,hit/need);return R(m*frac,it.a,v||'—');}
+ case 'num':case 'word':{const g=v?parseInt(v,10):NaN;return R(g===it.ans?m:0,XAR(it.ans)+(it.why?' ('+it.why+')':''),v?XAR(v):'—');}
+ case 'dictation':{const want=xnorm(it.text).split(' ').filter(Boolean),got=xnorm(v||'').split(' ').filter(Boolean);let ok=0;const used=new Set();want.forEach(w=>{const i=got.findIndex((g,idx)=>!used.has(idx)&&g===w);if(i>=0){used.add(i);ok++;}});return R(m*ok/Math.max(1,want.length),it.text,v||'—');}
+ default:return R(0,'',v||'—');}}
+function exSubmit(auto){if(!EX.on)return;if(!auto){const empty=EX.ans.flat().filter(a=>a===null||a===''||(typeof a==='object'&&!Array.isArray(a)&&!Object.keys(a).length)||(Array.isArray(a)&&!a.length)).length;if(empty&&!confirm(`تركتِ ${XAR(empty)} من الأسئلة بلا إجابة. تسلّمين الورقة؟`))return;}
+ clearInterval(EX.timer);EX.on=false;
+ const total=EX.sec.reduce((a,s)=>a+s.marks,0);let mark=0,stars=0;const rows=[];
+ EX.sec.forEach((s,si)=>s.items.forEach((it,ii)=>{const r=exGrade(it,EX.ans[si][ii]);mark+=r.got;if(r.got>=r.max)stars++;const Lname=EXAM_CFG.lessonName(it.L);rows.push(Object.assign(r,{ok:r.got>=r.max,tag:Lname,type:it.t}));}));
+ mark=Math.round(mark*2)/2;
+ const attempt={d:new Date().toISOString(),k:EX.kind,short:EX.short,m:mark,max:total,stars,missed:rows.filter(r=>!r.ok).map(r=>({q:r.q.slice(0,120),c:String(r.c).slice(0,140),g:String(r.g).slice(0,140),tag:r.tag,type:r.type}))};
+ if(!Array.isArray(ST.exams))ST.exams=[];ST.exams.push(attempt);save();
+ exShowCorrected(rows,mark,total,stars);}
+function exShowCorrected(rows,mark,total,stars){const wrong=rows.filter(r=>!r.ok);
+ stage.innerHTML=`<div class="xpaper"><div class="xtitle">📄 الورقة المصحّحة · الدرجة: <b>${XAR(mark)}</b> / ${XAR(total)}</div>
+  ${wrong.length?`<p style="font-size:14px;color:#5B6B85;margin:6px 0 10px">هذه الأسئلة راجعيها مع ماما (إجابتكِ ← الصحيح):</p>`+wrong.map(r=>`<div class="xwrong"><div class="xq">${xesc(r.q)}</div><div class="xgiven">✗ إجابتكِ: ${xesc(r.g)}</div><div class="xcorrect">✓ الصحيح: ${xesc(r.c)}</div><div class="xtagl">📚 ${xesc(r.tag)}</div></div>`).join(''):`<p style="font-size:17px;text-align:center;margin:14px 0">كل الإجابات صحيحة! 🌟 ورقة كاملة!</p>`}
+  <div style="text-align:center;margin-top:14px"><button class="go" onclick="exCelebrate(${mark},${total},${stars})">شاهدي نتيجتكِ 🎉</button></div></div>`;window.scrollTo({top:0});}
+function exCelebrate(mark,total,stars){if(stars>0)addStar(stars);try{applause(mark>=total*0.75);tada();confetti();}catch(e){}
+ const pct=mark/total;const msg=pct>=0.9?'ممتازة يا ماريا! ورقة تفتخر بها 🏆':pct>=0.7?'أحسنتِ يا ماريا! نتيجة جميلة 🌟':pct>=0.5?'جيدة! راجعي الأسئلة المصحّحة وستكونين أفضل 💪':'لا بأس يا بطلة، المراجعة مع ماما ستصنع الفرق 🌱';
+ stage.innerHTML=`<div class="card"><div class="big">🎉📝</div><h1>${XAR(mark)} من ${XAR(total)}</h1><p class="sub">${msg}</p><p class="sub">⭐ كسبتِ ${XAR(stars)} ${stars===1?'نجمة':stars===2?'نجمتين':stars<=10?'نجوم':'نجمة'} (نجمة لكل إجابة صحيحة)</p>
+  <button class="go" onclick="goMap()">الخريطة 🏡</button><div style="height:8px"></div><button onclick="exLog()" style="font-size:14px">📊 سجل الاختبارات</button></div>`;window.scrollTo({top:0});}
+
+/* ---------- سجل الاختبارات (لوليّ الأمر) ---------- */
+function exLog(){document.getElementById('backB').style.visibility='visible';if(typeof cur!=='undefined')cur=-1;if(typeof curLesson!=='undefined')curLesson=-1;
+ const A=(ST.exams||[]).slice().reverse();const byTag={};(ST.exams||[]).forEach(a=>(a.missed||[]).forEach(mi=>{const t=byTag[mi.tag]=byTag[mi.tag]||{n:0,qs:[]};t.n++;if(t.qs.length<3&&!t.qs.some(q=>q.q===mi.q))t.qs.push(mi);}));
+ const tags=Object.entries(byTag).sort((a,b)=>b[1].n-a[1].n).slice(0,8);
+ const fmt=d=>{try{const x=new Date(d);return XAR(x.getDate())+'/'+XAR(x.getMonth()+1)+' '+XAR(String(x.getHours()).padStart(2,'0'))+':'+XAR(String(x.getMinutes()).padStart(2,'0'));}catch(e){return '';}};
+ stage.innerHTML=`${chip('📊 سجل الاختبارات · لوليّ الأمر')}<div class="card" style="text-align:right">
+  <h2 style="text-align:center">📊 سجل اختبارات ماريا · ${EXAM_CFG.subject}</h2>
+  ${A.length?`<table class="xlog"><tr><th>التاريخ</th><th>الاختبار</th><th>الدرجة</th><th>أخطاء</th></tr>${A.map(a=>`<tr><td>${fmt(a.d)}</td><td>${exKindName(a.k)}${a.short?' (قصير)':''}</td><td><b>${XAR(a.m)}</b>/${XAR(a.max)}</td><td>${XAR((a.missed||[]).length)}</td></tr>`).join('')}</table>`:'<p class="sub" style="text-align:center">لا توجد محاولات بعد. ابدئي أول اختبار تجريبي من الخريطة 📝</p>'}
+  ${tags.length?`<h3 style="margin:16px 0 6px">🔎 أكثر ما تحتاج مراجعته (حسب عدد الأخطاء)</h3>${tags.map(([t,v])=>`<div class="xtagbox"><b>${xesc(t)}</b> <span style="color:#9A3B3B;font-weight:800">✗ ${XAR(v.n)}</span>${v.qs.map(q=>`<div class="xtagq">• ${xesc(q.q)}<br><span style="color:#227A63">✓ ${xesc(q.c)}</span></div>`).join('')}</div>`).join('')}`:''}
+  <div style="text-align:center;margin-top:14px"><button class="go" onclick="goMap()">الخريطة 🏡</button> ${A.length?`<button onclick="if(confirm('تمسحين سجل الاختبارات؟ (لا يؤثر في النجوم والدروس)')){ST.exams=[];save();exLog();}" style="font-size:12px">مسح السجل</button>`:''}</div></div>`;window.scrollTo({top:0});}
+
+
+/* معاينة لوليّ الأمر: افتحي الرابط مع #exam-demo لعرض ورقة كاملة فورًا (لا يغيّر التقدّم) */
+if(location.hash==='#exam-demo'){setTimeout(()=>{try{exStart('fin',[...Array(EXAM_CFG.nLessons).keys()],false);}catch(e){}},400);}
+/* ---------- ورقة الاختبار: التنسيق ---------- */
+document.head.insertAdjacentHTML('beforeend',`<style>
+.xpaper{background:#fff;border:1px solid #C9D2DE;border-radius:8px;padding:16px 14px 20px;color:#1E2A3A;text-align:right;box-shadow:0 2px 0 #C9D2DE,0 10px 24px rgba(30,42,58,.08);line-height:1.8}
+.xhead{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;border:2px solid #1E2A3A;border-radius:6px;padding:8px 12px;font-size:14px}
+.xtitle{text-align:center;font-weight:800;font-size:17px;margin:12px 0 4px;border-bottom:2px dashed #C9D2DE;padding-bottom:8px;display:flex;justify-content:center;gap:14px;align-items:center;flex-wrap:wrap}
+.xtimer{font-size:14px;font-weight:700;color:#6B7A90;background:#F2F5F9;border-radius:99px;padding:2px 12px}
+.xsec{margin-top:16px}.xsech{background:#EEF2F7;border-right:5px solid #1E2A3A;padding:6px 12px;font-weight:800;font-size:15px;border-radius:4px}
+.xmarks{font-weight:700;color:#6B7A90;font-size:13px}
+.xitem{padding:10px 6px;border-bottom:1px solid #EEF2F7;font-size:15.5px}.xn{display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;border:1.5px solid #1E2A3A;border-radius:50%;font-size:12px;font-weight:800;margin-left:6px}
+.xq{display:inline;font-weight:700}.xrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.xrow .xq{flex:1}
+.xtf button{width:44px;height:38px;font-size:18px;padding:0;border-radius:10px;margin-right:4px;background:#fff}
+.xopts{display:flex;flex-direction:column;gap:6px;margin-top:6px}.xopts button{text-align:right;background:#fff;font-size:15px;padding:8px 12px;border-radius:12px;font-weight:700}
+.xlet{display:inline-block;width:22px;height:22px;line-height:22px;text-align:center;border:1.5px solid #1E2A3A;border-radius:50%;font-size:12px;margin-left:6px}
+.xpaper button.xsel{background:#DDEBFF;border-color:#3F7CC9;color:#1E2A3A}.xpaper button.xused{opacity:.35;pointer-events:none}
+.xmatch{display:flex;gap:8px;margin-top:6px}.xcol{flex:1;display:flex;flex-direction:column;gap:6px}.xcol button{position:relative;background:#fff;font-size:13.5px;padding:8px 6px;line-height:1.5;text-align:center}
+.xtag{position:absolute;top:-8px;left:-6px;background:#3F7CC9;color:#fff;border-radius:50%;width:22px;height:22px;line-height:22px;font-size:12px}
+.xbank{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;justify-content:center}.xbank button{background:#FFF9E3;border-color:#F0DBA0;font-size:14px;padding:6px 12px}
+.xblankrow{margin:6px 0;font-size:15px}.xblank{display:inline-block;min-width:90px;border-bottom:2px solid #1E2A3A;text-align:center;margin:0 4px;color:#3F7CC9;font-weight:800;min-height:24px;vertical-align:bottom;cursor:pointer}
+.xbins{display:flex;gap:6px;flex-wrap:wrap}.xbin{flex:1;min-width:110px;border:2px dashed #9AA9BE;border-radius:12px;padding:6px;min-height:70px;cursor:pointer}.xbin h4{margin:0 0 4px;font-size:13px;text-align:center}.xgot{display:flex;flex-wrap:wrap;gap:4px;justify-content:center}.xgot span{background:#EEF2F7;border-radius:8px;padding:2px 8px;font-size:13px;font-weight:700}
+.xslots{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:6px 0}.xslot{min-width:54px;min-height:40px;border:2px solid #1E2A3A;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;padding:4px 8px;background:#fff}.xslot.xfilled{background:#DDEBFF}
+.xfig{margin:6px auto;max-width:360px}.xfig .xtarget{cursor:pointer}.xfig svg .xtarget{fill:rgba(63,124,201,.15);stroke:#3F7CC9;stroke-width:2.5;stroke-dasharray:4 3}.xfig svg .xtarget.xfilled{fill:rgba(63,124,201,.35);stroke-dasharray:none}
+.xfig .xtl{font-weight:800;font-size:13px;fill:#1E2A3A}.xwords{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}.xwords .xtarget{border:2px dashed #9AA9BE;border-radius:12px;padding:6px 10px;text-align:center;min-width:70px}.xwords .xtarget.xfilled{border-style:solid;border-color:#3F7CC9}.xwords .xtl{display:block;color:#3F7CC9;font-size:12px;min-height:16px}
+.xpv{display:flex;gap:6px;justify-content:center;direction:rtl}.xpv .xtarget{border:2px solid #1E2A3A;border-radius:8px;width:64px;padding:6px 4px;text-align:center}.xpv .xdig{font-size:26px;font-weight:800;display:block}.xpv .xtl{display:block;font-size:11px;color:#3F7CC9;min-height:16px}
+.xta{width:100%;font-family:inherit;font-size:16px;border:2px solid #C9D2DE;border-radius:12px;padding:10px;min-height:64px;margin-top:6px;resize:vertical}
+.xnum{max-width:300px;margin:6px auto}.xdisp{border:2px solid #1E2A3A;border-radius:10px;min-height:44px;font-size:26px;font-weight:800;text-align:center;letter-spacing:2px;margin-bottom:6px;background:#fff}
+.xkb{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.xkb button{font-size:20px;padding:8px 0;background:#fff}
+.xsteps{margin-top:6px}.xstep{background:#F7F9FC;border-radius:10px;padding:8px 10px;margin:6px 0;font-size:14px}.xplan{flex-direction:row;flex-wrap:wrap}.xplan button{flex:1;text-align:center;font-size:13px}
+.xpass{background:#FBFCFE;border:1.5px solid #C9D2DE;border-radius:8px;padding:12px 14px;font-size:17px;line-height:2.1;margin:8px 0}
+.xdict{background:#FFF9E3;border:2px solid #F0DBA0;border-radius:12px;padding:10px;text-align:center;margin-top:6px}.xdtext{font-size:19px;font-weight:800;line-height:2}.xdtext.xhidden{color:#9AA9BE;font-weight:700;font-size:14px}.xdcount{font-size:13px;color:#6B7A90}
+.xwrong{border:1.5px solid #E39B9B;border-radius:12px;padding:8px 12px;margin:8px 0;font-size:14px;background:#FFF7F7}.xgiven{color:#9B3B3B;margin-top:2px}.xcorrect{color:#227A63}.xtagl{font-size:12px;color:#6B7A90}
+.xlog{width:100%;border-collapse:collapse;font-size:13.5px;text-align:center}.xlog th,.xlog td{border:1px solid #DCE3EC;padding:6px 4px}.xlog th{background:#EEF2F7}
+.xtagbox{border:1.5px solid #E1E7F0;border-radius:12px;padding:8px 12px;margin:6px 0;font-size:14px}.xtagq{font-size:13px;margin-top:4px;line-height:1.6}
+.xchk.xsel{background:#DDF3EC;border-color:#4EB39A}
+</style>`);
+
+/* ---------- إعدادات اختبار الرياضيات ---------- */
+function exLabelPV(big){const n=big?rnd(10000,99999):rnd(1000,9999);const ds=String(n).split('');const names=big?['عشرات الألوف','الألوف','المئات','العشرات','الآحاد']:['الألوف','المئات','العشرات','الآحاد'];
+ const html=`<div class="xpv">${ds.map((d,k)=>`<div class="xtarget" data-t="${k}"><span class="xdig">${A(d)}</span><span class="xtl"></span></div>`).join('')}</div>`;
+ return {t:'label',q:`العدد ${A(n)}: ضعي اسم المنزلة تحت كل رقم.`,chips:names,targets:ds.map((d,k)=>({n:A(d),c:k})),html};}
+const EXAM_CFG={subject:'الرياضيات',nLessons:L.length,minLessons:3,lessonName:i=>(L[i]||{}).name||'عام',
+ plan20:[{t:'mcq',n:5,m:1},{t:'tf',n:4,m:1},{t:'num',n:4,m:1,title:'أكملي (اكتبي الناتج بلوحة الأرقام)'},{t:'order',n:1,m:2,title:'رتّبي الأعداد'},{t:'fill',n:1,m:2},{t:'label',n:1,m:1,title:'حدّدي على جدول المنازل'},{t:'word',n:1,m:2}],
+ plan10:[{t:'mcq',n:3,m:1},{t:'tf',n:2,m:1},{t:'num',n:3,m:1,title:'أكملي'},{t:'word',n:1,m:2}],
+ label(){return exLabelPV(false);},
+ gen(Li){const l=L[Li];if(!l)return [];const out=[];const strip=s=>String(s).replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
+  for(let k=0;k<4;k++){let s;try{s=l.g('test');}catch(e){break;}if(!s)break;
+   if(s.t==='num'&&s.q)out.push({t:'num',q:strip(s.q),ans:s.ans});
+   else if(s.t==='mcq'&&s.o)out.push({t:'mcq',q:strip(s.q),o:s.o.map(strip),a:s.o.indexOf(s.c)});
+   else if(s.t==='cmp'){const sym=s.a>s.b?'>':s.a<s.b?'<':'=';out.push({t:'mcq',q:`قارني: ${A(s.a)} ◯ ${A(s.b)}`,o:['>','<','='],a:['>','<','='].indexOf(sym)});const wrong=['>','<','='].filter(x=>x!==sym);const useT=Math.random()<.5;out.push({t:'tf',q:`${A(s.a)} ${useT?sym:wrong[Math.floor(Math.random()*wrong.length)]} ${A(s.b)}`,a:useT});}
+   else if(s.t==='order'&&s.seq)out.push({t:'order',q:strip(s.q),seq:s.seq.map(strip)});}
+  if(Li===2)out.push(exLabelPV(false));if(Li===3)out.push(exLabelPV(true));
+  if([11,12,13].includes(Li)){const a=rnd(12,48),b=rnd(11,49);out.push({t:'word',q:`مع ماريا ${A(a)} ريالًا، وأعطتها أمها ${A(b)} ريالًا. كم ريالًا صار معها؟`,ans:a+b,why:`${A(a)} + ${A(b)} = ${A(a+b)}`});}
+  if([14,17,18].includes(Li)){const a=rnd(50,99),b=rnd(11,45);out.push({t:'word',q:`في مكتبة الصف ${A(a)} كتابًا، استعارت الطالبات ${A(b)} كتابًا. كم كتابًا بقي في المكتبة؟`,ans:a-b,why:`${A(a)} − ${A(b)} = ${A(a-b)}`});}
+  if([9,10].includes(Li)){const a=rnd(21,49),b=rnd(21,49);const r=x=>Math.round(x/10)*10;out.push({t:'word',q:`اشترت ماريا كتابًا بـ ${A(a)} ريالًا ودفترًا بـ ${A(b)} ريالًا. كم ريالًا دفعت تقريبًا؟`,ans:r(a)+r(b),why:`${A(r(a))} + ${A(r(b))} = ${A(r(a)+r(b))}`});}
+  return out;}};
 
 drawStars();goMap();applySound();serverLoad();
 </script>

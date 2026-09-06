@@ -168,7 +168,7 @@ footer button{border:none;background:none;color:#B9C9B9;font-size:11px;text-deco
   </div>
   <div id="stage"></div>
   <footer>العُلوم · الصَّفّ الثَّالث · الفصل الدِّراسيّ الأوَّل · طبعة ١٤٤٨
-    <br><button onclick="exportProgress()">حفظ نسخة</button> · <button onclick="importProgress()">استرجاع نسخة</button> · <button onclick="hardReset()">بداية جديدة (يمسح التَّقدُّم)</button></footer>
+    <br><button onclick="exLog()">📊 سجل الاختبارات</button> · <button onclick="exportProgress()">حفظ نسخة</button> · <button onclick="importProgress()">استرجاع نسخة</button> · <button onclick="hardReset()">بداية جديدة (يمسح التَّقدُّم)</button></footer>
 <input type="file" id="impF" accept=".json,application/json" style="display:none">
 </div>
 <div id="ovl"><div class="inner"></div></div>
@@ -548,7 +548,7 @@ function load(){try{const s=localStorage.getItem('alima_science_t1');if(s)ST={..
 function save(){try{localStorage.setItem('alima_science_t1',JSON.stringify(ST));}catch(e){}serverSave();}
 let __sv=null;
 function serverSave(){clearTimeout(__sv);__sv=setTimeout(()=>{try{fetch('/progress',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(ST)}).catch(()=>{});}catch(e){}},250);}
-function mergeST(a,b){const u=(x,y)=>Array.from(new Set([...(x||[]),...(y||[])]));const m={...a,...b};m.stars=Math.max(+a.stars||0,+b.stars||0);['before','after','think'].forEach(k=>m[k]=u(a[k],b[k]));m.finalDone=!!(a.finalDone||b.finalDone);return m;}
+function mergeST(a,b){const u=(x,y)=>Array.from(new Set([...(x||[]),...(y||[])]));const m={...a,...b};m.stars=Math.max(+a.stars||0,+b.stars||0);['before','after','think'].forEach(k=>m[k]=u(a[k],b[k]));m.finalDone=!!(a.finalDone||b.finalDone);m.exams=exMergeAttempts(a.exams,b.exams);return m;}
 function serverLoad(){try{fetch('/progress').then(r=>r.ok?r.json():null).then(j=>{if(!j||typeof j!=='object'||Array.isArray(j))return;ST=mergeST(ST,j);try{localStorage.setItem('alima_science_t1',JSON.stringify(ST))}catch(e){};drawStars();applySound();if(curLesson===-1)goMap();}).catch(()=>{});}catch(e){}}
 function sndOn(){return ST.sound!==false;}
 function applySound(){const b=document.getElementById('sndB');if(b)b.textContent=sndOn()?'\u{1F50A}':'\u{1F507}';}
@@ -715,7 +715,7 @@ function goMap(){curLesson=-1;document.getElementById('backB').style.visibility=
   <h1 style="font-size:22px">مُغامرة العالمة ماريا</h1>
   <p class="sub" style="margin-bottom:6px">أهلًا يا ماريا! 👩🏻‍🔬<br>📖 قبل الحصَّة: فكرة وكلمات.<br>✏️ بعد الحصَّة: اختبار ← شارة وقطعة للمزرعة.<br>🧠 فكِّري أكثر: ألعاب وتجارب.</p>
   <div class="pbar"><i style="width:${Math.round(ST.after.length/LESSONS.length*100)}%"></i></div>
-  <p class="sub" style="margin:0 0 10px">🏅 ${ST.after.length} من ${LESSONS.length} شارةً · 🌾 ${ST.after.length} من ١٢ قطعةً في مزرعتكِ</p><button class="go" style="font-size:16px;padding:10px 26px" onclick="goFarm()">🌾 شاهدي مزرعتكِ</button></div>`;
+  <p class="sub" style="margin:0 0 10px">🏅 ${ST.after.length} من ${LESSONS.length} شارةً · 🌾 ${ST.after.length} من ١٢ قطعةً في مزرعتكِ</p><button class="go" style="font-size:16px;padding:10px 26px" onclick="goFarm()">🌾 شاهدي مزرعتكِ</button><div style="height:8px"></div><button class="go" style="font-size:15px;padding:9px 22px;background:#1E2A3A;border-color:#0F1826;box-shadow:0 4px 0 #0F1826" onclick="exChoose()">📝 اختبار تجريبي</button></div>`;
  let lastU='',lastC='';
  LESSONS.forEach((L,i)=>{
   if(L.u!==lastU){html+=`<div class="uhead">${L.u}</div>`;lastU=L.u;lastC='';}
@@ -1043,6 +1043,355 @@ function rDeck(s){let marked=0;
   y.onclick=()=>mark(true);n.onclick=()=>mark(false);});
  dn.onclick=next;
 }
+
+
+/* ==================== 📝 EXAM MODE ==================== */
+/* ===================== بنك أسئلة العلوم من الأوراق الحقيقية (١٤٤٧ · الفصل الأول) =====================
+   src: الورقة (S1..S7) · L: رقم الدرس في التطبيق (0..11) · needsCheck: لا يوجد نموذج إجابة في الورقة
+   الأنواع: tf | mcq | match | fill | order | label | short                                         */
+const EXAM_BANK=[
+/* ---------- S1: اختبار الفترة (مع نموذج الإجابة) ---------- */
+{src:'S1',L:0,t:'mcq',q:'وحدة بناء أجسام جميع المخلوقات الحية هي:',o:['الهواء','الخلايا','الماء','الغذاء'],a:1},
+{src:'S1',L:1,t:'mcq',q:'تثبت النباتات وتمتص الماء والأملاح المعدنية من التربة:',o:['الأوراق','الساق','الجذور','الأزهار'],a:2},
+{src:'S1',L:2,t:'mcq',q:'جزء في النبات يحمل داخله البذور:',o:['الساق','الأوراق','الثمرة','الجذور'],a:2},
+{src:'S1',L:2,t:'mcq',q:'يسمى انتقال حبوب اللقاح من الجزء الذكري إلى الجزء الأنثوي بـ:',o:['البناء الضوئي','البذرة','التلقيح','دورة الحياة'],a:2},
+{src:'S1',L:1,t:'mcq',q:'الجزء الذي يقوم بصنع الغذاء عن طريق عملية البناء الضوئي:',o:['الأوراق','الساق','الجذور','الأزهار'],a:0},
+{src:'S1',L:0,t:'tf',q:'المخلوقات الحية تنمو وتستجيب وتتكاثر.',a:true},
+{src:'S1',L:3,t:'tf',q:'بعض الحيوانات يتغير شكلها في أثناء دورة حياتها ويسمى ذلك التحول.',a:true},
+{src:'S1',L:3,t:'tf',q:'يبدأ الجمل حياته ببيضة.',a:false},
+{src:'S1',L:3,t:'tf',q:'يمر الضفدع بدورة حياة بالتحول.',a:true},
+{src:'S1',L:2,t:'tf',q:'النباتات التي لها أزهار تسمى بالنباتات الزهرية.',a:true},
+{src:'S1',L:3,t:'order',q:'رتبي دورة حياة الضفدع:',seq:['بيض','أبو ذنيبة','ضفدع صغير','ضفدع مكتمل النمو']},
+{src:'S1',L:3,t:'order',q:'رتبي دورة حياة الدجاجة:',seq:['بيض في العش','جنين داخل البيضة','فقس الصيصان','دجاجة']},
+{src:'S1',L:2,t:'order',q:'رتبي دورة حياة الفاصولياء:',seq:['بذور','إنبات','نبتة','قرون فيها بذور']},
+{src:'S1',L:3,t:'order',q:'رتبي دورة حياة الخنفساء:',seq:['بيض','يرقة','عذراء','خنفساء مكتملة النمو']},
+{src:'S1',L:3,t:'order',q:'رتبي دورة حياة السلحفاة البحرية:',seq:['بيض','فقس','سلاحف صغيرة','سلحفاة مكتملة النمو']},
+/* ---------- S2: اختبار منتصف الفصل (مع نموذج الإجابة) ---------- */
+{src:'S2',L:0,t:'mcq',q:'أول خطوة من خطوات الطريقة العلمية هي:',o:['أسأل','أستنتج','ألاحظ'],a:2},
+{src:'S2',L:0,t:'mcq',q:'أي مما يلي يعد من المخلوقات الحية:',o:['الرمل','النبات','الصخرة'],a:1},
+{src:'S2',L:2,t:'mcq',q:'جزء صغير في البذرة يستمد غذاءه لينمو:',o:['الجنين','البيئة','الأسماك'],a:0},
+{src:'S2',L:2,t:'mcq',q:'يسمى انتقال حبوب اللقاح من الجزء الذكري إلى الأنثوي:',o:['التلقيح','التحول','الأزهار'],a:0},
+{src:'S2',L:0,t:'mcq',q:'ينتج المخلوق الحي أفرادًا من نوعه:',o:['التكاثر','الجذور','المكان'],a:0},
+{src:'S2',L:0,t:'match',q:'صلي كل مصطلح علمي بالعبارة المناسبة له:',pairs:[['الخلايا','وحدات بنائية تكون أجسام المخلوقات الحية'],['البناء الضوئي','عملية تصنع فيها النباتات غذاءها'],['البذرة','تركيب يمكن أن ينبت لينمو ويصير نبات جديد'],['التحول','سلسلة من التغيرات يمر بها المخلوق الحي في نموه']]},
+{src:'S2',L:0,t:'short',q:'اذكري حاجات المخلوقات الحية لتعيش.',a:'المكان، الماء، الغازات (الهواء)، الغذاء',keys:['مكان','ماء','هواء','غاز','غذاء']},
+{src:'S2',L:3,t:'tf',q:'البرمائيات والحشرات تبدأ دورة حياتها بالبيضة.',a:true},
+{src:'S2',L:2,t:'tf',q:'الجزء المذكر في الزهرة ينتج حبوب اللقاح.',a:true},
+{src:'S2',L:0,t:'tf',q:'تحتاج المخلوقات الحية لكي تعيش إلى صخور.',a:false},
+{src:'S2',L:0,t:'tf',q:'الخلايا صغيرة جدًا لا يمكن رؤيتها بالعين المجردة.',a:true},
+{src:'S2',L:1,t:'fill',q:'ما أجزاء النبات التي تقوم بالوظائف التالية؟',bank:['الأوراق','الساق','الجذور'],items:[['صنع الغذاء','الأوراق'],['نقل الماء والأملاح المعدنية','الساق'],['تثبيت النبات في التربة','الجذور']]},
+{src:'S2',L:2,t:'label',fig:'seed',q:'تنمو النباتات الزهرية من البذور. حددي على الرسم أجزاء البذرة.'},
+/* ---------- S3: ورقة عمل (لا يوجد نموذج إجابة) ---------- */
+{src:'S3',L:0,t:'tf',q:'النبتة مخلوق حي.',a:true,needsCheck:true},
+{src:'S3',L:0,t:'tf',q:'الكرسي مخلوق حي.',a:false,needsCheck:true},
+{src:'S3',L:0,t:'tf',q:'الغزال مخلوق حي.',a:true,needsCheck:true},
+{src:'S3',L:1,t:'label',fig:'plant',q:'حددي اسم أجزاء النبات في الرسم.',needsCheck:true},
+{src:'S3',L:0,t:'fill',q:'ضعي المفاهيم العلمية التالية عند العبارات المناسبة لها:',bank:['البيئة','الخلايا','التكاثر'],items:[['ينتج المخلوق الحي أفرادًا من نوعه','التكاثر'],['المكان الذي يعيش به المخلوق الحي','البيئة'],['وحدات بنائية تكون أجسام جميع المخلوقات الحية','الخلايا']],needsCheck:true},
+/* ---------- S4: اختبار منتصف الفصل (مع نموذج الإجابة) ---------- */
+{src:'S4',L:0,t:'tf',q:'المخلوقات الحية تنمو وتتكاثر.',a:true},
+{src:'S4',L:2,t:'tf',q:'توجد البذرة داخل الثمرة.',a:true},
+{src:'S4',L:2,t:'tf',q:'التلقيح هو انتقال حبوب اللقاح من الجزء الذكري إلى الجزء الأنثوي في الزهرة.',a:true},
+{src:'S4',L:3,t:'tf',q:'الثدييات مثل الجمل لا تمر بمراحل التحول.',a:true},
+{src:'S4',L:1,t:'tf',q:'تقوم الجذور بامتصاص الماء والأملاح من التربة.',a:true},
+{src:'S4',L:3,t:'tf',q:'دورة حياة الخنفساء: بيضة ثم يرقة ثم عذراء ثم خنفساء مكتملة النمو.',a:true},
+{src:'S4',L:0,t:'tf',q:'الخلية هي وحدة بناء أجسام المخلوقات الحية.',a:true},
+{src:'S4',L:2,t:'tf',q:'يوجد داخل البذرة جنين.',a:true},
+{src:'S4',L:0,t:'tf',q:'الاستجابة هي قدرة المخلوق على التفاعل مع البيئة.',a:true},
+{src:'S4',L:2,t:'tf',q:'تنتج الزهرة حبوب اللقاح.',a:true},
+{src:'S4',L:2,t:'fill',q:'ضعي الكلمة المناسبة في الفراغ المناسب:',bank:['الحشرات','التحول','التكاثر','البذرة','الورقة'],items:[['تقوم بعملية البناء الضوئي','الورقة'],['هو تغير بعض أشكال الحيوانات أثناء دورة حياتها','التحول'],['تقوم بنقل حبوب اللقاح','الحشرات'],['هو تركيب ينمو ثم يصبح نبات جديد','البذرة'],['إنتاج أفراد جديدة من نفس النوع','التكاثر']]},
+{src:'S4',L:3,t:'short',q:'اكتبي دورة حياة الضفدع.',a:'بيضة ← أبو ذنيبة ← ضفدع صغير ← ضفدع مكتمل النمو',keys:['بيض','ذنيب','صغير','ضفدع']},
+/* ---------- S5: اختبار الفترة الأولى (مع نموذج الإجابة) ---------- */
+{src:'S5',L:4,t:'mcq',q:'أشياء حية وأشياء غير حية مكونات:',o:['النظام البيئي','التحول','الأزهار'],a:0},
+{src:'S5',L:4,t:'mcq',q:'مخلوق حي يتغذى على مخلوقات حية أخرى:',o:['منتج','مستهلك','محلل'],a:1},
+{src:'S5',L:0,t:'short',q:'ما الذي تحتاج إليه المخلوقات الحية لكي تعيش؟',a:'الماء، الغذاء، الهواء، المكان',keys:['ماء','غذاء','هواء','مكان']},
+{src:'S5',L:4,t:'order',q:'رتبي لتحصلي على سلسلة غذائية متكاملة:',seq:['ذرة','فأر','ثعبان','بومة']},
+/* ---------- S6: اختبار الفترة الأولى (مع نموذج الإجابة) ---------- */
+{src:'S6',L:3,t:'tf',q:'تمر البرمائيات والحشرات خلال دورة حياتها بعملية تسمى (التحول).',a:true},
+{src:'S6',L:0,t:'tf',q:'التكاثر يعني أن ينتج المخلوق الحي أفراد جديدة من نوعه.',a:true},
+{src:'S6',L:2,t:'tf',q:'النبات مكتمل النمو يتكاثر ويكوّن بذورًا جديدة.',a:true},
+{src:'S6',L:1,t:'tf',q:'الورقة تركيب هيأه الله تبارك وتعالى لصنع الغذاء للنبات.',a:true},
+{src:'S6',L:2,t:'tf',q:'تسمى عملية انتقال حبوب اللقاح من الجزء المذكر إلى الجزء المؤنث في الزهرة بالتلقيح.',a:true},
+{src:'S6',L:2,t:'tf',q:'تساعد الحيوانات والرياح النبات على التكاثر من خلال عملية التلقيح.',a:true},
+{src:'S6',L:3,t:'tf',q:'تشبه صغار الزواحف والأسماك أبويها ولكنها أصغر حجمًا.',a:true},
+{src:'S6',L:1,t:'tf',q:'تتشابه النباتات والحيوانات في أن كلاهما يصنع غذاءه بنفسه.',a:false},
+{src:'S6',L:0,t:'tf',q:'الأكسجين غاز يوجد في الهواء فقط ولا يوجد في الماء.',a:false},
+{src:'S6',L:3,t:'tf',q:'الحيوان الذي يشبه السحلية في دورة الحياة هو الماعز.',a:false},
+{src:'S6',L:1,t:'mcq',q:'جزء النبات الذي يشكل قوام النبات ويحمل الأوراق:',o:['الجذور','الأوراق','السيقان'],a:2},
+{src:'S6',L:0,t:'mcq',q:'أي مما يلي يساعد المخلوقات الحية على النمو؟',o:['الغذاء','البيئة','المكان'],a:0},
+{src:'S6',L:0,t:'mcq',q:'أي مما يأتي يعد من المخلوقات الحية؟',o:['النبات','الرمل','الصخرة'],a:0},
+{src:'S6',L:0,t:'mcq',q:'تتركب أجسام المخلوقات الحية من:',o:['الخلايا','الماء','الغذاء'],a:0},
+{src:'S6',L:3,t:'mcq',q:'تبدأ البرمائيات حياتها على شكل:',o:['بيضة','يرقة','حيوان مكتمل'],a:0},
+{src:'S6',L:2,t:'mcq',q:'أي جزء من أجزاء النباتات الزهرية يحمل البذور؟',o:['الثمرة','الساق','الجذر'],a:0},
+{src:'S6',L:3,t:'mcq',q:'تتصف صغار السلاحف والدجاج بأنها:',o:['تبدأ حياتها بالبيضة','يغطي أجسامها الريش','تعتني بنفسها'],a:0},
+{src:'S6',L:1,t:'mcq',q:'جزء النبات المسؤول عن امتصاص الماء والأملاح من التربة:',o:['الجذور','السيقان','الأوراق'],a:0},
+{src:'S6',L:0,t:'mcq',q:'الصخور مخلوقات غير حية لأنها:',o:['لا تنمو','تستجيب','تتكاثر'],a:0},
+{src:'S6',L:1,t:'mcq',q:'جزء النبات الذي يمتص أشعة الشمس ويصنع الغذاء:',o:['الجذور','السيقان','الأوراق'],a:2},
+/* ---------- S7: بنك أسئلة الوحدتين (لا يوجد نموذج إجابة → من الكتاب) ---------- */
+{src:'S7',L:6,t:'mcq',q:'العنكبوت الذي ينسج شباكه ليصطاد الحشرات هو مثال على التغيرات:',o:['البسيطة','الكبيرة','المتوسطة'],a:0,needsCheck:true},
+{src:'S7',L:4,t:'mcq',q:'تشابك مجموعة من السلاسل مع بعضها البعض هو تعريف لـ:',o:['السلسلة الغذائية','الشبكة الغذائية','النظام البيئي'],a:1,needsCheck:true},
+{src:'S7',L:5,t:'mcq',q:'تركيب أو سلوك يساعد المخلوق الحي على البقاء حيًا هو تعريف لـ:',o:['الموطن','التنافس','التكيف'],a:2,needsCheck:true},
+{src:'S7',L:6,t:'mcq',q:'استخدام أكثر من مخلوق حي للمورد نفسه في الوقت نفسه هو تعريف لـ:',o:['التنافس','الموارد','التدوير'],a:0,needsCheck:true},
+{src:'S7',L:6,t:'mcq',q:'إضافة مواد ضارة للبيئة هو تعريف لـ:',o:['التشجير','التدوير','التلوث'],a:2,needsCheck:true},
+{src:'S7',L:7,t:'mcq',q:'يسمى الحيوان مهددًا بالانقراض إذا كان:',o:['عدد أفراد النوع قليل','يستطيع الدفاع عن نفسه','يستطيع حماية أطفاله'],a:0,needsCheck:true},
+{src:'S7',L:7,t:'mcq',q:'كيف يستجيب الضفدع لتغيرات البيئة؟',o:['يهاجر إلى مكان آخر','يدفن نفسه بالطين','يصطاد الفرائس'],a:1,needsCheck:true},
+{src:'S7',L:7,t:'mcq',q:'من أسباب الفيضان:',o:['انحباس هطول المطر','الحرائق','هطول الأمطار الغزيرة'],a:2,needsCheck:true},
+{src:'S7',L:7,t:'mcq',q:'الأرض المتشققة الجافة تمثل نوعًا من أنواع الكوارث الطبيعية وهو:',o:['الحرائق','الجفاف','الفيضان'],a:1,needsCheck:true},
+{src:'S7',L:6,t:'mcq',q:'يمكن للإنسان حماية بيئته بـ:',o:['التلوث','إزالة الغابات','التدوير'],a:2,needsCheck:true},
+{src:'S7',L:5,t:'match',q:'صلي المخلوق الحي بتكيفه:',pairs:[['الأسد','المخالب الحادة'],['القنفذ','الأشواك'],['الخفاش','النشاط الليلي'],['الجمل','السنام']],needsCheck:true},
+{src:'S7',L:5,t:'match',q:'صلي المخلوق الحي بتكيفه:',pairs:[['الأعشاب البحرية','الأكياس الهوائية'],['الأرانب البرية','الأذان الكبيرة'],['الصبار','الطبقة الشمعية'],['الدلفين','التخفي'],['الحصان','الهجرة']],needsCheck:true},
+{src:'S7',L:4,t:'order',q:'رتبي السلسلة الغذائية:',seq:['أعشاب','جرادة','ضفدع','نسر'],needsCheck:true},
+{src:'S7',L:4,t:'order',q:'رتبي السلسلة الغذائية:',seq:['نبات','فأر','ثعبان','نسر'],needsCheck:true},
+{src:'S7',L:4,t:'fill',q:'أكملي الفراغات بالكلمات المناسبة:',bank:['السلسلة الغذائية','التكيف','المُنتج','التخفي','النظام البيئي','المحللات'],items:[['ترتيب لمخلوقات حية يعتمد كل واحد على الآخر في تغذيته','السلسلة الغذائية'],['التغير في السلوك الذي يُمكن المخلوق الحي من البقاء حيًا في بيئته','التكيف'],['المخلوق الحي الذي يصنع غذاءه بنفسه يُسمى','المُنتج'],['التكيف الذي يتغير فيه المخلوق الحي ليصبح مشابهًا للبيئة يسمى','التخفي'],['تتفاعل المخلوقات الحية والأشياء غير الحية لتشكل','النظام البيئي'],['المخلوقات الحية التي تحلل بقايا النباتات والحيوانات تُسمى','المحللات']],needsCheck:true},
+{src:'S7',L:7,t:'fill',q:'أكملي الفراغات بالكلمات المناسبة:',bank:['الجفاف','التلوث','الفيضان','الموارد','منقرضًا'],items:[['يحدث عند انحباس الأمطار فترة زمنية طويلة','الجفاف'],['يحدث عند إضافة مواد ضارة إلى البيئة','التلوث'],['يحدث بسبب الأمطار الغزيرة المستمرة','الفيضان'],['الماء تحتاج إليه المخلوقات الحية لتعيش وهو من','الموارد'],['الحيوان الذي لا يبقى من نوعه أي فرد يُسمى','منقرضًا']],needsCheck:true},
+{src:'S7',L:6,t:'short',q:'اذكري كيف يحدث الإنسان تغييرًا في بيئته.',a:'بناء المدن والطرق، قطع الأشجار، التلوث',keys:['بناء','مدن','طرق','قطع','أشجار','تلوث'],needsCheck:true},
+{src:'S7',L:6,t:'short',q:'اذكري كيف يمكن للإنسان حماية بيئته.',a:'التشجير، التدوير، الترشيد، إعادة الاستخدام',keys:['تشجير','تدوير','ترشيد','استخدام','زراعة'],needsCheck:true},
+{src:'S7',L:0,t:'mcq',q:'أي مما يلي يُعد من المخلوقات الحية:',o:['النباتات','التربة','الماء'],a:0,needsCheck:true},
+{src:'S7',L:0,t:'mcq',q:'وحدات بنائية تكون أجسام المخلوقات الحية:',o:['الماء','الخلايا','الغذاء'],a:1,needsCheck:true},
+{src:'S7',L:0,t:'mcq',q:'من خصائص المخلوقات الحية أنها:',o:['لا تنمو','لا تتكاثر','تستجيب'],a:2,needsCheck:true},
+{src:'S7',L:0,t:'mcq',q:'من حاجات المخلوقات الحية:',o:['مكان - تربة - ماء - أمطار','مكان - غذاء - ماء - أكسجين','شمس - أمطار - غذاء - رياح'],a:1,needsCheck:true},
+{src:'S7',L:0,t:'mcq',q:'التصرف الخاطئ عندما ينسكب سائل على الأرض:',o:['أنظف الأرض','أتركه على الأرض','أطلب المساعدة من معلمتي'],a:1,needsCheck:true},
+{src:'S7',L:3,t:'mcq',q:'المرحلة التي تأتي بعد اليرقة في دورة حياة الخنفساء:',o:['عذراء','بيضة','خنفساء مكتملة النمو'],a:0,needsCheck:true},
+{src:'S7',L:3,t:'mcq',q:'الصفة المشتركة بين دورة حياة كل من الزواحف والأسماك:',o:['تمر بمرحلة التحول','تتكاثر بالبيوض','تمر بمرحلة اليرقات'],a:1,needsCheck:true},
+{src:'S7',L:1,t:'mcq',q:'وظيفة الجذور:',o:['امتصاص الماء من التربة','صنع الغذاء','تحمل أجزاء النبات'],a:0,needsCheck:true},
+{src:'S7',L:2,t:'mcq',q:'ما هو جنين البذرة؟',o:['ساق تحت سطح الأرض','جزء صغير من النبات','تركيب يصنع الغذاء'],a:1,needsCheck:true},
+{src:'S7',L:1,t:'mcq',q:'جزء من أجزاء النبات يصنع الغذاء بعملية البناء الضوئي:',o:['الساق','الجذور','الأوراق'],a:2,needsCheck:true},
+{src:'S7',L:2,t:'mcq',q:'التركيب الذي يحمل بداخله البذرة:',o:['الساق','الثمرة','الأوراق'],a:1,needsCheck:true},
+{src:'S7',L:3,t:'mcq',q:'الطيور تحمي بيوضها عن طريق:',o:['بناء أعشاشها','دفنها في الأرض','وضع البيض في الماء'],a:0,needsCheck:true},
+{src:'S7',L:0,t:'fill',q:'أكملي الفراغات التالية بما يناسبها:',bank:['التلقيح','أستنتج','دورة الحياة','البذرة','تتكاثر','البيئة'],items:[['يمر المخلوق الحي بمراحل تسمى','دورة الحياة'],['المخلوقات الحية ....... لتنتج أفرادًا جددًا','تتكاثر'],['الخطوة الأخيرة في الطريقة العلمية التي يتبعها العلماء','أستنتج'],['تركيب ينمو ليكون نباتًا جديدًا','البذرة'],['جميع المخلوقات الحية والأشياء غير الحية جزء من','البيئة'],['انتقال حبوب اللقاح من الجزء الذكري إلى الجزء الأنثوي تسمى عملية','التلقيح']],needsCheck:true},
+{src:'S7',L:3,t:'order',q:'أكملي دورة حياة الضفدع:',seq:['بيضة','أبو ذنيبة','ضفدع صغير','ضفدع مكتمل النمو'],needsCheck:true},
+{src:'S7',L:2,t:'order',q:'رتبي دورة حياة شجرة الخوخ:',seq:['بذرة تنبت في التربة','نبتة صغيرة','أزهار','ثمار على الشجرة','ثمار وبذور'],needsCheck:true},
+{src:'S7',L:6,t:'tf',q:'الترشيد هو صنع منتجات جديدة من مواد قديمة.',a:false,needsCheck:true},
+{src:'S7',L:0,t:'tf',q:'الاستجابة هي قدرة المخلوق الحي على التفاعل مع ما يحيط به.',a:true,needsCheck:true},
+{src:'S7',L:0,t:'tf',q:'تحتاج المخلوقات الحية إلى ثاني أكسيد الكربون لكي تعيش.',a:false,needsCheck:true},
+{src:'S7',L:1,t:'tf',q:'الأملاح المعدنية هي العناصر الغذائية الضرورية للنبات.',a:true,needsCheck:true},
+{src:'S7',L:1,t:'tf',q:'وظيفة الساق تثبيت النبات في التربة.',a:false,needsCheck:true},
+{src:'S7',L:2,t:'tf',q:'الجنين هو الجزء الصلب الذي يحمي البذرة.',a:false,needsCheck:true},
+{src:'S7',L:2,t:'tf',q:'يسهم كل من الرياح والماء والهواء والحشرات في نقل البذور.',a:true,needsCheck:true},
+{src:'S7',L:3,t:'tf',q:'الزواحف والأسماك تعتني بصغارها.',a:false,needsCheck:true},
+{src:'S7',L:4,t:'tf',q:'الموطن هو المكان الذي يعيش فيه المخلوق الحي ويجد فيه حاجاته.',a:true,needsCheck:true},
+{src:'S7',L:5,t:'tf',q:'نوم المخلوقات الحية في النهار ونشاطها في الليل يُسمى النشاط الليلي.',a:true,needsCheck:true},
+{src:'S7',L:7,t:'tf',q:'يدفن الضفدع نفسه في الطين عند حدوث الجفاف.',a:true,needsCheck:true},
+{src:'S7',L:6,t:'tf',q:'إزالة الغابات لا يسبب أضرارًا للبيئة.',a:false,needsCheck:true},
+{src:'S7',L:5,t:'tf',q:'التكيف الذي يساعد نبات الصبار على البقاء في البيئة الصحراوية الساق المغطاة بطبقة شمعية.',a:true,needsCheck:true}
+];
+
+/* ==================== 📝 اختبار تجريبي · محرك مشترك (يُضمَّن داخل كل تطبيق) ====================
+   يعتمد على: EXAM_BANK (بنك الأوراق الحقيقية) و EXAM_CFG (إعدادات المادة) و دوال التطبيق: addStar, save, goMap,
+   stage, applause, tada, confetti, ST.  لا أصوات ولا نجوم أثناء الاختبار؛ احتفال واحد في النهاية.           */
+const EX={sec:[],ans:[],timer:null,left:0,kind:'',on:false};
+const XAR=n=>String(n).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
+const XLAT=s=>String(s).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+const XORD=['الأول','الثاني','الثالث','الرابع','الخامس','السادس','السابع','الثامن','التاسع','العاشر'];
+const XLET=['أ','ب','ج','د','هـ','و'];
+const xsh=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const xnorm=s=>String(s||'').replace(/[ً-ْٰـ]/g,'').replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').replace(/[^؀-ۿ0-9a-zA-Z\s]/g,' ').replace(/\s+/g,' ').trim();
+const xesc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+const XTITLE={tf:'ضعي علامة ✓ أو ✗ أمام كل عبارة',mcq:'اختاري الإجابة الصحيحة',match:'صلي كل عبارة بما يناسبها',fill:'أكملي الفراغ من الكلمات التالية (كل كلمة تُستعمل مرة واحدة)',order:'رتّبي',label:'حدّدي على الرسم',short:'اكتبي الإجابة',num:'أكملي',word:'حلّي المسألة بالخطوات الأربع',passage:'اقرئي النص ثم أجيبي',dictation:'إملاء منظور',sort:'صنّفي'};
+
+/* ---------- تجميع الأسئلة المتاحة ---------- */
+function exMergeAttempts(x,y){const m={};[...(x||[]),...(y||[])].forEach(a=>{if(a&&a.d)m[a.d]=a;});return Object.values(m).sort((p,q)=>p.d<q.d?-1:1);}
+function exPool(lessons){const pool={};const add=it=>{(pool[it.t]=pool[it.t]||[]).push(it);};
+ EXAM_BANK.filter(b=>lessons.includes(b.L)).forEach(b=>{let it=Object.assign({},b);if(it.t==='label'&&!it.targets&&EXAM_CFG.label)it=Object.assign(it,EXAM_CFG.label(it.fig));add(it);});
+ lessons.forEach(L=>{try{(EXAM_CFG.gen(L)||[]).forEach(it=>{it.L=L;add(it);});}catch(e){}});
+ return pool;}
+function exDraw(pool,t,n){const src=xsh(pool[t]||[]);const out=[];const seen=new Set();
+ for(const it of src){if(out.length>=n)break;const k=xnorm(it.q||it.text||'')+(it.seq||it.pairs||it.items||'');if(seen.has(k))continue;seen.add(k);out.push(it);}
+ return out;}
+function exBuild(lessons,short){const plan=short?EXAM_CFG.plan10:EXAM_CFG.plan20;const pool=exPool(lessons);const secs=[];let deficit=0;
+ plan.forEach(p=>{let items=exDraw(pool,p.t,p.n);
+  if(p.t==='passage'){items=items.slice(0,1);if(items.length){const ps=items[0];const sub=xsh(ps.items).slice(0,p.m);secs.push({t:'passage',title:XTITLE.passage,text:ps.text,L:ps.L,items:sub.map(s=>Object.assign({},s,{L:ps.L,m:1})),marks:sub.length});deficit+=p.m-sub.length;}else deficit+=p.m;return;}
+  if(items.length<p.n)deficit+=(p.n-items.length)*p.m;
+  if(items.length)secs.push({t:p.t,title:p.title||XTITLE[p.t],items:items.map(it=>Object.assign({},it,{m:p.m})),marks:items.length*p.m});});
+ if(deficit>0){const extra=exDraw(pool,'mcq',deficit*3).filter(it=>!secs.some(s=>s.items.some(x=>x.q===it.q))).slice(0,deficit);
+  const more=deficit-extra.length;const tfx=more>0?exDraw(pool,'tf',more):[];
+  if(extra.length)secs.push({t:'mcq',title:XTITLE.mcq,items:extra.map(it=>Object.assign({},it,{m:1})),marks:extra.length});
+  if(tfx.length)secs.push({t:'tf',title:XTITLE.tf,items:tfx.map(it=>Object.assign({},it,{m:1})),marks:tfx.length});}
+ return secs;}
+
+/* ---------- اختيار نوع الاختبار ---------- */
+function exChoose(){EX.on=false;document.getElementById('backB').style.visibility='visible';if(typeof cur!=='undefined')cur=-1;if(typeof curLesson!=='undefined')curLesson=-1;
+ const n=EXAM_CFG.nLessons,half=Math.ceil(n/2);const done=ST.after||[];
+ const kinds=[{k:'p1',n:'اختبار الفترة الأولى',rng:[...Array(half).keys()]},{k:'p2',n:'اختبار الفترة الثانية',rng:[...Array(n-half).keys()].map(i=>i+half)},{k:'fin',n:'اختبار نهاية الفصل',rng:[...Array(n).keys()]}];
+ stage.innerHTML=`${chip('📝 اختبار تجريبي')}<div class="card"><div class="big">📝✏️</div><h1 style="font-size:22px">اختبار تجريبي في ${EXAM_CFG.subject}</h1>
+  <p class="sub">ورقة مثل ورقة المدرسة: ${XAR(20)} درجة و ${XAR(15)} دقيقة. لا نجوم ولا أصوات أثناء الاختبار، وفي النهاية ورقة مصحّحة واحتفال 🎉</p>
+  ${kinds.map(K=>{const el=K.rng.filter(i=>done.includes(i));const ok=el.length>=EXAM_CFG.minLessons;const some=el.length>0;
+   return `<div style="background:#F7F9FC;border:2px solid #E1E7F0;border-radius:16px;padding:12px;margin:10px 0;text-align:right">
+    <b style="font-size:17px">${K.n}</b><div style="font-size:13px;color:#5B6B85;margin:4px 0 8px">الدروس المنجزة (بعد الحصة): ${XAR(el.length)} من ${XAR(K.rng.length)}</div>
+    ${ok?`<button class="go" style="font-size:15px;padding:9px 22px" onclick="exStart('${K.k}',${JSON.stringify(el)},false)">ابدئي الورقة الكاملة (${XAR(20)} درجة)</button>`
+      :some?`<div style="font-size:13.5px;color:#9A3B3B;margin-bottom:6px">أنجزتِ ${XAR(el.length)} من الدروس فقط؛ الورقة الكاملة تحتاج ${XAR(EXAM_CFG.minLessons)} دروس على الأقل.</div><button style="font-size:14px;padding:8px 18px" onclick="exStart('${K.k}',${JSON.stringify(el)},true)">ورقة قصيرة من الدروس المنجزة (${XAR(10)} درجات)</button>`
+      :`<div style="font-size:13.5px;color:#9A3B3B">أنهي درسًا واحدًا على الأقل (✏️ بعد الحصة) من هذه الفترة أولًا.</div>`}
+   </div>`;}).join('')}
+  <button onclick="goMap()" style="margin-top:6px">الخريطة 🏡</button></div>`;window.scrollTo({top:0});}
+
+/* ---------- بدء الورقة ---------- */
+function exStart(kind,lessons,short){EX.kind=kind;EX.short=!!short;EX.sec=exBuild(lessons,short);EX.ans=EX.sec.map(s=>s.items.map(()=>null));EX.on=true;
+ EX.left=15*60;clearInterval(EX.timer);EX.timer=setInterval(()=>{EX.left--;const t=document.getElementById('xtimer');if(t)t.textContent='⏱ '+XAR(String(Math.floor(EX.left/60)).padStart(2,'0'))+':'+XAR(String(EX.left%60).padStart(2,'0'));if(EX.left<=0){clearInterval(EX.timer);exSubmit(true);}},1000);
+ exRender();}
+function exKindName(k){return k==='p1'?'اختبار الفترة الأولى':k==='p2'?'اختبار الفترة الثانية':'اختبار نهاية الفصل';}
+function exRender(){const total=EX.sec.reduce((a,s)=>a+s.marks,0);
+ let html=`<div class="xpaper">
+  <div class="xhead"><div><b>الصف:</b> الثالث الابتدائي</div><div><b>المادة:</b> ${EXAM_CFG.subject}</div><div><b>اسم الطالبة:</b> ماريا</div><div><b>الدرجة:</b> ____ / ${XAR(total)}</div></div>
+  <div class="xtitle">${exKindName(EX.kind)} · الفصل الدراسي الأول <span id="xtimer" class="xtimer">⏱ ١٥:٠٠</span></div>`;
+ EX.sec.forEach((s,si)=>{html+=`<div class="xsec"><div class="xsech">السؤال ${XORD[si]||XAR(si+1)}: ${s.title} <span class="xmarks">(${XAR(s.marks)} ${s.marks===1?'درجة':s.marks===2?'درجتان':s.marks<=10?'درجات':'درجة'})</span></div>`;
+  if(s.t==='passage')html+=`<div class="xpass">${xesc(s.text)}</div>`;
+  s.items.forEach((it,ii)=>{html+=`<div class="xitem" id="xi_${si}_${ii}">${exItemHtml(it,si,ii)}</div>`;});
+  html+='</div>';});
+ html+=`<div style="text-align:center;margin-top:14px"><button class="go" onclick="exSubmit(false)">سلّمي الورقة ✅</button><div style="height:8px"></div><button onclick="if(confirm('تخرجين من الاختبار دون تسليم؟')){clearInterval(EX.timer);EX.on=false;goMap();}" style="font-size:13px">خروج بدون تسليم</button></div></div>`;
+ stage.innerHTML=html;window.scrollTo({top:0});
+ EX.sec.forEach((s,si)=>s.items.forEach((it,ii)=>exBind(it,si,ii)));}
+
+/* ---------- عرض كل نوع ---------- */
+function exItemHtml(it,si,ii){const id=`${si}_${ii}`;const num=`<span class="xn">${XAR(ii+1)}</span>`;
+ switch(it.t){
+ case 'tf':return `<div class="xrow">${num}<div class="xq">${xesc(it.q)}</div><div class="xtf"><button data-v="1">✓</button><button data-v="0">✗</button></div></div>`;
+ case 'mcq':return `${num}<div class="xq">${xesc(it.q)}</div><div class="xopts">${it.o.map((o,k)=>`<button data-k="${k}"><span class="xlet">${XLET[k]}</span> ${xesc(o)}</button>`).join('')}</div>`;
+ case 'match':{const R=xsh(it.pairs.map((p,k)=>k));it._R=R;return `${num}<div class="xq">${xesc(it.q)}</div><div class="xmatch"><div class="xcol">${it.pairs.map((p,k)=>`<button data-l="${k}">${xesc(p[0])}</button>`).join('')}</div><div class="xcol">${R.map(k=>`<button data-r="${k}">${xesc(it.pairs[k][1])}</button>`).join('')}</div></div>`;}
+ case 'fill':{const bank=xsh(it.bank||it.items.map(x=>x[1]));return `${num}<div class="xq">${xesc(it.q)}</div><div class="xbank">${bank.map((w,k)=>`<button data-w="${k}">${xesc(w)}</button>`).join('')}</div>${it.items.map((x,k)=>`<div class="xblankrow"><span class="xn">${XAR(k+1)}</span> ${xesc(x[0]).replace(/\.{3,}|◯|_{2,}/,'<span class="xblank" data-b="'+k+'"></span>')}${/\.{3,}|◯|_{2,}/.test(x[0])?'':' <span class="xblank" data-b="'+k+'"></span>'}</div>`).join('')}`;}
+ case 'sort':return `${num}<div class="xq">${xesc(it.q)}</div><div class="xbank">${xsh(it.items.map((x,k)=>k)).map(k=>`<button data-w="${k}">${xesc(it.items[k][0])}</button>`).join('')}</div><div class="xbins">${it.bins.map((b,k)=>`<div class="xbin" data-bin="${k}"><h4>${xesc(b)}</h4><div class="xgot"></div></div>`).join('')}</div>`;
+ case 'order':return `${num}<div class="xq">${xesc(it.q)}</div><div class="xslots">${it.seq.map((_,k)=>`<div class="xslot" data-s="${k}">${XAR(k+1)}</div>`).join('')}</div><div class="xbank">${xsh(it.seq.map((x,k)=>k)).map(k=>`<button data-w="${k}">${xesc(it.seq[k])}</button>`).join('')}</div><div style="text-align:left"><button class="xreset" style="font-size:12px;padding:4px 10px">إعادة ↺</button></div>`;
+ case 'label':return `${num}<div class="xq">${xesc(it.q)}</div><div class="xbank">${it.chips.map((c,k)=>`<button data-w="${k}">${xesc(c)}</button>`).join('')}</div><div class="xfig">${it.html}</div>`;
+ case 'short':return `${num}<div class="xq">${xesc(it.q)}</div><textarea class="xta" placeholder="اكتبي إجابتكِ هنا…"></textarea>`;
+ case 'num':return `${num}<div class="xq">${xesc(it.q)}</div><div class="xnum"><div class="xdisp">&nbsp;</div><div class="xkb">${[1,2,3,4,5,6,7,8,9].map(d=>`<button data-d="${d}">${XAR(d)}</button>`).join('')}<button data-d="del">⌫</button><button data-d="0">٠</button><button data-d="clr">مسح</button></div></div>`;
+ case 'word':return `${num}<div class="xq">${xesc(it.q)}</div><div class="xsteps">
+   <div class="xstep"><b>١ أفهم:</b> ما المطلوب في المسألة؟ اقرئيها مرتين.</div>
+   <div class="xstep"><b>٢ أخطط:</b> أي عملية أستعمل؟ <div class="xopts xplan">${['جمع','طرح','تقدير بالتقريب'].map((o,k)=>`<button data-p="${k}">${o}</button>`).join('')}</div></div>
+   <div class="xstep"><b>٣ أحل:</b><div class="xnum"><div class="xdisp">&nbsp;</div><div class="xkb">${[1,2,3,4,5,6,7,8,9].map(d=>`<button data-d="${d}">${XAR(d)}</button>`).join('')}<button data-d="del">⌫</button><button data-d="0">٠</button><button data-d="clr">مسح</button></div></div></div>
+   <div class="xstep"><b>٤ أتحقق:</b> هل الجواب معقول؟ <button class="xchk" style="font-size:13px;padding:5px 12px">راجعتُ جوابي ✔</button></div></div>`;
+ case 'dictation':return `${num}<div class="xq">اقرئي الجملة جيدًا؛ ستختفي بعد ${XAR(10)} ثوانٍ، ثم اكتبيها كما هي.</div><div class="xdict"><div class="xdtext">${xesc(it.text)}</div><div class="xdcount">⏳ ${XAR(10)}</div></div><textarea class="xta" placeholder="اكتبي الجملة هنا بعد اختفائها…" disabled></textarea>`;
+ default:return `${num}<div class="xq">${xesc(it.q||'')}</div>`;}}
+
+/* ---------- ربط التفاعل وتخزين الإجابات ---------- */
+function exBind(it,si,ii){const el=document.getElementById(`xi_${si}_${ii}`);if(!el)return;const set=v=>{EX.ans[si][ii]=v;};
+ const pickOne=(sel,attr)=>{el.querySelectorAll(sel).forEach(b=>b.onclick=()=>{el.querySelectorAll(sel).forEach(x=>x.classList.remove('xsel'));b.classList.add('xsel');set(b.dataset[attr]);});};
+ switch(it.t){
+ case 'tf':pickOne('.xtf button','v');break;
+ case 'mcq':pickOne('.xopts button','k');break;
+ case 'match':{let pick=null;const map={};set(map);
+  el.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>{el.querySelectorAll('[data-l]').forEach(x=>x.classList.remove('xsel'));b.classList.add('xsel');pick=+b.dataset.l;});
+  el.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{if(pick===null)return;const r=+b.dataset.r;Object.keys(map).forEach(k=>{if(map[k]===r)delete map[k];});map[pick]=r;
+   el.querySelectorAll('[data-l]').forEach(x=>{x.classList.remove('xsel');const m=map[x.dataset.l];x.querySelector('.xtag')?.remove();if(m!==undefined)x.insertAdjacentHTML('beforeend',`<span class="xtag">${XAR(+x.dataset.l+1)}</span>`);});
+   el.querySelectorAll('[data-r]').forEach(x=>{x.querySelector('.xtag')?.remove();const l=Object.keys(map).find(k=>map[k]===+x.dataset.r);if(l!==undefined)x.insertAdjacentHTML('beforeend',`<span class="xtag">${XAR(+l+1)}</span>`);});pick=null;});break;}
+ case 'fill':{let pick=null;const map={};set(map);const words=el.querySelectorAll('.xbank button');
+  words.forEach(b=>b.onclick=()=>{if(b.classList.contains('xused'))return;words.forEach(x=>x.classList.remove('xsel'));b.classList.add('xsel');pick=b;});
+  el.querySelectorAll('.xblank').forEach(bl=>bl.onclick=()=>{const k=bl.dataset.b;if(map[k]!==undefined){const old=[...words].find(w=>w.textContent===map[k]);if(old)old.classList.remove('xused');delete map[k];bl.textContent='';bl.classList.remove('xfilled');if(!pick)return;}
+   if(!pick)return;map[k]=pick.textContent;bl.textContent=pick.textContent;bl.classList.add('xfilled');pick.classList.add('xused');pick.classList.remove('xsel');pick=null;});break;}
+ case 'sort':{let pick=null;const map={};set(map);const words=el.querySelectorAll('.xbank button');
+  words.forEach(b=>b.onclick=()=>{words.forEach(x=>x.classList.remove('xsel'));b.classList.add('xsel');pick=b;});
+  el.querySelectorAll('.xbin').forEach(bin=>bin.onclick=()=>{if(!pick)return;const k=+pick.dataset.w;map[k]=+bin.dataset.bin;bin.querySelector('.xgot').insertAdjacentHTML('beforeend',`<span>${xesc(it.items[k][0])}</span>`);pick.remove();pick=null;});break;}
+ case 'order':{const arr=[];set(arr);const words=el.querySelectorAll('.xbank button');
+  words.forEach(b=>b.onclick=()=>{if(arr.length>=it.seq.length)return;arr.push(+b.dataset.w);const sl=el.querySelector(`.xslot[data-s="${arr.length-1}"]`);sl.textContent=it.seq[+b.dataset.w];sl.classList.add('xfilled');b.classList.add('xused');});
+  el.querySelector('.xreset').onclick=()=>{arr.length=0;el.querySelectorAll('.xslot').forEach((s,k)=>{s.textContent=XAR(k+1);s.classList.remove('xfilled');});words.forEach(b=>b.classList.remove('xused'));};break;}
+ case 'label':{let pick=null;const map={};set(map);const chips=el.querySelectorAll('.xbank button');
+  chips.forEach(b=>b.onclick=()=>{if(b.classList.contains('xused'))return;chips.forEach(x=>x.classList.remove('xsel'));b.classList.add('xsel');pick=b;});
+  el.querySelectorAll('.xtarget').forEach(t=>t.addEventListener('click',()=>{if(!pick)return;const k=t.dataset.t;if(map[k]!==undefined&&!it.reuse){const old=[...chips].find(c=>+c.dataset.w===map[k]);if(old)old.classList.remove('xused');}
+   map[k]=+pick.dataset.w;const lab=t.querySelector('.xtl')||t;if(t.tagName==='DIV'||t.tagName==='SPAN')lab.textContent=it.chips[map[k]];else{const tx=t.parentNode.querySelector(`[data-tl="${k}"]`);if(tx)tx.textContent=it.chips[map[k]];}
+   t.classList.add('xfilled');if(!it.reuse)pick.classList.add('xused');pick.classList.remove('xsel');pick=null;}));break;}
+ case 'short':el.querySelector('.xta').oninput=e=>set(e.target.value);break;
+ case 'num':case 'word':{let v='';const disp=el.querySelector('.xdisp');el.querySelectorAll('.xkb button').forEach(b=>b.onclick=()=>{const d=b.dataset.d;if(d==='del')v=v.slice(0,-1);else if(d==='clr')v='';else if(v.length<6)v+=d;disp.textContent=v?XAR(v):' ';set(v);});
+  if(it.t==='word'){el.querySelectorAll('.xplan button').forEach(b=>b.onclick=()=>{el.querySelectorAll('.xplan button').forEach(x=>x.classList.remove('xsel'));b.classList.add('xsel');});const c=el.querySelector('.xchk');c.onclick=()=>c.classList.toggle('xsel');}break;}
+ case 'dictation':{let n=10;const cnt=el.querySelector('.xdcount'),tx=el.querySelector('.xdtext'),ta=el.querySelector('.xta');const iv=setInterval(()=>{n--;cnt.textContent='⏳ '+XAR(n);if(n<=0){clearInterval(iv);tx.textContent='(اختفت الجملة… اكتبيها الآن ✍️)';tx.classList.add('xhidden');cnt.textContent='';ta.disabled=false;ta.focus();}},1000);ta.oninput=e=>set(e.target.value);break;}}}
+
+/* ---------- التصحيح ---------- */
+function exGrade(it,v){const m=it.m||1;const R=(got,c,g)=>({got:Math.round(got*2)/2,max:m,c,g,q:it.q||it.text||''});
+ switch(it.t){
+ case 'tf':{const g=v===null?'—':v==='1'?'✓':'✗';return R(v!==null&&(v==='1')===!!it.a?m:0,it.a?'✓':'✗',g);}
+ case 'mcq':{const k=v===null?-1:+v;return R(k===it.a?m:0,it.o[it.a],k>=0?it.o[k]:'—');}
+ case 'match':{const map=v||{};let ok=0;it.pairs.forEach((p,k)=>{if(map[k]===k)ok++;});return R(m*ok/it.pairs.length,it.pairs.map(p=>p[0]+' ← '+p[1]).join(' ؛ '),it.pairs.map((p,k)=>p[0]+' ← '+(map[k]!==undefined?it.pairs[map[k]][1]:'—')).join(' ؛ '));}
+ case 'fill':{const map=v||{};let ok=0;it.items.forEach((x,k)=>{if(xnorm(map[k])===xnorm(x[1]))ok++;});return R(m*ok/it.items.length,it.items.map(x=>x[1]).join(' ، '),it.items.map((x,k)=>map[k]||'—').join(' ، '));}
+ case 'sort':{const map=v||{};let ok=0;it.items.forEach((x,k)=>{if(map[k]===x[1])ok++;});return R(m*ok/it.items.length,it.items.map(x=>x[0]+' ← '+it.bins[x[1]]).join(' ؛ '),it.items.map((x,k)=>x[0]+' ← '+(map[k]!==undefined?it.bins[map[k]]:'—')).join(' ؛ '));}
+ case 'order':{const arr=v||[];let ok=0;it.seq.forEach((s,k)=>{if(arr[k]===k)ok++;});return R(m*ok/it.seq.length,it.seq.join(' ← '),arr.length?arr.map(k=>it.seq[k]).join(' ← '):'—');}
+ case 'label':{const map=v||{};let ok=0;it.targets.forEach((t,k)=>{if(map[k]===t.c)ok++;});return R(m*ok/it.targets.length,it.targets.map(t=>t.n+': '+it.chips[t.c]).join(' ؛ '),it.targets.map((t,k)=>t.n+': '+(map[k]!==undefined?it.chips[map[k]]:'—')).join(' ؛ '));}
+ case 'short':{const txt=xnorm(v||'');const keys=(it.keys||[]).map(xnorm);const hit=keys.filter(k=>k&&txt.includes(k)).length;const need=Math.max(1,Math.ceil(keys.length/2));const frac=!keys.length?(txt.length>2?1:0):Math.min(1,hit/need);return R(m*frac,it.a,v||'—');}
+ case 'num':case 'word':{const g=v?parseInt(v,10):NaN;return R(g===it.ans?m:0,XAR(it.ans)+(it.why?' ('+it.why+')':''),v?XAR(v):'—');}
+ case 'dictation':{const want=xnorm(it.text).split(' ').filter(Boolean),got=xnorm(v||'').split(' ').filter(Boolean);let ok=0;const used=new Set();want.forEach(w=>{const i=got.findIndex((g,idx)=>!used.has(idx)&&g===w);if(i>=0){used.add(i);ok++;}});return R(m*ok/Math.max(1,want.length),it.text,v||'—');}
+ default:return R(0,'',v||'—');}}
+function exSubmit(auto){if(!EX.on)return;if(!auto){const empty=EX.ans.flat().filter(a=>a===null||a===''||(typeof a==='object'&&!Array.isArray(a)&&!Object.keys(a).length)||(Array.isArray(a)&&!a.length)).length;if(empty&&!confirm(`تركتِ ${XAR(empty)} من الأسئلة بلا إجابة. تسلّمين الورقة؟`))return;}
+ clearInterval(EX.timer);EX.on=false;
+ const total=EX.sec.reduce((a,s)=>a+s.marks,0);let mark=0,stars=0;const rows=[];
+ EX.sec.forEach((s,si)=>s.items.forEach((it,ii)=>{const r=exGrade(it,EX.ans[si][ii]);mark+=r.got;if(r.got>=r.max)stars++;const Lname=EXAM_CFG.lessonName(it.L);rows.push(Object.assign(r,{ok:r.got>=r.max,tag:Lname,type:it.t}));}));
+ mark=Math.round(mark*2)/2;
+ const attempt={d:new Date().toISOString(),k:EX.kind,short:EX.short,m:mark,max:total,stars,missed:rows.filter(r=>!r.ok).map(r=>({q:r.q.slice(0,120),c:String(r.c).slice(0,140),g:String(r.g).slice(0,140),tag:r.tag,type:r.type}))};
+ if(!Array.isArray(ST.exams))ST.exams=[];ST.exams.push(attempt);save();
+ exShowCorrected(rows,mark,total,stars);}
+function exShowCorrected(rows,mark,total,stars){const wrong=rows.filter(r=>!r.ok);
+ stage.innerHTML=`<div class="xpaper"><div class="xtitle">📄 الورقة المصحّحة · الدرجة: <b>${XAR(mark)}</b> / ${XAR(total)}</div>
+  ${wrong.length?`<p style="font-size:14px;color:#5B6B85;margin:6px 0 10px">هذه الأسئلة راجعيها مع ماما (إجابتكِ ← الصحيح):</p>`+wrong.map(r=>`<div class="xwrong"><div class="xq">${xesc(r.q)}</div><div class="xgiven">✗ إجابتكِ: ${xesc(r.g)}</div><div class="xcorrect">✓ الصحيح: ${xesc(r.c)}</div><div class="xtagl">📚 ${xesc(r.tag)}</div></div>`).join(''):`<p style="font-size:17px;text-align:center;margin:14px 0">كل الإجابات صحيحة! 🌟 ورقة كاملة!</p>`}
+  <div style="text-align:center;margin-top:14px"><button class="go" onclick="exCelebrate(${mark},${total},${stars})">شاهدي نتيجتكِ 🎉</button></div></div>`;window.scrollTo({top:0});}
+function exCelebrate(mark,total,stars){if(stars>0)addStar(stars);try{applause(mark>=total*0.75);tada();confetti();}catch(e){}
+ const pct=mark/total;const msg=pct>=0.9?'ممتازة يا ماريا! ورقة تفتخر بها 🏆':pct>=0.7?'أحسنتِ يا ماريا! نتيجة جميلة 🌟':pct>=0.5?'جيدة! راجعي الأسئلة المصحّحة وستكونين أفضل 💪':'لا بأس يا بطلة، المراجعة مع ماما ستصنع الفرق 🌱';
+ stage.innerHTML=`<div class="card"><div class="big">🎉📝</div><h1>${XAR(mark)} من ${XAR(total)}</h1><p class="sub">${msg}</p><p class="sub">⭐ كسبتِ ${XAR(stars)} ${stars===1?'نجمة':stars===2?'نجمتين':stars<=10?'نجوم':'نجمة'} (نجمة لكل إجابة صحيحة)</p>
+  <button class="go" onclick="goMap()">الخريطة 🏡</button><div style="height:8px"></div><button onclick="exLog()" style="font-size:14px">📊 سجل الاختبارات</button></div>`;window.scrollTo({top:0});}
+
+/* ---------- سجل الاختبارات (لوليّ الأمر) ---------- */
+function exLog(){document.getElementById('backB').style.visibility='visible';if(typeof cur!=='undefined')cur=-1;if(typeof curLesson!=='undefined')curLesson=-1;
+ const A=(ST.exams||[]).slice().reverse();const byTag={};(ST.exams||[]).forEach(a=>(a.missed||[]).forEach(mi=>{const t=byTag[mi.tag]=byTag[mi.tag]||{n:0,qs:[]};t.n++;if(t.qs.length<3&&!t.qs.some(q=>q.q===mi.q))t.qs.push(mi);}));
+ const tags=Object.entries(byTag).sort((a,b)=>b[1].n-a[1].n).slice(0,8);
+ const fmt=d=>{try{const x=new Date(d);return XAR(x.getDate())+'/'+XAR(x.getMonth()+1)+' '+XAR(String(x.getHours()).padStart(2,'0'))+':'+XAR(String(x.getMinutes()).padStart(2,'0'));}catch(e){return '';}};
+ stage.innerHTML=`${chip('📊 سجل الاختبارات · لوليّ الأمر')}<div class="card" style="text-align:right">
+  <h2 style="text-align:center">📊 سجل اختبارات ماريا · ${EXAM_CFG.subject}</h2>
+  ${A.length?`<table class="xlog"><tr><th>التاريخ</th><th>الاختبار</th><th>الدرجة</th><th>أخطاء</th></tr>${A.map(a=>`<tr><td>${fmt(a.d)}</td><td>${exKindName(a.k)}${a.short?' (قصير)':''}</td><td><b>${XAR(a.m)}</b>/${XAR(a.max)}</td><td>${XAR((a.missed||[]).length)}</td></tr>`).join('')}</table>`:'<p class="sub" style="text-align:center">لا توجد محاولات بعد. ابدئي أول اختبار تجريبي من الخريطة 📝</p>'}
+  ${tags.length?`<h3 style="margin:16px 0 6px">🔎 أكثر ما تحتاج مراجعته (حسب عدد الأخطاء)</h3>${tags.map(([t,v])=>`<div class="xtagbox"><b>${xesc(t)}</b> <span style="color:#9A3B3B;font-weight:800">✗ ${XAR(v.n)}</span>${v.qs.map(q=>`<div class="xtagq">• ${xesc(q.q)}<br><span style="color:#227A63">✓ ${xesc(q.c)}</span></div>`).join('')}</div>`).join('')}`:''}
+  <div style="text-align:center;margin-top:14px"><button class="go" onclick="goMap()">الخريطة 🏡</button> ${A.length?`<button onclick="if(confirm('تمسحين سجل الاختبارات؟ (لا يؤثر في النجوم والدروس)')){ST.exams=[];save();exLog();}" style="font-size:12px">مسح السجل</button>`:''}</div></div>`;window.scrollTo({top:0});}
+
+
+/* معاينة لوليّ الأمر: افتحي الرابط مع #exam-demo لعرض ورقة كاملة فورًا (لا يغيّر التقدّم) */
+if(location.hash==='#exam-demo'){setTimeout(()=>{try{exStart('fin',[...Array(EXAM_CFG.nLessons).keys()],false);}catch(e){}},400);}
+/* ---------- ورقة الاختبار: التنسيق ---------- */
+document.head.insertAdjacentHTML('beforeend',`<style>
+.xpaper{background:#fff;border:1px solid #C9D2DE;border-radius:8px;padding:16px 14px 20px;color:#1E2A3A;text-align:right;box-shadow:0 2px 0 #C9D2DE,0 10px 24px rgba(30,42,58,.08);line-height:1.8}
+.xhead{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;border:2px solid #1E2A3A;border-radius:6px;padding:8px 12px;font-size:14px}
+.xtitle{text-align:center;font-weight:800;font-size:17px;margin:12px 0 4px;border-bottom:2px dashed #C9D2DE;padding-bottom:8px;display:flex;justify-content:center;gap:14px;align-items:center;flex-wrap:wrap}
+.xtimer{font-size:14px;font-weight:700;color:#6B7A90;background:#F2F5F9;border-radius:99px;padding:2px 12px}
+.xsec{margin-top:16px}.xsech{background:#EEF2F7;border-right:5px solid #1E2A3A;padding:6px 12px;font-weight:800;font-size:15px;border-radius:4px}
+.xmarks{font-weight:700;color:#6B7A90;font-size:13px}
+.xitem{padding:10px 6px;border-bottom:1px solid #EEF2F7;font-size:15.5px}.xn{display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;border:1.5px solid #1E2A3A;border-radius:50%;font-size:12px;font-weight:800;margin-left:6px}
+.xq{display:inline;font-weight:700}.xrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.xrow .xq{flex:1}
+.xtf button{width:44px;height:38px;font-size:18px;padding:0;border-radius:10px;margin-right:4px;background:#fff}
+.xopts{display:flex;flex-direction:column;gap:6px;margin-top:6px}.xopts button{text-align:right;background:#fff;font-size:15px;padding:8px 12px;border-radius:12px;font-weight:700}
+.xlet{display:inline-block;width:22px;height:22px;line-height:22px;text-align:center;border:1.5px solid #1E2A3A;border-radius:50%;font-size:12px;margin-left:6px}
+.xpaper button.xsel{background:#DDEBFF;border-color:#3F7CC9;color:#1E2A3A}.xpaper button.xused{opacity:.35;pointer-events:none}
+.xmatch{display:flex;gap:8px;margin-top:6px}.xcol{flex:1;display:flex;flex-direction:column;gap:6px}.xcol button{position:relative;background:#fff;font-size:13.5px;padding:8px 6px;line-height:1.5;text-align:center}
+.xtag{position:absolute;top:-8px;left:-6px;background:#3F7CC9;color:#fff;border-radius:50%;width:22px;height:22px;line-height:22px;font-size:12px}
+.xbank{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;justify-content:center}.xbank button{background:#FFF9E3;border-color:#F0DBA0;font-size:14px;padding:6px 12px}
+.xblankrow{margin:6px 0;font-size:15px}.xblank{display:inline-block;min-width:90px;border-bottom:2px solid #1E2A3A;text-align:center;margin:0 4px;color:#3F7CC9;font-weight:800;min-height:24px;vertical-align:bottom;cursor:pointer}
+.xbins{display:flex;gap:6px;flex-wrap:wrap}.xbin{flex:1;min-width:110px;border:2px dashed #9AA9BE;border-radius:12px;padding:6px;min-height:70px;cursor:pointer}.xbin h4{margin:0 0 4px;font-size:13px;text-align:center}.xgot{display:flex;flex-wrap:wrap;gap:4px;justify-content:center}.xgot span{background:#EEF2F7;border-radius:8px;padding:2px 8px;font-size:13px;font-weight:700}
+.xslots{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:6px 0}.xslot{min-width:54px;min-height:40px;border:2px solid #1E2A3A;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;padding:4px 8px;background:#fff}.xslot.xfilled{background:#DDEBFF}
+.xfig{margin:6px auto;max-width:360px}.xfig .xtarget{cursor:pointer}.xfig svg .xtarget{fill:rgba(63,124,201,.15);stroke:#3F7CC9;stroke-width:2.5;stroke-dasharray:4 3}.xfig svg .xtarget.xfilled{fill:rgba(63,124,201,.35);stroke-dasharray:none}
+.xfig .xtl{font-weight:800;font-size:13px;fill:#1E2A3A}.xwords{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}.xwords .xtarget{border:2px dashed #9AA9BE;border-radius:12px;padding:6px 10px;text-align:center;min-width:70px}.xwords .xtarget.xfilled{border-style:solid;border-color:#3F7CC9}.xwords .xtl{display:block;color:#3F7CC9;font-size:12px;min-height:16px}
+.xpv{display:flex;gap:6px;justify-content:center;direction:rtl}.xpv .xtarget{border:2px solid #1E2A3A;border-radius:8px;width:64px;padding:6px 4px;text-align:center}.xpv .xdig{font-size:26px;font-weight:800;display:block}.xpv .xtl{display:block;font-size:11px;color:#3F7CC9;min-height:16px}
+.xta{width:100%;font-family:inherit;font-size:16px;border:2px solid #C9D2DE;border-radius:12px;padding:10px;min-height:64px;margin-top:6px;resize:vertical}
+.xnum{max-width:300px;margin:6px auto}.xdisp{border:2px solid #1E2A3A;border-radius:10px;min-height:44px;font-size:26px;font-weight:800;text-align:center;letter-spacing:2px;margin-bottom:6px;background:#fff}
+.xkb{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.xkb button{font-size:20px;padding:8px 0;background:#fff}
+.xsteps{margin-top:6px}.xstep{background:#F7F9FC;border-radius:10px;padding:8px 10px;margin:6px 0;font-size:14px}.xplan{flex-direction:row;flex-wrap:wrap}.xplan button{flex:1;text-align:center;font-size:13px}
+.xpass{background:#FBFCFE;border:1.5px solid #C9D2DE;border-radius:8px;padding:12px 14px;font-size:17px;line-height:2.1;margin:8px 0}
+.xdict{background:#FFF9E3;border:2px solid #F0DBA0;border-radius:12px;padding:10px;text-align:center;margin-top:6px}.xdtext{font-size:19px;font-weight:800;line-height:2}.xdtext.xhidden{color:#9AA9BE;font-weight:700;font-size:14px}.xdcount{font-size:13px;color:#6B7A90}
+.xwrong{border:1.5px solid #E39B9B;border-radius:12px;padding:8px 12px;margin:8px 0;font-size:14px;background:#FFF7F7}.xgiven{color:#9B3B3B;margin-top:2px}.xcorrect{color:#227A63}.xtagl{font-size:12px;color:#6B7A90}
+.xlog{width:100%;border-collapse:collapse;font-size:13.5px;text-align:center}.xlog th,.xlog td{border:1px solid #DCE3EC;padding:6px 4px}.xlog th{background:#EEF2F7}
+.xtagbox{border:1.5px solid #E1E7F0;border-radius:12px;padding:8px 12px;margin:6px 0;font-size:14px}.xtagq{font-size:13px;margin-top:4px;line-height:1.6}
+.xchk.xsel{background:#DDF3EC;border-color:#4EB39A}
+</style>`);
+
+/* ---------- إعدادات اختبار العلوم ---------- */
+function exLabelPlant(){const parts=[{n:'الأوراق',x:98,y:172},{n:'الجذور',x:150,y:300},{n:'الزهرة',x:150,y:92},{n:'الساق',x:150,y:225}];const chips=['الجذور','الساق','الأوراق','الزهرة'];
+ const html=`<svg viewBox="0 0 300 340" width="100%"><rect x="0" y="258" width="300" height="82" rx="10" fill="#C9A27E"/><path d="M150 260 q-25 20 -45 45 M150 260 q25 20 45 45 M150 260 q0 30 0 60 M150 268 q-14 18 -22 48 M150 268 q14 18 22 48" stroke="#8A5A3B" stroke-width="5" fill="none" stroke-linecap="round"/><rect x="146" y="118" width="8" height="142" rx="4" fill="#4E9B57"/><ellipse cx="112" cy="178" rx="34" ry="15" fill="#5FB368" transform="rotate(-18 112 178)"/><ellipse cx="188" cy="205" rx="34" ry="15" fill="#5FB368" transform="rotate(18 188 205)"/>${[0,72,144,216,288].map(a=>`<circle cx="${150+22*Math.cos(a*Math.PI/180)}" cy="${92+22*Math.sin(a*Math.PI/180)}" r="14" fill="#F49BBB"/>`).join('')}<circle cx="150" cy="92" r="12" fill="#F5C544"/>${parts.map((p,k)=>`<circle class="xtarget" data-t="${k}" cx="${p.x}" cy="${p.y}" r="18"/><text data-tl="${k}" class="xtl" x="${p.x+(k===0?-44:k===3?40:0)}" y="${p.y+(k===2?-26:k===1?34:6)}" text-anchor="middle"></text>`).join('')}</svg>`;
+ return {t:'label',q:'ضعي اسم كل جزء من أجزاء النبات في مكانه على الرسم.',chips,targets:parts.map(p=>({n:p.n,c:chips.indexOf(p.n)})),html};}
+function exLabelSeed(){const parts=[{n:'غلاف البذرة',x:150,y:32},{n:'الفلقة',x:185,y:118},{n:'الجنين',x:88,y:112}];const chips=['الجنين','غلاف البذرة','الفلقة'];
+ const html=`<svg viewBox="0 0 300 210" width="100%"><ellipse cx="150" cy="110" rx="120" ry="85" fill="#E8C98F" stroke="#8A5A3B" stroke-width="10"/><ellipse cx="172" cy="112" rx="78" ry="60" fill="#F3DDB2"/><path d="M95 140 q-12 -30 8 -52 q14 -16 28 -10 q-4 16 -12 30 q-8 16 -24 32z" fill="#5FB368" stroke="#3A7A44" stroke-width="3"/>${parts.map((p,k)=>`<circle class="xtarget" data-t="${k}" cx="${p.x}" cy="${p.y}" r="18"/><text data-tl="${k}" class="xtl" x="${p.x}" y="${p.y+(k===0?-24:34)}" text-anchor="middle"></text>`).join('')}</svg>`;
+ return {t:'label',q:'حددي على الرسم أجزاء البذرة.',chips,targets:parts.map(p=>({n:p.n,c:chips.indexOf(p.n)})),html};}
+const EXAM_CFG={subject:'العلوم',nLessons:LESSONS.length,minLessons:3,lessonName:i=>(LESSONS[i]||{}).name||'عام',
+ plan20:[{t:'tf',n:4,m:1},{t:'mcq',n:5,m:1},{t:'match',n:1,m:3},{t:'fill',n:1,m:3},{t:'order',n:1,m:2},{t:'label',n:1,m:2},{t:'short',n:1,m:1}],
+ plan10:[{t:'tf',n:3,m:1},{t:'mcq',n:3,m:1},{t:'match',n:1,m:2},{t:'fill',n:1,m:2}],
+ label(fig){return fig==='seed'?exLabelSeed():exLabelPlant();},
+ gen(Li){const Ls=LESSONS[Li];if(!Ls)return [];const out=[];
+  (Ls.test||[]).concat(Ls.think||[]).forEach(s=>{
+   if(s.t==='mcq')out.push({t:'mcq',q:s.q,o:s.o,a:s.c});
+   else if(s.t==='tf')out.push({t:'tf',q:s.q.replace(/^["«]|["»]$/g,''),a:s.c});
+   else if(s.t==='match')out.push({t:'match',q:s.q,pairs:s.pairs});
+   else if(s.t==='order')out.push({t:'order',q:s.q,seq:s.seq});
+   else if(s.t==='sort2')s.items.forEach(it=>out.push({t:'tf',q:`«${it[0].replace(/[^؀-ۿ\s]/g,'').trim()}» من: ${s.bins[0].replace(/[^؀-ۿ\s]/g,'').trim()}`,a:it[1]===0}));
+   else if(s.t==='plant')out.push(exLabelPlant());
+   else if(s.t==='seed')out.push(exLabelSeed());});
+  if(Ls.vocab&&Ls.vocab.length>=2){const v=xsh(Ls.vocab).slice(0,3);out.push({t:'fill',q:'أكملي الفراغ بالمصطلح العلمي المناسب:',bank:v.map(x=>x[0]),items:v.map(x=>[x[1],x[0]])});}
+  return out;}};
 
 drawStars();goMap();applySound();serverLoad();
 </script>

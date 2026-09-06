@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#B0553C">
-<title>كِتاب ماريا 📖 لُغتي · الفصل الدراسي الأوّل</title>
-<meta name="apple-mobile-web-app-title" content="كتاب لغتي">
+<title>قرية القصص 🏘️ لُغتي · الفصل الدراسي الأوّل</title>
+<meta name="apple-mobile-web-app-title" content="قرية القصص">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -73,6 +73,18 @@ button:active{transform:scale(.96)}
 .page h2{color:var(--terraD)}
 .stk{display:flex;gap:10px;justify-content:center;margin:8px 0}.stk button{font-size:26px;padding:6px 14px}.stk button.on{background:#FFF3D6;border-color:var(--sun)}
 textarea{width:100%;font-family:inherit;font-size:17px;border:2px solid var(--line);border-radius:14px;padding:10px;min-height:70px;resize:vertical}
+
+.an-plane{animation:plane 22s linear infinite}@keyframes plane{0%{transform:translate(-160px,0)}50%{transform:translate(280px,-18px)}100%{transform:translate(760px,6px)}}
+.an-cabin{animation:cabin 14s ease-in-out infinite alternate}@keyframes cabin{to{transform:translate(104px,-80px)}}
+.an-sway{transform-box:fill-box;transform-origin:bottom center;animation:sway 4s ease-in-out infinite alternate}@keyframes sway{from{transform:rotate(-2.5deg)}to{transform:rotate(2.5deg)}}
+.an-wave{transform-box:fill-box;transform-origin:left center;animation:wv 1.4s ease-in-out infinite alternate}@keyframes wv{from{transform:skewY(-6deg)}to{transform:skewY(6deg)}}
+.an-spin{animation:spin 50s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+.an-orbit{animation:spin 12s linear infinite}
+.an-drop{stroke-dasharray:4 8;animation:drop .5s linear infinite}@keyframes drop{to{stroke-dashoffset:-12}}
+.an-bob{animation:bob 1.4s ease-in-out infinite}@keyframes bob{50%{transform:translateY(-3px)}}
+.an-twinkle{animation:tw 2s ease-in-out infinite alternate}@keyframes tw{to{opacity:.25}}
+.an-bus{animation:bus 18s linear infinite}@keyframes bus{0%{transform:translateX(-140px)}100%{transform:translateX(700px)}}
+@media (prefers-reduced-motion:reduce){[class^="an-"]{animation:none}}
 #ovl{position:fixed;inset:0;background:rgba(74,46,36,.45);display:none;align-items:center;justify-content:center;z-index:50;padding:20px}
 #ovl.show{display:flex}#ovl .inner{background:var(--card);border-radius:28px;padding:28px 22px;text-align:center;max-width:420px;animation:pop .45s}
 @keyframes pop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}
@@ -87,7 +99,7 @@ footer{text-align:center;font-size:12px;color:#B39A8B;margin-top:26px}footer but
  <div id="top"><button id="backB" style="visibility:hidden" onclick="goMap()">🏡 الخريطة</button><button id="sndB" onclick="toggleSound()" style="font-size:18px">🔊</button><span>⭐ <span id="stars">0</span></span></div>
  <div id="stage"></div>
  <footer>لُغتي · الصفّ الثالث · الفصل الدراسي الأوّل<br>
-  <button onclick="exportP()">حفظ نسخة من تقدّمي</button> · <button onclick="document.getElementById('imp').click()">استرجاع نسخة</button> · <button onclick="hardReset()">بداية جديدة</button>
+  <button onclick="exLog()">📊 سجل الاختبارات</button> · <button onclick="exportP()">حفظ نسخة من تقدّمي</button> · <button onclick="document.getElementById('imp').click()">استرجاع نسخة</button> · <button onclick="hardReset()">بداية جديدة</button>
   <input type="file" id="imp" accept="application/json" style="display:none" onchange="importP(this)"></footer>
 </div>
 <div id="ovl"><div class="inner"></div></div><div id="toast"></div>
@@ -283,15 +295,14 @@ function load(){try{const s=localStorage.getItem(KEY);if(s)ST={...ST,...JSON.par
 function save(){try{localStorage.setItem(KEY,JSON.stringify(ST));}catch(e){}serverSave();}
 let __sv=null;
 function serverSave(){clearTimeout(__sv);__sv=setTimeout(()=>{try{fetch('/progress',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(ST)}).catch(()=>{});}catch(e){}},250);}
-function mergeST(a,o){return {...a,...o,stars:Math.max(+a.stars||0,+o.stars||0),before:[...new Set([...(a.before||[]),...(o.before||[])])],after:[...new Set([...(a.after||[]),...(o.after||[])])],think:[...new Set([...(a.think||[]),...(o.think||[])])],stick:{...(a.stick||{}),...(o.stick||{})},sent:{...(a.sent||{}),...(o.sent||{})}};}
+function mergeST(a,o){return {...a,...o,stars:Math.max(+a.stars||0,+o.stars||0),before:[...new Set([...(a.before||[]),...(o.before||[])])],after:[...new Set([...(a.after||[]),...(o.after||[])])],think:[...new Set([...(a.think||[]),...(o.think||[])])],stick:{...(a.stick||{}),...(o.stick||{})},sent:{...(a.sent||{}),...(o.sent||{})},exams:exMergeAttempts(a.exams,o.exams)};}
 function serverLoad(){try{fetch('/progress').then(r=>r.ok?r.json():null).then(j=>{if(!j||typeof j!=='object'||Array.isArray(j))return;ST=mergeST(ST,j);try{localStorage.setItem(KEY,JSON.stringify(ST))}catch(e){};drawStars();applySound();if(cur===-1)goMap();}).catch(()=>{});}catch(e){}}
 function sndOn(){return ST.sound!==false;}
 function applySound(){const b=document.getElementById('sndB');if(b)b.textContent=sndOn()?'\u{1F50A}':'\u{1F507}';}
 function toggleSound(){ST.sound=sndOn()?false:true;save();applySound();}
 function hardReset(){if(confirm('هل تريدين البدء من جديد؟ سيُمسح كلّ التقدّم.')){ST={stars:0,before:[],after:[],think:[],stick:{},sent:{}};try{localStorage.removeItem(KEY)}catch(e){}try{fetch('/progress',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(ST)}).catch(()=>{}).finally(()=>location.reload());setTimeout(()=>location.reload(),800);}catch(e){location.reload();}}}
 function exportP(){const b=new Blob([JSON.stringify(ST)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='maria-arabic-progress.json';a.click();}
-function importP(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result);
- ST={stars:Math.max(ST.stars,o.stars||0),before:[...new Set([...ST.before,...(o.before||[])])],after:[...new Set([...ST.after,...(o.after||[])])],think:[...new Set([...ST.think,...(o.think||[])])],stick:{...ST.stick,...(o.stick||{})},sent:{...ST.sent,...(o.sent||{})}};save();alert('تمّ استرجاع التقدّم ✅');goMap();}catch(e){alert('الملفّ غير صالح');}};r.readAsText(f);}
+function importP(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result);if(!o||typeof o!=='object')throw 0;ST=mergeST(ST,o);save();drawStars();applySound();alert('تمّ استرجاع التقدّم ✅');goMap();}catch(e){alert('الملفّ غير صالح');}};r.readAsText(f);}
 load();
 const stage=document.getElementById('stage');let Q=[],qi=0,cur=-1;
 function drawStars(){document.getElementById('stars').textContent=ST.stars;}
@@ -316,18 +327,18 @@ function next(){qi++;if(qi>=Q.length){goMap();return;}render();window.scrollTo({
 /* ==================== الخريطة ==================== */
 function goMap(){cur=-1;document.getElementById('backB').style.visibility='hidden';
  const doneN=ST.after.length;
- let html=`<div class="card" style="padding:16px"><div class="big" style="font-size:40px">📖✒️</div>
-  <h1 style="font-size:22px">كِتاب ماريا</h1>
-  <p class="sub" style="margin-bottom:6px">📖 قبل الحصّة: كلمات جديدة.<br>✏️ بعد الحصّة: اختبار ← صفحة في كتابكِ.<br>🧠 فكّري أكثر: جُمل وألعاب.</p>
+ let html=`<div class="card" style="padding:16px"><div class="big" style="font-size:40px">🏘️✒️</div>
+  <h1 style="font-size:22px">قرية القصص</h1>
+  <p class="sub" style="margin-bottom:6px">📖 قبل الحصّة: كلمات جديدة.<br>✏️ بعد الحصّة: اختبار ← مكان جديد في القرية.<br>🧠 فكّري أكثر: جُمل وألعاب.</p>
   <div class="pbar"><i style="width:${Math.round(doneN/L.length*100)}%"></i></div>
-  <p class="sub" style="margin:0 0 10px">📄 ${doneN} من ${L.length} صفحة</p>
-  <button class="go" style="font-size:16px;padding:10px 26px" onclick="goBook()">📖 افتحي كتابكِ</button></div>`;
+  <p class="sub" style="margin:0 0 10px">🏘️ ${doneN} من ${L.length} أماكن</p>
+  <button class="go" style="font-size:16px;padding:10px 26px" onclick="goBook()">🏘️ شاهدي قريتكِ</button><div style="height:8px"></div><button class="go" style="font-size:15px;padding:9px 22px;background:#1E2A3A;border-color:#0F1826;box-shadow:0 4px 0 #0F1826" onclick="exChoose()">📝 اختبار تجريبي</button></div>`;
  let lastU=-1;
  L.forEach((l,i)=>{if(l.u!==lastU){html+=`<div class="uhead">${U[l.u]}</div>`;lastU=l.u;}
   const bd=ST.before.includes(i),ad=ST.after.includes(i),td=ST.think.includes(i);
   html+=`<div class="lrow ${ad?'done':''}"><div class="lic">${l.ic}${ad?'<span class="tick">✓</span>':''}</div>
-   <div class="lt"><b>${l.name}</b><small>${ad&&bd&&td?'✓ مكتمل بالكامل':ad?'✓ تمّ · 📄 صفحة':bd?'مستعدّة ✔':''}</small></div>
-   <div class="lbtns"><button class="bprep ${bd?'done':''}" onclick="startPrep(${i})">📖 قبل ${bd?'✔':''}</button><button class="btest ${ad?'done':''}" onclick="startTest(${i})">✏️ بعد ${ad?'📄':''}</button><button class="bthink ${td?'done':''}" onclick="startThink(${i})">🧠 أكثر ${td?'🌟':''}</button></div></div>`;});
+   <div class="lt"><b>${l.name}</b><small>${ad&&bd&&td?'✓ مكتمل بالكامل':ad?'✓ تمّ · 🏘️ مكان':bd?'مستعدّة ✔':''}</small></div>
+   <div class="lbtns"><button class="bprep ${bd?'done':''}" onclick="startPrep(${i})">📖 قبل ${bd?'✔':''}</button><button class="btest ${ad?'done':''}" onclick="startTest(${i})">✏️ بعد ${ad?'🏘️':''}</button><button class="bthink ${td?'done':''}" onclick="startThink(${i})">🧠 أكثر ${td?'🌟':''}</button></div></div>`;});
  stage.innerHTML=html;window.scrollTo({top:0});drawStars();}
 
 function startPrep(i){cur=i;document.getElementById('backB').style.visibility='visible';const l=L[i];
@@ -348,10 +359,10 @@ function render(){const s=Q[qi];
    if(o&&!c.dataset.s){c.dataset.s=1;seen++;try{tone(660,ac().currentTime,.15,'sine',.08);}catch(e){}vn.textContent=`عرفتُ الكلمات (${seen}/${l.words.length})`;if(seen===l.words.length)vn.disabled=false;}};});
   vn.onclick=next;return;}
  if(s.t==='prepDone'){if(!ST.before.includes(s.i)){ST.before.push(s.i);addStar(2);}confetti();tada();
-  stage.innerHTML=`${chip('📖 قبل الحصّة','prep')}<div class="card"><div class="big">🎒✨</div><h1>مستعدّة يا ماريا!</h1><p class="sub">بعد الحصّة: اختبار ← صفحة جديدة في كتابكِ 📄</p><button class="go" onclick="goMap()">الخريطة 🏡</button></div>`;return;}
+  stage.innerHTML=`${chip('📖 قبل الحصّة','prep')}<div class="card"><div class="big">🎒✨</div><h1>مستعدّة يا ماريا!</h1><p class="sub">بعد الحصّة: اختبار ← مكان جديد في القرية 🏘️</p><button class="go" onclick="goMap()">الخريطة 🏡</button></div>`;return;}
  if(s.t==='badge'){const first=!ST.after.includes(s.i);if(first){ST.after.push(s.i);save();}confetti();tada();applause(false);
-  const ov=document.getElementById('ovl');ov.querySelector('.inner').innerHTML=`<div class="big">📄${s.l.ic}</div><h1>${first?'صفحة جديدة في كتابكِ!':'أحسنتِ!'}</h1><p class="sub">${first?'اختاري ملصقًا واكتبي جملتكِ 🌟':'راجعتِ الدرس من جديد 🌟'}</p>
-   <button class="go" onclick="document.getElementById('ovl').classList.remove('show');goBook(${s.i})">افتحي الصفحة 📖</button><div style="height:8px"></div><button onclick="document.getElementById('ovl').classList.remove('show');goMap()">الخريطة</button>`;ov.classList.add('show');return;}
+  const ov=document.getElementById('ovl');ov.querySelector('.inner').innerHTML=`<div class="big">🏘️${s.l.ic}</div><h1>${first?'مكان جديد في القرية!':'أحسنتِ!'}</h1><p class="sub">${first?'أُضيف <b>'+VILL[s.i].n+'</b> إلى قرية القصص 🌟':'راجعتِ الدرس من جديد 🌟'}</p>
+   <button class="go" onclick="document.getElementById('ovl').classList.remove('show');goBook(${s.i})">شاهدي القرية 🏘️</button><div style="height:8px"></div><button onclick="document.getElementById('ovl').classList.remove('show');goMap()">الخريطة</button>`;ov.classList.add('show');return;}
  if(s.t==='thinkDone'){const first=!ST.think.includes(s.i);if(first){ST.think.push(s.i);addStar(3);}confetti();tada();
   stage.innerHTML=`${chip('🧠 فكّري أكثر','think')}<div class="card"><div class="big">🧠✨</div><h1>لُغتكِ تكبر!</h1><p class="sub">${first?'٣ نجوم إضافية ⭐':'رائع أنكِ عدتِ!'}</p><button class="go" onclick="goMap()">الخريطة 🏡</button></div>`;return;}
  const cls=s.prep?'prep':s.think?'think':'';
@@ -396,26 +407,529 @@ function rTf(s,cls){
  stage.querySelectorAll('.pool button').forEach(b=>b.onclick=()=>{const v=b.dataset.v==='1';stage.querySelectorAll('.pool button').forEach(x=>x.classList.add('locked'));stage.querySelector(`[data-v="${s.c?'1':'0'}"]`).classList.add('ok');
   if(v===s.c){cheer();addStar();showFix('✅ '+s.fix,true);}else{beepBad();b.classList.add('wrong','bad');showFix(`❌ العبارة <b>${s.c?'صحيحة':'خاطئة'}</b>.<br>${s.fix}`,true);}});}
 
-/* ==================== كتاب ماريا ==================== */
+/* ==================== قرية القصص ==================== */
+const VILL=[
+ {n:'بوّابة القرية',z:4,st:'هنا تبدأ قرية القصص، وكلّ درس يضيف إليها مكانًا جديدًا.',
+  s:`<g><rect x="340" y="362" width="6" height="34" fill="#8A5A3B"/><rect x="442" y="362" width="6" height="34" fill="#8A5A3B"/><rect x="330" y="344" width="128" height="30" rx="8" fill="#F3DDB2" stroke="#8A5A3B" stroke-width="3"/><text x="394" y="365" text-anchor="middle" font-size="15" font-weight="800" fill="#8A3F2B">قرية القصص</text></g>`},
+ {n:'طائرة عادل',z:1,st:'عادل تصرّف بأدب في الطائرة، وأعطى مقعده لامرأة.',
+  s:`<g class="an-plane"><g transform="translate(0,70)"><path d="M-40 0 h70 l14 -10 h12 l-8 10 h14 q6 0 6 6 q0 6 -6 6 h-96 z" fill="#fff" stroke="#3F7CC9" stroke-width="2"/><path d="M-8 6 l-14 16 h20 z" fill="#3F7CC9"/><path d="M-30 -1 l-10 -12 h10 z" fill="#3F7CC9"/><circle cx="6" cy="4" r="2.5" fill="#3F7CC9"/><circle cx="18" cy="4" r="2.5" fill="#3F7CC9"/><circle cx="30" cy="4" r="2.5" fill="#3F7CC9"/></g></g>`},
+ {n:'مدرسة ماريا',z:3,st:'عام دراسي جديد: تمنّى التلاميذ أن تسود المحبّة بينهم.',
+  s:`<g><rect x="150" y="212" width="120" height="70" rx="4" fill="#F5C544"/><path d="M144 214 L210 178 L276 214 Z" fill="#B0553C"/><rect x="200" y="246" width="22" height="36" rx="3" fill="#8A3F2B"/><rect x="160" y="226" width="16" height="14" fill="#EAF3FB"/><rect x="244" y="226" width="16" height="14" fill="#EAF3FB"/><rect x="160" y="252" width="16" height="14" fill="#EAF3FB"/><rect x="244" y="252" width="16" height="14" fill="#EAF3FB"/><line x1="210" y1="178" x2="210" y2="150" stroke="#2B3A55" stroke-width="3"/><path class="an-wave" d="M210 150 h26 l-5 8 5 8 h-26z" fill="#4EB39A"/><text x="210" y="240" text-anchor="middle" font-size="11" font-weight="800" fill="#8A3F2B">مدرستي</text></g>
+  <g class="an-bus"><g transform="translate(0,300)"><rect x="0" y="0" width="70" height="30" rx="6" fill="#F5C544"/><rect x="6" y="6" width="14" height="12" fill="#EAF3FB"/><rect x="26" y="6" width="14" height="12" fill="#EAF3FB"/><rect x="46" y="6" width="14" height="12" fill="#EAF3FB"/><circle cx="16" cy="32" r="6" fill="#2B3A55"/><circle cx="54" cy="32" r="6" fill="#2B3A55"/></g></g>`},
+ {n:'قصر المصمك',z:3,st:'الرياض عاصمتنا، والملك عبد العزيز وحّد البلاد.',
+  s:`<g><rect x="470" y="222" width="130" height="60" fill="#C9A27E" stroke="#8A5A3B" stroke-width="2"/><rect x="462" y="200" width="28" height="82" rx="6" fill="#B8865E" stroke="#8A5A3B" stroke-width="2"/><rect x="580" y="200" width="28" height="82" rx="6" fill="#B8865E" stroke="#8A5A3B" stroke-width="2"/><path d="M462 200 h28 M462 206 l4 -8 4 8 4 -8 4 8 4 -8 4 8 4 -8" stroke="#8A5A3B" stroke-width="2" fill="none"/><path d="M470 222 h130 M474 222 l4 -8 4 8 4 -8 4 8 4 -8 4 8 4 -8 4 8 4 -8 4 8 4 -8 4 8 4 -8 4 8 4 -8 4 8 4 -8 4 8 4 -8 4 8" stroke="#8A5A3B" stroke-width="2" fill="none"/><path d="M520 282 v-30 a15 15 0 0 1 30 0 v30 z" fill="#8A5A3B"/><rect x="484" y="236" width="10" height="12" fill="#fff"/><rect x="576" y="236" width="10" height="12" fill="#fff"/><line x1="535" y1="200" x2="535" y2="176" stroke="#2B3A55" stroke-width="3"/><path class="an-wave" d="M535 176 h24 l-4 7 4 7 h-24z" fill="#4E9B57"/></g>
+  <g class="an-sway"><rect x="616" y="230" width="6" height="52" fill="#8A5A3B"/><path d="M619 232 q-24 -18 -30 -2 q14 -4 30 4 M619 232 q24 -18 30 -2 q-14 -4 -30 4 M619 230 q-6 -26 -22 -22 q10 8 22 24 M619 230 q6 -26 22 -22 q-10 8 -22 24" fill="#4E9B57"/></g>`},
+ {n:'جبال المصايف',z:0,st:'في بلادي مصايف جميلة: الطائف وأبها والباحة وجازان.',
+  s:`<path d="M240 262 L340 150 L440 262 Z" fill="#A6BFA0"/><path d="M340 150 L440 262 L340 262 Z" fill="#8FAA88"/><path d="M180 262 L250 190 L320 262 Z" fill="#B9CDB3"/><path d="M330 166 L340 150 L350 166 Z" fill="#fff"/>
+  <line x1="300" y1="262" x2="420" y2="170" stroke="#2B3A55" stroke-width="2"/><circle cx="300" cy="262" r="3" fill="#2B3A55"/><circle cx="420" cy="170" r="3" fill="#2B3A55"/>
+  <g class="an-cabin"><g transform="translate(308,254)"><line x1="0" y1="0" x2="0" y2="10" stroke="#2B3A55" stroke-width="2"/><rect x="-10" y="10" width="20" height="16" rx="4" fill="#EF7FA8"/><rect x="-6" y="14" width="12" height="7" fill="#EAF3FB"/></g></g>
+  <ellipse cx="90" cy="60" rx="30" ry="11" fill="#fff" opacity=".9"/><ellipse cx="520" cy="90" rx="36" ry="12" fill="#fff" opacity=".9"/>`},
+ {n:'حديقة التعاون',z:3,st:'تعاون التلاميذ فتحوّلت الساحة إلى حديقة غنّاء.',
+  s:`<rect x="150" y="318" width="120" height="40" rx="8" fill="#9A6440"/>${[160,182,204,226,248].map((x,i)=>`<g class="an-sway" style="animation-duration:${3+i*.4}s"><line x1="${x+8}" y1="352" x2="${x+8}" y2="326" stroke="#4E9B57" stroke-width="3"/><path d="M${x-1} 328 q9 -22 18 0 q-9 8 -18 0z" fill="${['#EF7FA8','#F5C544','#FF8A5B','#F49BBB','#7FB3E6'][i]}"/><circle cx="${x+8}" cy="321" r="2.5" fill="#FFF3B0"/></g>`).join('')}
+  <g class="an-bob"><path d="M282 330 h20 v18 h-20z" fill="#4EB39A"/><path d="M302 336 l10 -4 v6 l-10 2z" fill="#4EB39A"/><rect x="286" y="326" width="12" height="4" fill="#227A63"/></g><g class="an-drop" stroke="#7EB9DC" stroke-width="2" stroke-linecap="round"><path d="M314 334 l6 12 M318 332 l8 12"/></g>`},
+ {n:'نخلة الإيثار',z:3,st:'الإيثار أن أُقدّم غيري على نفسي، كما فعلت أمّ المؤمنين عائشة.',
+  s:`<g class="an-sway" style="animation-duration:5s"><rect x="396" y="226" width="8" height="66" fill="#8A5A3B"/><path d="M400 228 q-34 -22 -42 -2 q18 -6 42 6 M400 228 q34 -22 42 -2 q-18 -6 -42 6 M400 226 q-8 -34 -30 -28 q14 10 30 30 M400 226 q8 -34 30 -28 q-14 10 -30 30 M400 224 q0 -34 -8 -36 q4 14 8 38" fill="#4E9B57"/><g fill="#C9752A"><circle cx="392" cy="236" r="3"/><circle cx="398" cy="240" r="3"/><circle cx="404" cy="236" r="3"/><circle cx="396" cy="245" r="3"/><circle cx="402" cy="246" r="3"/></g></g>
+  <path d="M372 292 q14 -10 28 0 v6 h-28z" fill="#E8C98F" stroke="#8A5A3B" stroke-width="1.5"/><circle cx="380" cy="290" r="2.5" fill="#C9752A"/><circle cx="386" cy="288" r="2.5" fill="#C9752A"/><circle cx="392" cy="290" r="2.5" fill="#C9752A"/>`},
+ {n:'مسجد القرية',z:3,st:'نُغلق الهاتف في المسجد والمستشفى والطائرة؛ الهاتف نعمة نُحسن استخدامها.',
+  s:`<g><rect x="30" y="228" width="90" height="54" rx="4" fill="#F7EFE6" stroke="#B0553C" stroke-width="2"/><path d="M40 228 a35 26 0 0 1 70 0 z" fill="#4EB39A"/><rect x="6" y="180" width="14" height="102" rx="4" fill="#F7EFE6" stroke="#B0553C" stroke-width="2"/><path d="M4 180 a9 8 0 0 1 18 0 z" fill="#4EB39A"/><path d="M13 172 a4 4 0 1 1 3 -6 a3 3 0 1 0 -3 6z" fill="#F5C544"/><path d="M63 282 v-22 a12 12 0 0 1 24 0 v22z" fill="#B0553C"/><rect x="40" y="244" width="10" height="12" rx="5" fill="#B0553C"/><rect x="100" y="244" width="10" height="12" rx="5" fill="#B0553C"/></g>
+  <g><rect x="126" y="256" width="18" height="24" rx="3" fill="#fff" stroke="#9B3B3B" stroke-width="2"/><rect x="131" y="261" width="8" height="12" rx="2" fill="#2B3A55"/><line x1="128" y1="258" x2="142" y2="278" stroke="#9B3B3B" stroke-width="2"/></g>`},
+ {n:'القمر الصناعي',z:1,st:'الأقمار الصناعية أجسام صنعها الإنسان تدور حول الأرض وتنقل البثّ.',
+  s:`<circle cx="70" cy="60" r="20" fill="#FFF3B0"/><g class="an-orbit" style="transform-origin:70px 60px"><g transform="translate(120,60)"><rect x="-6" y="-5" width="12" height="10" rx="2" fill="#B0B8C4"/><rect x="-24" y="-3" width="16" height="6" fill="#3F7CC9"/><rect x="8" y="-3" width="16" height="6" fill="#3F7CC9"/><path d="M0 -5 v-8 l-4 -3" stroke="#7A8290" stroke-width="1.5" fill="none"/></g></g>
+  ${[0,1,2,3,4,5].map(k=>`<circle class="an-twinkle" style="animation-delay:${k*.3}s" cx="${20+k*22}" cy="${28+(k%2)*10}" r="1.6" fill="#fff"/>`).join('')}
+  <g transform="translate(262,182)"><ellipse cx="0" cy="0" rx="9" ry="7" fill="#DDE3EA" stroke="#7A8290" stroke-width="1.5" transform="rotate(-30)"/><line x1="0" y1="0" x2="4" y2="12" stroke="#7A8290" stroke-width="2"/></g>`}
+];
 function goBook(openAt){cur=-1;document.getElementById('backB').style.visibility='visible';
- const pages=L.map((l,i)=>i).filter(i=>ST.after.includes(i));const all=pages.length>=L.length;
- let idx=openAt!==undefined?pages.indexOf(openAt):-1;
- function draw(){
-  let inner;
-  if(idx<0){inner=`<div class="page" style="text-align:center;background:linear-gradient(160deg,#F6E7DA,#FFFDF8)"><div class="big" style="font-size:64px">📖</div><h1 style="font-size:26px;color:var(--terraD)">كِتاب ماريا</h1><p class="sub">لُغتي الجميلة · الفصل الأوّل</p><p class="sub">${pages.length?pages.length+' صفحة':'الكتاب فارغ… اكسبي أوّل صفحة!'}${all?'<br>🏆 اكتمل الكتاب! اقرئيه للعائلة.':''}</p></div>`;}
-  else{const i=pages[idx],l=L[i];
-   inner=`<div class="page"><span style="float:left;color:#C9B4A2;font-weight:800">${idx+1}</span><h2>${l.ic} ${l.name}</h2><p style="font-size:17px;line-height:1.9">${l.st}</p>
-    <div style="font-weight:800;color:var(--terraD);margin-top:8px">كلماتي الجديدة:</div><p style="font-size:15px;line-height:1.8;color:#7A5F52">${l.words.map(w=>w[0]).join(' · ')}</p>
-    <div style="font-weight:800;color:var(--terraD)">ملصقي:</div><div class="stk">${STICKERS.slice(0,5).map(e=>`<button data-e="${e}" class="${ST.stick[i]===e?'on':''}">${e}</button>`).join('')}</div>
-    <div style="font-weight:800;color:var(--terraD)">جملتي:</div><textarea id="sent" placeholder="اكتبي جملة من عندكِ… (اختياري)">${ST.sent[i]||''}</textarea>
-    <div style="text-align:center;margin-top:8px"><button onclick="saveSent(${i})">احفظي جملتي ✒️</button></div></div>`;}
-  stage.innerHTML=`${chip('📖 مشروعي: كِتاب ماريا')}<div class="card">${inner}
-   <div class="pool" style="margin-top:12px"><button ${idx<0?'disabled':''} onclick="window.__bk(-1)">➡ السَّابقة</button><button ${idx>=pages.length-1?'disabled':''} onclick="window.__bk(1)">التَّالية ⬅</button></div>
-   ${all?'<p class="sub">🏆 عرضكِ الكبير: اقرئي كلّ صفحة للعائلة، واحكي ما تعلّمتِ منها.</p>':''}</div>`;
-  stage.querySelectorAll('.stk button').forEach(b=>b.onclick=()=>{ST.stick[pages[idx]]=b.dataset.e;save();sparkle();draw();});
-  window.scrollTo({top:0});}
- window.__bk=d=>{idx+=d;draw();};window.saveSent=i=>{ST.sent[i]=document.getElementById('sent').value.trim();save();cheer();};
- if(all)applause(false);draw();}
+ const items=VILL.map((p,i)=>({p,i})).filter(o=>ST.after.includes(o.i)).sort((a,b)=>a.p.z-b.p.z);
+ const got=items.length,all=got>=VILL.length;
+ const back=items.filter(o=>o.p.z<2).map(o=>o.p.s).join(''),front=items.filter(o=>o.p.z>=2).map(o=>o.p.s).join('');
+ if(all){applause(false);confetti();}
+ stage.innerHTML=`${chip('📖 مشروعي: قرية القصص')}<div class="card">
+  <h1 style="font-size:22px">${all?'🏆 اكتملت قرية القصص!':'قرية القصص'}</h1>
+  <p class="sub" style="margin-bottom:8px">${all?'اعرضي القرية على العائلة، واحكي قصّة كلّ مكان.':'كلّ درس يبني مكانًا جديدًا. 🏘️ '+got+' من '+VILL.length}</p>
+  <svg viewBox="0 0 640 400" width="100%" style="max-width:640px;border-radius:18px;display:block;background:linear-gradient(180deg,#B9DFF9 0%,#EEF7FF 60%)">
+   <rect width="640" height="400" fill="url(#skyv)"/><defs><linearGradient id="skyv" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#B9DFF9"/><stop offset="1" stop-color="#EEF7FF"/></linearGradient><linearGradient id="grv" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#A3D48E"/><stop offset="1" stop-color="#7DB86A"/></linearGradient></defs>
+   ${back}
+   <ellipse cx="120" cy="266" rx="270" ry="50" fill="#BBDFA6"/><ellipse cx="560" cy="272" rx="250" ry="44" fill="#AFD79C"/>
+   <rect x="0" y="264" width="640" height="136" fill="url(#grv)"/>
+   <path d="M0 330 h640" stroke="#E6D4A8" stroke-width="22"/><path d="M0 330 h640" stroke="#fff" stroke-width="2" stroke-dasharray="14 12"/>
+   ${front}
+   ${items.length?'':'<text x="320" y="200" text-anchor="middle" font-size="19" font-weight="800" fill="#8A3F2B">القرية فارغة… اكسبي أوّل مكان! 🏘️</text>'}
+  </svg>
+  <div style="text-align:right;margin-top:12px">${VILL.map((p,i)=>{const ok=ST.after.includes(i);
+   return `<div class="fitem" data-i="${i}" style="padding:8px 10px;border-radius:12px;margin-bottom:6px;background:${ok?'#FBF6EE':'#F3F3EE'};border:2px solid ${ok?'var(--line)':'#E4E4DC'};font-weight:800;font-size:14px;color:${ok?'var(--ink)':'#A8B3A8'}">
+    ${ok?L[i].ic:'🔒'} ${p.n} <span style="font-weight:700;font-size:12px;color:#9A8172">${ok?'· اضغطي واحكي قصّته':'· يُفتح بدرس '+L[i].name}</span>
+    <div class="fst" style="display:${openAt===i?'block':'none'}"><div style="font-weight:700;font-size:13.5px;line-height:1.7;margin-top:6px;background:#FFF9E3;border-radius:10px;padding:8px">💡 ${p.st}</div>
+     <div style="margin-top:6px;font-size:13px">✒️ جملتي:</div><textarea id="s${i}" placeholder="اكتبي جملة من عندكِ… (اختياري)">${ST.sent[i]||''}</textarea><div style="text-align:center;margin-top:6px"><button style="font-size:13px;padding:6px 14px" onclick="saveSent(${i})">احفظي جملتي ✒️</button></div></div></div>`;}).join('')}</div></div>`;
+ stage.querySelectorAll('.fitem').forEach(d=>{const i=+d.dataset.i;if(ST.after.includes(i))d.querySelector('span').onclick=()=>{const f=d.querySelector('.fst');f.style.display=f.style.display==='none'?'block':'none';};});
+ window.saveSent=i=>{ST.sent[i]=document.getElementById('s'+i).value.trim();save();cheer();};
+ window.scrollTo({top:0});}
+
+
+/* ==================== 📝 EXAM MODE ==================== */
+/* ===================== بنك أسئلة لغتي من الأوراق الحقيقية (١٤٤٧ · الفصل الأول) =====================
+   src: الورقة (A1..A11) · L: رقم الدرس في التطبيق (0 مراجعة، 1 عادل، 2 عام دراسي، 3 الرياض، 4 مصايفنا، 5 التعاون، 6 الإيثار، 7 الهاتف، 8 الأقمار)
+   الأنواع: passage(نص + أسئلة) | mcq | tf | sort | fill | order | match | short | dictation                */
+const EXAM_BANK=[
+/* ---------- A1: اختبار الفترة الأولى (الدور الأول) ١٤٤٧ ---------- */
+{src:'A1',L:6,t:'passage',text:'طَلَبَ فَوَّازٌ مِنْ والِدِه أَنْ يَصْطحبهُ إِلَى المَكْتَبَةِ؛ لِشراءِ الكِتابِ، وَبَعْدَ فَراغِه مِنَ الواجباتِ المَنْزِلِيَّةِ ذَهَبَ مَعَ والِدِه إِلى المَكْتَبَةِ، وَأَخَذا يَتَجَوَّلانِ فِيها وَيُطالِعانِ أَبْرَزَ عَناوِينِ مَحْتَوَياتِها مِنْ كُتُبٍ وَقِصَصٍ. تَوَقَّفَ فَوَّازٌ عِنْدَ قِصَّةٍ عُنْوانُها (الإيثار)، فَسَأَلَ والِدَهُ: ما مَعْنَى الإيثارِ يا أَبي؟ رَدَّ الوالِدُ: اشْتَرِ القِصَّةَ، وَاقْرَأْها؛ لِتَعْرِفَ مَعْنَى الإيثارِ. اشْتَرَى فَوَّازٌ القِصَّةَ، وَعادَ إِلَى البَيْتِ مُشْتاقًا لِقِراءَتِها. وَفِي الْمَساءِ قَدِمَ الْوَالِدُ مِنْ عَمَلِه وَسَأَلَ فَوَّازًا: هَلْ قَرَأْتَ الْقِصَّةَ، وَعَرَفْتَ مَعْنَى الْإِيثارِ؟ قالَ فَوَّازٌ: نَعَمْ يَا أَبِي، وَالْقِصَّةُ هِيَ الَّتِي عَرَّفَتْنِي إِيَّاهُ.',
+ items:[
+  {t:'short',q:'من اصطحب فواز للمكتبة؟',a:'والده',keys:['والد','أب']},
+  {t:'short',q:'متى عاد الوالد من عمله؟',a:'في المساء',keys:['مساء']},
+  {t:'mcq',q:'عنوان القصة التي قرأها فواز:',o:['التعاون','الإيثار','المحبة','الأمانة'],a:1},
+  {t:'mcq',q:'مرادف كلمة (يؤثر):',o:['يمنع','يترك','يفضل','يكره'],a:2},
+  {t:'mcq',q:'ضد كلمة (يظمأ):',o:['يتألم','يرتوي','يجوع','يشبع'],a:1},
+  {t:'mcq',q:'نوع كلمة (الإيثار):',o:['اسم','فعل','حرف','جملة'],a:0},
+  {t:'mcq',q:'دار الحوار في القصة بين:',o:['فواز وصديقه','فواز ووالده','فواز والمعلم','الأم والأب'],a:1},
+  {t:'mcq',q:'العلاقة بين كلمتي (يجوع - يشبع):',o:['ترادف','تشابه','تضاد','سبب ونتيجة'],a:2},
+  {t:'mcq',q:'كان مع المرأة المسكينة:',o:['ابنتاها','ولدها','أمها','أختها'],a:0},
+  {t:'mcq',q:'(ما معنى الإيثار يا أبي؟) في الجملة أسلوب:',o:['تعجب','دعاء','تفضيل','استفهام'],a:3},
+  {t:'mcq',q:'الكلمة التي دلت على جمع:',o:['قصص','ابنتيها','عائشة','القصة'],a:0},
+  {t:'mcq',q:'كلمة (اشترى):',o:['فعل مضارع','فعل أمر','فعل ماض','اسم'],a:2}]},
+{src:'A1',L:0,t:'fill',q:'أجيبي حسب المطلوب بين القوسين:',bank:['الواجب','أب','يطلب'],items:[['مفرد كلمة (الواجبات)','الواجب'],['مذكر كلمة (أم)','أب'],['مضارع الفعل (طلب)','يطلب']]},
+{src:'A1',L:3,t:'order',q:'رتبي الكلمات التالية لتكوني جملة مفيدة:',seq:['الرياض','أكبر','مدن','المملكة','وعاصمتها']},
+{src:'A1',L:0,t:'sort',q:'صنفي الكلمات التالية حسب نوعها:',bins:['تاء مربوطة','تنوين فتح','مد بالواو','ال شمسية','ألف مقصورة','تاء مفتوحة'],items:[['المدرسة',0],['مبكرًا',1],['ينامون',2],['الصف',3],['تسمى',4],['المجلات',5]]},
+{src:'A1',L:6,t:'mcq',q:'كلمة (فواز):',o:['معرف بال','علم','نكرة'],a:1},
+{src:'A1',L:6,t:'mcq',q:'الكلمة المعرفة بال:',o:['كتاب','مدرسة','الحديقة'],a:2},
+{src:'A1',L:6,t:'mcq',q:'نحول كلمة (زراعة) إلى معرفة فتصبح:',o:['الزراعة','زراعات','مزارع'],a:0},
+{src:'A1',L:5,t:'mcq',q:'(ما أجمل المدرسة!) أسلوب:',o:['تعجب','تفضيل','استفهام'],a:0},
+{src:'A1',L:7,t:'mcq',q:'اسم الفاعل من الفعل (كتب):',o:['كاتب','مكتوب','يكتب'],a:0},
+{src:'A1',L:7,t:'mcq',q:'كلمة (محمول):',o:['اسم فاعل','اسم مفعول','اسم زمان'],a:1},
+{src:'A1',L:8,t:'mcq',q:'من أدوات الاستفهام:',o:['كيف','ثم','على'],a:0},
+{src:'A1',L:5,t:'dictation',text:'بالتعاون نجتاز الصعوبات'},
+/* ---------- A2: الدور الأول ١٤٤٧ ---------- */
+{src:'A2',L:5,t:'passage',text:'أَحْضَرَ الْمُعَلِّمُ الشُّتْلاتِ، وَوَفَّرَ لِلْمَجْمُوعاتِ أَدَواتِ الزِّراعَةِ. فَأَخَذَتِ الْمَجْمُوعاتُ تَعْمَلُ بِجِدٍّ وَنَشاطٍ، وَما إِنْ شارَفَ الْيَوْمُ الدِّراسِيُّ عَلى الانْتِهاءِ حَتَّى كانَتِ السّاحَةُ حَدِيقَةً خَضْراءَ. ذَهِشَ فَوَّازٌ مِنْ جَمالِ الْحَدِيقَةِ، وَقالَ: ما أَجْمَلَ الْحَدِيقَةَ! اسْتَطَعْنا أَنْ نُحَوِّلَ ساحَةَ الْمَدْرَسَةِ إِلى حَدِيقَةٍ غَنّاءَ فِي وَقْتٍ قَصِيرٍ، وَبِجُهْدٍ قَلِيلٍ. قالَ الْمُعَلِّمُ: إِنَّ التَّعاوُنَ ثَمَرَةٌ مِنْ ثَمَراتِ الإِيمانِ، يَزِيدُ التَّرابُطَ فِي الْمُجْتَمَعِ، وَيُشِيعُ الْمَحَبَّةَ وَالْمَوَدَّةَ بَيْنَ النّاسِ.',
+ items:[
+  {t:'mcq',q:'ما الثمرة التي ذكرها المعلم من ثمرات الإيمان؟',o:['التعاون','الصدق','الصبر'],a:0},
+  {t:'mcq',q:'كيف كانت المجموعات تعمل؟',o:['ببطء وكسل','بجد ونشاط','بخوف وتردد'],a:1},
+  {t:'mcq',q:'ماذا حدث للساحة في نهاية اليوم؟',o:['أصبحت ملعبًا','تحولت إلى حديقة خضراء','بقيت كما هي'],a:1},
+  {t:'mcq',q:'ماذا تعلمنا من هذا الدرس؟',o:['التعاون يحقق الغايات','التعاون ليس مفيدًا','الصدق ينجي'],a:0},
+  {t:'tf',q:'شارفت الحصة على الانتهاء قبل أن تُزرع الساحة.',a:false}]},
+{src:'A2',L:3,t:'tf',q:'زارت نورة مدينة الرياض. كلمة "زارت" فعل ماض.',a:true},
+{src:'A2',L:5,t:'tf',q:'اقترح فواز زراعة الساحة. كلمة "فواز" نكرة.',a:false},
+{src:'A2',L:5,t:'tf',q:'كلمة "أحضر" بدأت بهمزة قطع.',a:true},
+{src:'A2',L:5,t:'mcq',q:'كانت الساحة حديقة غناء. نوع كلمة "الساحة":',o:['معرف بال','نكرة','علم'],a:0},
+{src:'A2',L:0,t:'mcq',q:'عند تنوين كلمة "وقت" بالكسر تكتب:',o:['وقتًا','وقتٍ','وقتن'],a:1},
+{src:'A2',L:6,t:'mcq',q:'آثرت الأم أن تطعم ابنتيها وتبقى جائعة. يدل هذا على خلق:',o:['التواضع','العدل','الإيثار'],a:2},
+{src:'A2',L:6,t:'mcq',q:'عند تحويل كلمة (كتاب) من نكرة إلى معرفة تصبح:',o:['كاتب','الكتاب','يكتب'],a:1},
+{src:'A2',L:4,t:'mcq',q:'ما أجمل منطقة عسير! نوع الأسلوب اللغوي في الجملة السابقة أسلوب:',o:['استفهام','ترجي','تعجب'],a:2},
+{src:'A2',L:3,t:'sort',q:'صنفي كلمات الجملة: (أنشأت الحكومة شبكة من الطرق الجسور)',bins:['لام شمسية','لام قمرية','مد بالواو','تاء مفتوحة'],items:[['الطرق',0],['الجسور',1],['الحكومة',2],['أنشأت',3]]},
+{src:'A2',L:5,t:'order',q:'رتبي مقاطع كلمة (حديقةٍ) الصوتية:',seq:['حَ','دي','قَ','ةٍ']},
+{src:'A2',L:2,t:'dictation',text:'أكمل المؤمنين إيمانا أحسنهم خلقا'},
+/* ---------- A3: نموذج إجابة لغتي ---------- */
+{src:'A3',L:3,t:'passage',text:'الرِّياضُ عاصِمَةُ الْمَمْلَكَةِ الْعَرَبِيَّةِ السُّعُودِيَّةِ، وَأَكْبَرُ مُدُنِها، فَفِيها مَقَرُّ الْحُكْمِ، وَالْوِزاراتُ، وَالسَّفاراتُ، وَيُوجَدُ فِيها بِناياتٌ شاهِقَةٌ. أَحْياؤُها مُتَعَدِّدَةٌ، وَشَوارِعُها واسِعَةٌ، وَفِيها شَبَكَةٌ مِنَ الْجُسُورِ وَالْأَنْفاقِ، وَبِقُرْبِها تَقَعُ الْقَرْيَةُ التُّراثِيَّةُ فِي الْجَنادِرِيَّةِ.',
+ items:[
+  {t:'mcq',q:'تعتبر .... عاصمة المملكة العربية السعودية.',o:['الرياض','مكة المكرمة','المدينة المنورة'],a:0},
+  {t:'mcq',q:'من المعالم الأثرية بالرياض .....',o:['حصن المصمك','قصر شبرا','السودا'],a:0},
+  {t:'mcq',q:'الرياض مدينة من ....... مدن المملكة',o:['أصغر','أكبر','أبعد'],a:1},
+  {t:'mcq',q:'الرياض عاصمة المملكة لأن بها .....',o:['بساتين جميلة','بنايات شاهقة','مقر الحكم والسفارات'],a:2},
+  {t:'mcq',q:'يقام المهرجان الوطني للتراث والثقافة على أرض.....',o:['محافظة الدرعية','قرية الجنادرية','مكة المكرمة'],a:1},
+  {t:'mcq',q:'تقع الجنادرية ......',o:['وسط الرياض','قرب الرياض','غرب الرياض'],a:1,needsCheck:true},
+  {t:'mcq',q:'مضاد "أكبر" ......',o:['أصغر','أجمل','أقصر'],a:0},
+  {t:'mcq',q:'معنى "شاهقة" ......',o:['ممتدة','مرتفعة','منخفضة'],a:1},
+  {t:'mcq',q:'مفرد "معالم" .....',o:['علم','عالم','معلم'],a:2},
+  {t:'mcq',q:'جمع "قرية" ......',o:['قرى','قراء','أقراء'],a:0},
+  {t:'mcq',q:'معنى "التراثية" .....',o:['الحديثة','القديمة','الكبيرة'],a:1}]},
+{src:'A3',L:4,t:'passage',text:'الطّائِفُ إِحْدى أَشْهَرِ الْمَصايِفِ السُّعُودِيَّةِ وَتُسَمّى عَرُوسَ الْمَصايِفِ. وَهِيَ مَصِيفٌ جَبَلِيٌّ يَتَمَيَّزُ بِكَثْرَةِ الْمُنْتَزَهاتِ وَالْحَدائِقِ.',
+ items:[
+  {t:'mcq',q:'استخرجي كلمة بها تاء مربوطة:',o:['بكثرة','مصيف','الطائف'],a:0},
+  {t:'mcq',q:'استخرجي كلمة بها مد بالياء:',o:['مصيف','الحدائق','أشهر'],a:0},
+  {t:'mcq',q:'استخرجي كلمة بها لام قمرية:',o:['المصايف','السعودية','الطائف'],a:0},
+  {t:'mcq',q:'استخرجي كلمة بها لام شمسية:',o:['السعودية','المصايف','الحدائق'],a:0},
+  {t:'mcq',q:'استخرجي كلمة بها حرف مضعف (شدة):',o:['السّعودية','مصيف','جبلي'],a:0}]},
+{src:'A3',L:2,t:'mcq',q:'أكملي الحرف الناقص: غايا....',o:['ة','ت','هـ'],a:1},
+{src:'A3',L:2,t:'mcq',q:'نوع كلمة "التلاميذ":',o:['مفرد','مثنى','جمع'],a:2},
+{src:'A3',L:3,t:'mcq',q:'كلمة "تقع" ..........',o:['فعل ماض','فعل مضارع','فعل أمر'],a:1},
+{src:'A3',L:4,t:'mcq',q:'ما أجمل منطقة عسير ....',o:['؟','!','.'],a:1},
+{src:'A3',L:7,t:'mcq',q:'بعد التشهد الأخير يسلم المصلي ......',o:['يسارا','يمينا','شمالا'],a:1},
+{src:'A3',L:3,t:'mcq',q:'حمر.... أكملي الحرف الناقص:',o:['ا','اء','ى'],a:1},
+{src:'A3',L:2,t:'order',q:'رتبي الكلمات لتكون جملة مفيدة:',seq:['يخلد','الناس','للنوم','مساء']},
+{src:'A3',L:4,t:'order',q:'رتبي الكلمات لتكون جملة مفيدة:',seq:['أبها','تسمى','عروس','الجبل']},
+{src:'A3',L:2,t:'fill',q:'أكملي كل جملة بكلمة مناسبة مما يأتي:',bank:['تعم','محط أنظار','يسر'],items:[['حللت المسألة بـ ....... لأنني استذكرت دروسي','يسر'],['إذا لم نلتزم الهدوء عند الاصطفاف الصباحي ....... الفوضى','تعم'],['المملكة العربية السعودية ....... العالم الإسلامي','محط أنظار']]},
+{src:'A3',L:3,t:'dictation',text:'قال الوالد: سميت الرياض بهذا الاسم، لأنها كانت رياضا خضراء، كثيرة البساتين والحدائق الغناء.'},
+{src:'A3',L:2,t:'dictation',text:'إن خياركم أحاسنكم أخلاقا.'},
+/* ---------- A4: أسئلة اختبار الفصل الأول (الدور الأول) ١٤٤٧ (لا يوجد نموذج إجابة) ---------- */
+{src:'A4',L:2,t:'passage',needsCheck:true,text:'مع بدايةِ الْعامِ الدِّراسِيِّ الْجَدِيدِ، وَبَعْدَ أَنِ اكْتَمَلَ تَلامِيذُ الصَّفِّ الثّالِثِ الْابْتِدائِيِّ فِي فَصْلِهِمْ، طَلَبَ الْمُعَلِّمُ مِنْهُمْ أَنْ يُعَرِّفُوا بِأَنْفُسِهِمْ، كَيْ يَعْرِفَ كُلُّ واحِدٍ زَمِيلَهُ. ثم قالَ: ماذا يَتَمَنَّى كُلُّ واحِدٍ مِنْكُمْ مَعَ بِدايَةِ الْعامِ الدِّراسِيِّ؟ قالَ أَحْمَدُ: أَتَمَنَّى أَنْ أَكُونَ مِنَ الْمُتَفَوِّقِينَ فِي مَدْرَسَتِي، وَأَنْ أُسْعِدَ والِدِي بِتَفَوُّقِي. الْمُعَلِّمُ: لِتَكُونَ مُتَفَوِّقًا بَيْنَ زُمَلائِكَ يَجِبُ أَنْ تُكَرِّرَ الدَّرْسَ فِي الْيَوْمِ السّابِقِ؛ لِتُتابِعَ شَرْحَ الْمُعَلِّمِ بِيُسْرٍ، وَتُوَجِّهُ إِلَيْهِ الْأَسْئِلَةَ الَّتِي تَحْتاجُ إِلَى إِجاباتٍ عَنْها، عِنْدَها سَتَكُونُ مَحَطَّ أَنْظارِ زُمَلائِكَ وَإِعْجابِهِمْ، وَيُسْعِدُ بِذَلِكَ والداك.',
+ items:[
+  {t:'short',q:'ماذا تمنى أحمد؟',a:'أن يكون من المتفوقين في مدرسته وأن يسعد والديه بتفوقه',keys:['متفوق','يسعد','والد']},
+  {t:'mcq',q:'اكتمل تلاميذ الصف:',o:['الأول','الثاني','الثالث','الرابع'],a:2},
+  {t:'mcq',q:'سبب طلب المعلم من التلاميذ أن يعرفوا بأنفسهم:',o:['ليعرف كل واحد زميله','ليتعرف عليهم المعلم','لتوزيعهم مجموعات','لتكريم المتفوقين'],a:0},
+  {t:'mcq',q:'من الحلول التي ذكرها المعلم للتفوق:',o:['متابعة شرح المعلم','الخروج من الفصل','النوم أثناء الشرح','اللعب في الفناء'],a:0},
+  {t:'mcq',q:'ستكون محط إعجاب زملائك إذا كنت:',o:['مهملا','حزينا','متفوقا','متأخرا'],a:2},
+  {t:'mcq',q:'ضد كلمة يسعد:',o:['يحزن','يفرح','يبتهج','يأنس'],a:0},
+  {t:'mcq',q:'معنى كلمة يسر:',o:['صعوبة','سهولة'],a:1},
+  {t:'mcq',q:'مؤنث كلمة مُعلم:',o:['معلمة','معاملة','معلمون','معلمان'],a:0},
+  {t:'mcq',q:'نوع كلمة التلاميذ:',o:['مفرد','مثنى','جمع'],a:2},
+  {t:'mcq',q:'جمع كلمة درس:',o:['دارس','مدرس','مدرسة','دروس'],a:3}]},
+{src:'A4',L:4,t:'sort',q:'صنفي الكلمات التالية حسب المطلوب:',bins:['همزة قطع','مد بالألف','تنوين كسر','تاء مربوطة'],items:[['أجمل',0],['الطائف',1],['عسيرٍ',2],['يدوية',3]],needsCheck:true},
+{src:'A4',L:1,t:'fill',q:'حولي الأفعال التالية حسب المطلوب:',bank:['يربط','اربط','يفتح','افتح'],items:[['مضارع (ربط)','يربط'],['أمر (ربط)','اربط'],['مضارع (فتح)','يفتح'],['أمر (فتح)','افتح']],needsCheck:true},
+{src:'A4',L:4,t:'mcq',q:'وقفت (يمين) المدرسة. نوع ما بين القوسين:',o:['اسم تفضيل','ظرف مكان','ظرف زمان'],a:1,needsCheck:true},
+{src:'A4',L:1,t:'mcq',q:'حضر الطلاب (إلا) طالبا! نوع ما بين القوسين:',o:['ظرف زمان','أسلوب استثناء','ظرف مكان'],a:1,needsCheck:true},
+{src:'A4',L:3,t:'mcq',q:'النخلة (أطول) من الشجرة. نوع ما بين القوسين:',o:['اسم تفضيل','ظرف مكان','أسلوب استثناء'],a:0,needsCheck:true},
+{src:'A4',L:2,t:'mcq',q:'يعود أبي من عمله (مساء). نوع ما بين القوسين:',o:['ظرف زمان','ظرف مكان','اسم تفضيل'],a:0,needsCheck:true},
+{src:'A4',L:3,t:'order',q:'رتبي الجمل لتكون منها نصًا:',seq:['الرياض عاصمة المملكة العربية السعودية','وأكبر مدنها','يوجد بها مطار الملك خالد','وهو من أكبر مطارات العالم'],needsCheck:true},
+{src:'A4',L:2,t:'order',q:'رتبي الكلمات لتكون جملة مفيدة:',seq:['أستيقظ','صباحا','للذهاب','إلى','المدرسة'],needsCheck:true},
+/* ---------- A5: الاختبار النهائي ١٤٤٦ ---------- */
+{src:'A5',L:3,t:'passage',text:'سَأَلَتْ نُورَةُ أَباها: لِماذا سُمِّيَتِ الرِّياضُ بِهَذا الْاسْمِ يا أَبِي؟ قالَ الْوالِدُ: سُمِّيَتِ الرِّياضُ بِهَذا الاسْمِ؛ لِأَنَّها كانَتْ رِياضًا خَضْراءَ، كَثِيرَةَ الْبَساتِينِ، وَالْحَدائِقِ الْغَنّاءِ، وَسْطَ الصَّحْراءِ الْقاحِلَةِ، وَما زالَتِ الرِّياضُ رِياضًا خَضْراءَ بِحَدائِقِها الَّتِي تَنْتَشِرُ فِي كُلِّ مَكانٍ، وَالرِّياضُ عاصِمَةُ مَمْلَكَتِنا الْغالِيَةِ الْمَمْلَكَةِ الْعَرَبِيَّةِ السُّعُودِيَّةِ، وَأَكْبَرُ مُدُنِها، فَفِيها مَقَرُّ الْحُكْمِ وَالْوِزاراتُ وَالسَّفاراتُ.',
+ items:[
+  {t:'mcq',q:'سميت الرياض بهذا الاسم لأنها كانت ...............',o:['رياضًا خضراء','مدينة ساحلية','عروس الجبل'],a:0},
+  {t:'mcq',q:'الرياض عاصمة المملكة لأن بها .....',o:['البحر الأحمر','الكعبة المشرفة','مقر الحكم والسفارات'],a:2},
+  {t:'mcq',q:'سألت نورة في النص ..........',o:['والدها','أمها','فواز'],a:0},
+  {t:'mcq',q:'مفرد حدائق ......',o:['حديقة','حديقتان','حدائق'],a:0},
+  {t:'mcq',q:'مذكر كلمة الغالية ......',o:['الغالي','الغاليات','الغاليتان'],a:0},
+  {t:'mcq',q:'جمع كلمة مدينة ....',o:['مدائن','مدن','مدينتان'],a:1},
+  {t:'mcq',q:'معنى كلمة القاحلة .....',o:['ذات أشجار','خلابة','ليس فيها ماء'],a:2},
+  {t:'short',q:'لماذا سميت الرياض بهذا الاسم؟',a:'لأنها كانت رياضا خضراء كثيرة البساتين والحدائق الغناء وسط الصحراء القاحلة',keys:['خضراء','رياض','بساتين','حدائق']},
+  {t:'short',q:'ما عاصمة المملكة العربية السعودية؟',a:'الرياض',keys:['الرياض']}]},
+{src:'A5',L:1,t:'passage',text:'صَعِدَ عادِلٌ إِلى الطّائِرَةِ بِهُدُوءٍ، وَوَجَدَ الْمُضِيفَ فِي اسْتِقْبالِهِ فَأَرْشَدَهُ إِلى الْمَقْعَدِ الْمُخَصَّصِ لَهُ، جَلَسَ عادِلٌ عَلى مَقْعَدِهِ، وَرَبَطَ حِزامَ الْأَمانِ اسْتِعْدادًا لِإِقْلاعِ الطّائِرَةِ، وَأَثْناءَ ذَلِكَ اسْتَمَعَ إِلى تَعْلِيماتِ السَّلامَةِ.',
+ items:[
+  {t:'mcq',q:'استخرجي كلمة بها تاء مربوطة:',o:['الطائرة','المضيف','حزام'],a:0},
+  {t:'mcq',q:'استخرجي كلمة بها مد بالياء:',o:['المضيف','عادل','جلس'],a:0},
+  {t:'mcq',q:'استخرجي كلمة بها لام قمرية:',o:['المضيف','الطائرة','السلامة'],a:0},
+  {t:'mcq',q:'استخرجي كلمة بها لام شمسية:',o:['السلامة','المقعد','الأمان'],a:0},
+  {t:'mcq',q:'استخرجي كلمة بها مد بالألف:',o:['حزام','جلس','ربط'],a:0},
+  {t:'mcq',q:'استخرجي كلمة بها حرف مضعف (الشدة):',o:['السّلامة','عادل','حزام'],a:0}]},
+{src:'A5',L:4,t:'mcq',q:'اسم التفضيل من كلمة (طويلة) ................',o:['يطول','أطول','مطول'],a:1},
+{src:'A5',L:1,t:'mcq',q:'جلس المسافرون على المقاعد ............ امرأة',o:['إلا','إلى','هذه'],a:0},
+{src:'A5',L:3,t:'mcq',q:'تقف نورة ................ المدرسة',o:['فوق','يمين','تحت'],a:1},
+{src:'A5',L:1,t:'mcq',q:'كلمة (سافر) فعل ..................',o:['فعل ماض','فعل أمر','فعل مضارع'],a:0},
+{src:'A5',L:4,t:'order',q:'رتبي الكلمات لتكون جملة مفيدة:',seq:['يقف','فواز','شمال','الشجرة']},
+{src:'A5',L:4,t:'dictation',text:'تشتهر مدينة الطائف بزراعة العنب والرمان والتوت والتين الشوكي'},
+/* ---------- A6: أسئلة اختبار الفصل الأول (الدور الأول) ١٤٤٧ ---------- */
+{src:'A6',L:3,t:'passage',text:'تَقَعُ الرِّياضُ وَسْطَ الصَّحْراءِ الْقاحِلَةِ. الرِّياضُ عاصِمَةُ الْمَمْلَكَةِ الْعَرَبِيَّةِ السُّعُودِيَّةِ. مازالَتِ الرِّياضُ كَما كانَتْ رِياضًا خَضْراءَ بِحَدائِقِها الَّتِي تَنْتَشِرُ فِي كُلِّ مَكانٍ. وَفِي الرِّياضِ كَثِيرٌ مِنَ الْمَعالِمِ التّارِيخِيَّةِ كَحِصْنِ الْمَصْمَكِ وَآثارِ الدِّرْعِيَّةِ التّارِيخِيَّةِ. تَنْتَشِرُ فِيها الْمَعالِمُ التّارِيخِيَّةُ وَالْحَدائِقُ الْغَنّاءُ، وَمِنْها حَدِيقَةُ الْمُناخِ.',
+ items:[
+  {t:'short',q:'ما عاصمة المملكة العربية السعودية؟',a:'الرياض',keys:['الرياض']},
+  {t:'mcq',q:'في الرياض معالم تاريخية كـ حصن................',o:['المصمك','الدرعية','الرياض','المملكة'],a:0},
+  {t:'mcq',q:'تقع الرياض وسط ..........القاحلة',o:['الجبال','الصحراء','البحار','السهول'],a:1},
+  {t:'mcq',q:'نوع كلمة شاهقة:',o:['اسم','فعل','حرف'],a:0},
+  {t:'mcq',q:'معنى كلمة التراثية:',o:['الحديثة','الجديدة','القديمة','العالية'],a:2},
+  {t:'mcq',q:'ضد كلمة كثيرة:',o:['جميلة','بعيدة','كبيرة','قليلة'],a:3},
+  {t:'mcq',q:'مؤنث وطني:',o:['وطنية','مواطن','وطن','مواطنون'],a:0},
+  {t:'mcq',q:'نوع كلمة المعالم:',o:['مفرد','مثنى','جمع'],a:2},
+  {t:'mcq',q:'جمع كلمة مسافر:',o:['يسافر','سفر','مسافرون','مسافرة'],a:2}]},
+{src:'A6',L:1,t:'sort',q:'صنفي الكلمات التالية حسب المطلوب:',bins:['تاء مربوطة','تنوين ضم','ألف ممدودة','مد بالياء'],items:[['مجلة',0],['عادلٌ',1],['الغناء',2],['الجديد',3]]},
+{src:'A6',L:1,t:'mcq',q:'الفعل (سافر) مضارعه:',o:['يسافر','سافرْ'],a:0},
+{src:'A6',L:3,t:'mcq',q:'زارت نورة مدينة الرياض. الفعل (زارت):',o:['ماض','مضارع'],a:0},
+{src:'A6',L:3,t:'mcq',q:'الرياض أكبر مدن المملكة. الأسلوب في الجملة:',o:['استثناء','تفضيل'],a:1},
+{src:'A6',L:2,t:'mcq',q:'رسم الرسام الغزال ....الرأس. أداة الاستثناء:',o:['غير','من'],a:0},
+{src:'A6',L:2,t:'mcq',q:'تشرق الشمس صباحا. الظرف في الجملة:',o:['زمان','مكان'],a:0},
+{src:'A6',L:4,t:'mcq',q:'تقع المدرسة شمال السيارة. الظرف في الجملة:',o:['تقع','شمال'],a:1},
+{src:'A6',L:1,t:'order',q:'رتبي الكلمات لتكوني جملة مفيدة:',seq:['ربط','عادل','حزام','الأمان']},
+{src:'A6',L:2,t:'order',q:'رتبي الكلمات لتكوني جملة مفيدة:',seq:['أخلد','للنوم','مساء']},
+{src:'A6',L:2,t:'order',q:'رتبي الكلمات لتكوني جملة مفيدة:',seq:['أتمنى','أن','تسود','روح','المحبة']},
+{src:'A6',L:8,t:'dictation',text:'تحتضن تبوك مشروع نيوم'},
+{src:'A6',L:4,t:'dictation',text:'تحدث حامد عن منطقة عسير التي تتميز بكثرة المصايف وأهمها مدينة أبها وتسمى عروس الجبل'},
+/* ---------- A7: فريق المناهج الذكية ---------- */
+{src:'A7',L:3,t:'mcq',q:'سألت نورة في النص ........',o:['أخاها','أمها','أباها'],a:2},
+{src:'A7',L:3,t:'mcq',q:'المدينة المذكورة في النص هي .....',o:['مكة','الرياض','الطائف'],a:1},
+{src:'A7',L:3,t:'mcq',q:'مفرد كلمة "الحدائق" .......',o:['الحديقة','البستان','الشجرة'],a:0},
+{src:'A7',L:3,t:'fill',q:'أكملي الجمل التالية:',bank:['الوزارات','السفارات','كل مكان'],items:[['يوجد في الرياض مقر الحكم و ....... والسفارات','الوزارات'],['يوجد في الرياض مقر الحكم والوزارات و .......','السفارات'],['ما زالت الرياض رياضا خضراء بحدائقها التي تنتشر في .......','كل مكان']]},
+{src:'A7',L:1,t:'passage',text:'دَخَلَ الْوالِدُ حامِلًا فِي يَدِهِ تَذاكِرَ السَّفَرِ، فَاسْتَقْبَلَتْهُ الْأُسْرَةُ بِفَرَحٍ، وَأَسْرَعَ الْجَمِيعُ لِتَجْهِيزِ حَقائِبِهِمُ الصَّغِيرَةِ إِلّا عادِلًا، اكْتَفى بِحَقِيبَةٍ يَدَوِيَّةٍ صَغِيرَةٍ.',
+ items:[
+  {t:'mcq',q:'استخرجي كلمة بها مد ألف:',o:['الوالد','السفر','بفرح'],a:0},
+  {t:'mcq',q:'استخرجي كلمة بها تنوين كسر:',o:['حقيبةٍ','الجميع','دخل'],a:0},
+  {t:'mcq',q:'استخرجي كلمة بها تاء مربوطة:',o:['الصغيرة','السفر','يده'],a:0},
+  {t:'mcq',q:'استخرجي كلمة بها ال قمرية:',o:['الجميع','السفر','الصغيرة'],a:0}]},
+{src:'A7',L:4,t:'fill',q:'ضعي كل كلمة في الحقل المناسب:',bank:['صباحا','أشهر','الهدا','غير'],items:[['غابة رغدان من ....... الغابات في منطقة الباحة','أشهر'],['تخرج الطيور من أعشاشها .......','صباحا'],['رسم الرسام السيارة ....... الإطارات','غير'],['من أشهر المتنزهات في الطائف الشفا و .......','الهدا']]},
+{src:'A7',L:4,t:'order',q:'رتبي الكلمات لتكوني جملة:',seq:['مدينة','أبها','تسمى','عروس','الجبل']},
+{src:'A7',L:1,t:'order',q:'رتبي الكلمات لتكوني جملة:',seq:['صعد','عادل','إلى','الطائرة','بهدوء']},
+{src:'A7',L:2,t:'dictation',text:'المعلم: أحسنت يا فواز، علينا أن نتجنب المشاحنات والخطأ والخصام على الآخرين؛ لتسود المحبة بين الجميع.'},
+/* ---------- A8: نموذج إجابة اختبار لغتي ١٤٤٧ ---------- */
+{src:'A8',L:1,t:'passage',text:'صَعِدَ عادِلٌ إِلى الطّائِرَةِ بِهُدُوءٍ، وَوَجَدَ الْمُضِيفَ فِي اسْتِقْبالِهِ، فَأَرْشَدَهُ إِلى الْمَقْعَدِ الْمُخَصَّصِ لَهُ، جَلَسَ عادِلٌ عَلى مَقْعَدِهِ، وَرَبَطَ حِزامَ الْأَمانِ اسْتِعْدادًا لِإِقْلاعِ الطّائِرَةِ، وَأَثْناءَ ذَلِكَ اسْتَمَعَ إِلى تَعْلِيماتِ السَّلامَةِ، وَرَدَّدَ مَعَ قائِدِ الطّائِرَةِ دُعاءَ السَّفَرِ.',
+ items:[
+  {t:'short',q:'كيف استدل عادل على مقعده المخصص له في الطائرة؟',a:'وجد المضيف في استقباله فأرشده إلى المقعد المخصص له',keys:['المضيف','أرشد']},
+  {t:'short',q:'ما الذي ردده عادل مع قائد الطائرة؟',a:'دعاء السفر',keys:['دعاء','السفر']},
+  {t:'short',q:'لم ربط عادل حزام الأمان؟',a:'استعدادا لإقلاع الطائرة',keys:['إقلاع','استعداد']},
+  {t:'mcq',q:'صعد عادل إلى الطائرة بـ ......',o:['هدوء','بسرعة','بقوة'],a:0},
+  {t:'mcq',q:'ضد كلمة «إقلاع» ......',o:['انطلاق','هبوط','ارتفاع'],a:1},
+  {t:'match',q:'صلي التصرف بدلالته:',pairs:[['نفذ عادل تعليمات السلامة','التزام النظام'],['ركض الأطفال في ممرات الطائرة','سوء التصرف']]}]},
+{src:'A8',L:1,t:'fill',q:'أكملي الجمل التالية حسب المطلوب:',bank:['صباحا','إلا','الهدا','تقع'],items:[['تخرج الطيور من أعشاشها ...... (ظرف زمان)','صباحا'],['صعد المسافرون إلى الطائرة ...... امرأة (أداة استثناء)','إلا'],['من أشهر المتنزهات في الطائف الشفا و...... (كلمة مختومة بألف قائمة)','الهدا'],['...... الرياض وسط الصحراء القاحلة (فعل مضارع)','تقع']]},
+{src:'A8',L:3,t:'order',q:'رتبي الكلمات التالية لتكوني جملة مفيدة:',seq:['زارت','نورة','مع','أسرتها','مدينة','الرياض']},
+{src:'A8',L:2,t:'order',q:'رتبي الكلمات التالية لتكوني جملة مفيدة:',seq:['علينا','أن','نتجنب','المشاحنات','والخصام']},
+{src:'A8',L:4,t:'dictation',text:'بدأ مهند الحديث قائلا: من المدن التي زرتها وأعجبتني محافظة الطائف؛ إحدى أشهر المصايف السعودية، وتسمى عروس المصايف.'},
+{src:'A8',L:3,t:'dictation',text:'الرياض عاصمة المملكة العربية السعودية.'},
+/* ---------- A9: اختبار نهاية الفصل الأول ١٤٤٧ ---------- */
+{src:'A9',L:1,t:'passage',text:'أَخَذَ عادِلٌ يُطالِعُ مَجَلَّةً لِلْأَطْفالِ، وَبَيْنَما هُوَ يُقَلِّبُ صَفَحاتِ الْمَجَلَّةِ سَمِعَ ضَجِيجًا، فَالْتَفَتَ يَمِينًا وَشِمالًا فَإِذا أَطْفالٌ يَرْكُضُونَ فِي مَمَرّاتِ الطّائِرَةِ، وَيَعْبَثُونَ بِمُحْتَوَياتِها، دَهِشَ عادِلٌ مِنْ تَصَرُّفِهِمْ، وَقالَ: الطّائِرَةُ لَيْسَتْ مَكانًا لِلَّعِبِ يا أَبِي!',
+ items:[
+  {t:'mcq',q:'كان عادل يقرأ......',o:['كتابا','مجلة','قصة'],a:1},
+  {t:'mcq',q:'ماذا سمع عادل وهو بالطائرة؟',o:['سمع ضجيجا','سمع كلاما','سمع صياحا'],a:0},
+  {t:'mcq',q:'ضد "ضجيج":',o:['مزعج','هادئ','حزين'],a:1},
+  {t:'mcq',q:'تعتبر الطائرة .....',o:['مكان اللعب','وسيلة السفر','مكان الراحة'],a:1},
+  {t:'mcq',q:'معنى "دهش".....',o:['تعجب','فرح','تساءل'],a:0},
+  {t:'mcq',q:'مفرد "أطفال" ......',o:['طفلين','طافل','طفل'],a:2},
+  {t:'mcq',q:'دهش عادل من ......',o:['تصرف المضيفين','تصرف الأطفال','تصرف المرأة'],a:1},
+  {t:'mcq',q:'كان الأطفال يركضون في ......',o:['صالة السفر','فناء المطار','ممرات الطائرة'],a:2},
+  {t:'mcq',q:'"أخذ عادل يطالع مجلة" يدل هذا التصرف على ........',o:['الثقافة وحب القراءة','التزام النظام','حسن الأدب'],a:0},
+  {t:'mcq',q:'الذي يدل على سوء التصرف:',o:['أطفال يركضون في ممرات الطائرة','عادل يطالع مجلة','التفت يمينا وشمالا'],a:0},
+  {t:'mcq',q:'كان عادل يتحدث مع .........',o:['الأم','المرأة','الأب'],a:2,needsCheck:true}]},
+{src:'A9',L:7,t:'passage',text:'لا بُدَّ أَنْ نُرِيَهُمْ صُورَةً مُشَرِّفَةً لِلْمُسْلِمِ الَّذِي يَتَحَلَّى بِأَخْلاقِ الْإِسْلامِ.',
+ items:[
+  {t:'mcq',q:'استخرجي كلمة بها تاء مربوطة:',o:['مشرفة','المسلم','الذي'],a:0},
+  {t:'mcq',q:'استخرجي كلمة بها مد بالياء:',o:['الذي','صورة','لابد'],a:0},
+  {t:'mcq',q:'استخرجي كلمة بها لام قمرية:',o:['الإسلام','الذي','للمسلم'],a:0},
+  {t:'mcq',q:'استخرجي كلمة بها مد بالواو:',o:['صورة','مشرفة','يتحلى'],a:0},
+  {t:'mcq',q:'استخرجي كلمة بها مد بالألف:',o:['بأخلاق','صورة','الذي'],a:0},
+  {t:'mcq',q:'استخرجي كلمة بها حرف مضعف:',o:['لابدّ','صورة','الذي'],a:0}]},
+{src:'A9',L:3,t:'mcq',q:'أكملي الحرف الناقص "الوزارا....":',o:['ة','ت','هـ'],a:1},
+{src:'A9',L:1,t:'mcq',q:'نوع كلمة "الأطفال":',o:['مفرد','مثنى','جمع'],a:2},
+{src:'A9',L:2,t:'mcq',q:'تخرج الطيور من أعشاشها ...........',o:['صباحا','مساء','ليلا'],a:0},
+{src:'A9',L:6,t:'mcq',q:'ما أطول النخلة ....',o:['؟','!','.'],a:1},
+{src:'A9',L:4,t:'mcq',q:'أكملي الحرف الناقص (يَرَ......):',o:['ا','ى','و'],a:1},
+{src:'A9',L:4,t:'order',q:'رتبي الكلمات لتكون جملة مفيدة:',seq:['مدينة','أبها','من','أجمل','مصايف','المملكة']},
+{src:'A9',L:3,t:'order',q:'رتبي الكلمات لتكون جملة مفيدة:',seq:['الرياض','عاصمة','بلادي']},
+{src:'A9',L:3,t:'fill',q:'أكملي كل جملة بكلمة مناسبة حسب المطلوب:',bank:['!','إلا','خضراء'],items:[['ما زالت الرياض رياضا ....... (كلمة تنتهي بالألف الممدودة)','خضراء'],['حضر الطلاب ....... طالبا (حرف استثناء)','إلا'],['ما أجمل الرياض....... (علامة ترقيم مناسبة)','!']]},
+/* ---------- A10: اختبار نهائي لغتي الجميلة ١٤٤٧/١٤٤٨ ---------- */
+{src:'A10',L:1,t:'passage',text:'دَخَلَ الْوالِدُ حامِلًا فِي يَدِهِ تَذاكِرَ السَّفَرِ، فَاسْتَقْبَلَتْهُ الْأُسْرَةُ بِفَرَحٍ، وَأَسْرَعَ الْجَمِيعُ لِتَجْهِيزِ حَقائِبِهِمُ الْكَبِيرَةِ اسْتِعْدادًا لِلرِّحْلَةِ إِلّا عادِلًا، اكْتَفى بِحَقِيبَةٍ يَدَوِيَّةٍ صَغِيرَةٍ وَقَبْلَ مَوْعِدِ الرِّحْلَةِ وَصَلَتِ الْأُسْرَةُ إِلى الْمَطارِ، وَاسْتَقَرَّ أَفْرادُها عَلى الْمَقاعِدِ فِي صالَةِ الانْتِظارِ كَغَيْرِهِمْ مِنَ الْمُسافِرِينَ غَيْرَ امْرَأَةٍ كانَتْ تَحْمِلُ طِفْلًا لَمْ تَجِدْ مَكانًا تَجْلِسُ فِيهِ.',
+ items:[
+  {t:'mcq',q:'قام عادل عن مقعده لتجلس المرأة فيه.',o:['حسن تصرف','سوء تصرف'],a:0},
+  {t:'mcq',q:'استقبلت الأسرة الوالد:',o:['بفرح','بحزن'],a:0},
+  {t:'mcq',q:'جهز عادل حقيبته:',o:['الصغيرة','الكبيرة'],a:0},
+  {t:'mcq',q:'جهزت الأسرة حقائبهم استعدادا:',o:['للرحلة','للمدرسة'],a:0},
+  {t:'mcq',q:'ينتظر المسافرون في صالة:',o:['المنزل','الانتظار'],a:1},
+  {t:'mcq',q:'كلمة تحوي تاء مربوطة:',o:['الرحلة','كانت'],a:0},
+  {t:'mcq',q:'كلمة تحوي مدا بالياء:',o:['صغيرة','غير'],a:0},
+  {t:'mcq',q:'كلمة تحوي (ال) القمرية:',o:['الرحلة','المسافرين'],a:1},
+  {t:'mcq',q:'كلمة تحوي (ال) الشمسية:',o:['السفر','المطار'],a:0},
+  {t:'mcq',q:'أداة استثناء:',o:['إلا','من'],a:0},
+  {t:'mcq',q:'مفرد (مضيفين):',o:['مضيف','ضيافة'],a:0}]},
+{src:'A10',L:2,t:'mcq',q:'كلمة (صباحا):',o:['ظرف زمان','ظرف مكان','أداة استثناء'],a:0},
+{src:'A10',L:4,t:'mcq',q:'جمع (جبل):',o:['جبال','جبيل','أجبال'],a:0},
+{src:'A10',L:4,t:'mcq',q:'أكملي الحرف الناقص: قاحل....',o:['ـه','ت','ـة'],a:2},
+{src:'A10',L:6,t:'mcq',q:'أكملي الحرف الناقص: مسلم...',o:['ت','ـة','ـه'],a:1},
+{src:'A10',L:2,t:'mcq',q:'أكملي الحرف الناقص: الاستيقا....',o:['ذ','ظ','ض'],a:1},
+/* ---------- A11: الدور الأول ١٤٤٧ (المعلم والاستيقاظ) ---------- */
+{src:'A11',L:2,t:'passage',text:'الْمُعَلِّمُ: مِنَ الْمُشْكِلاتِ الَّتِي تُواجِهُ التَّلامِيذَ الْاسْتِيقاظُ صَباحًا لِلذَّهابِ إِلَى الْمَدْرَسَةِ، حَيْثُ يَتَمَنَّوْنَ أَنْ يَنامُوا مُدَّةً أَطْوَلَ. وَحَلُّ هَذِهِ الْمُشْكِلَةِ سَهْلٌ لِلْغايَةِ، وَهُوَ أَنْ تَنامَ مَساءً فِي وَقْتٍ مُبَكِّرٍ، لِتَسْتَيْقِظَ لِصَلاةِ الْفَجْرِ، قَبْلَ مَوْعِدِ الدِّراسَةِ بِوَقْتٍ كافٍ.',
+ items:[
+  {t:'short',q:'اذكري مشكلة من المشكلات التي تواجه التلاميذ.',a:'الاستيقاظ صباحا للذهاب إلى المدرسة',keys:['استيقاظ','صباح']},
+  {t:'mcq',q:'استخرجي من النص كلمة تحتوي (ال) الشمسية:',o:['التلاميذ','الفجر','المعلم'],a:0},
+  {t:'mcq',q:'استخرجي من النص كلمة تحتوي (ال) القمرية:',o:['الفجر','التلاميذ','الدراسة'],a:0},
+  {t:'mcq',q:'استخرجي من النص كلمة مختومة بتاء مربوطة:',o:['المدرسة','التلاميذ','صباحا'],a:0},
+  {t:'mcq',q:'استخرجي من النص كلمة مختومة بتنوين بالفتح:',o:['صباحا','وقت','الفجر'],a:0},
+  {t:'mcq',q:'استخرجي من النص كلمة تبدأ بهمزة قطع:',o:['أن','الاستيقاظ','إلى'],a:0},
+  {t:'match',q:'صلي الكلمة بمعناها الصحيح:',pairs:[['الغناء','كثيرة الشجر والطيور'],['شاهقة','عالية'],['التراثية','القديمة']]}]},
+{src:'A11',L:2,t:'mcq',q:'يا أبنائي ما أجمل حسن الخلق و ...............',o:['احترام الآخرين','المشاحنات','الخصام'],a:0},
+{src:'A11',L:3,t:'mcq',q:'من المعالم الأثرية في الرياض ...........',o:['قصر شبرا','قصر المصمك','الشفا'],a:1},
+{src:'A11',L:3,t:'mcq',q:'تقع الرياض وسط ..........',o:['الصحراء القاحلة','الغابة الكثيفة','الجبال العالية'],a:0},
+{src:'A11',L:1,t:'mcq',q:'الذي أرشد عادلًا إلى مقعده ...........',o:['المضيف','المهندس','الدكتور'],a:0},
+{src:'A11',L:2,t:'fill',q:'أكملي الجمل التالية حسب المطلوب:',bank:['إلا','صباحا','درسه','؟','ممرات','ذهبت'],items:[['حضر التلاميذ ....... تلميذ (أداة استثناء)','إلا'],['يذهب أبي إلى عمله ....... (ظرف زمان)','صباحا'],['يراجع الطالب دروسه: مفرد (دروسه) .......','درسه'],['أين تقع مدينة أبها ....... (علامة الترقيم المناسبة)','؟'],['الأطفال يركضون في ....... الطائرة (كلمة تنتهي بتاء مفتوحة)','ممرات'],['وقبل موعد الرحلة ....... الأسرة إلى المطار (فعل ماض)','ذهبت']]},
+{src:'A11',L:1,t:'order',q:'رتبي الجمل الآتية لتكوين نص:',seq:['صعد عادل الطائرة بهدوء','وجلس على مقعده','وربط حزام الأمان استعدادًا لإقلاع الطائرة','وردد دعاء السفر','ثم استمع إلى تعليمات السلامة','ثم طالع مجلة للأطفال']},
+{src:'A11',L:2,t:'dictation',text:'إن خياركم أحاسنكم أخلاقا'}
+];
+
+/* ==================== 📝 اختبار تجريبي · محرك مشترك (يُضمَّن داخل كل تطبيق) ====================
+   يعتمد على: EXAM_BANK (بنك الأوراق الحقيقية) و EXAM_CFG (إعدادات المادة) و دوال التطبيق: addStar, save, goMap,
+   stage, applause, tada, confetti, ST.  لا أصوات ولا نجوم أثناء الاختبار؛ احتفال واحد في النهاية.           */
+const EX={sec:[],ans:[],timer:null,left:0,kind:'',on:false};
+const XAR=n=>String(n).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
+const XLAT=s=>String(s).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+const XORD=['الأول','الثاني','الثالث','الرابع','الخامس','السادس','السابع','الثامن','التاسع','العاشر'];
+const XLET=['أ','ب','ج','د','هـ','و'];
+const xsh=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const xnorm=s=>String(s||'').replace(/[ً-ْٰـ]/g,'').replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').replace(/[^؀-ۿ0-9a-zA-Z\s]/g,' ').replace(/\s+/g,' ').trim();
+const xesc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+const XTITLE={tf:'ضعي علامة ✓ أو ✗ أمام كل عبارة',mcq:'اختاري الإجابة الصحيحة',match:'صلي كل عبارة بما يناسبها',fill:'أكملي الفراغ من الكلمات التالية (كل كلمة تُستعمل مرة واحدة)',order:'رتّبي',label:'حدّدي على الرسم',short:'اكتبي الإجابة',num:'أكملي',word:'حلّي المسألة بالخطوات الأربع',passage:'اقرئي النص ثم أجيبي',dictation:'إملاء منظور',sort:'صنّفي'};
+
+/* ---------- تجميع الأسئلة المتاحة ---------- */
+function exMergeAttempts(x,y){const m={};[...(x||[]),...(y||[])].forEach(a=>{if(a&&a.d)m[a.d]=a;});return Object.values(m).sort((p,q)=>p.d<q.d?-1:1);}
+function exPool(lessons){const pool={};const add=it=>{(pool[it.t]=pool[it.t]||[]).push(it);};
+ EXAM_BANK.filter(b=>lessons.includes(b.L)).forEach(b=>{let it=Object.assign({},b);if(it.t==='label'&&!it.targets&&EXAM_CFG.label)it=Object.assign(it,EXAM_CFG.label(it.fig));add(it);});
+ lessons.forEach(L=>{try{(EXAM_CFG.gen(L)||[]).forEach(it=>{it.L=L;add(it);});}catch(e){}});
+ return pool;}
+function exDraw(pool,t,n){const src=xsh(pool[t]||[]);const out=[];const seen=new Set();
+ for(const it of src){if(out.length>=n)break;const k=xnorm(it.q||it.text||'')+(it.seq||it.pairs||it.items||'');if(seen.has(k))continue;seen.add(k);out.push(it);}
+ return out;}
+function exBuild(lessons,short){const plan=short?EXAM_CFG.plan10:EXAM_CFG.plan20;const pool=exPool(lessons);const secs=[];let deficit=0;
+ plan.forEach(p=>{let items=exDraw(pool,p.t,p.n);
+  if(p.t==='passage'){items=items.slice(0,1);if(items.length){const ps=items[0];const sub=xsh(ps.items).slice(0,p.m);secs.push({t:'passage',title:XTITLE.passage,text:ps.text,L:ps.L,items:sub.map(s=>Object.assign({},s,{L:ps.L,m:1})),marks:sub.length});deficit+=p.m-sub.length;}else deficit+=p.m;return;}
+  if(items.length<p.n)deficit+=(p.n-items.length)*p.m;
+  if(items.length)secs.push({t:p.t,title:p.title||XTITLE[p.t],items:items.map(it=>Object.assign({},it,{m:p.m})),marks:items.length*p.m});});
+ if(deficit>0){const extra=exDraw(pool,'mcq',deficit*3).filter(it=>!secs.some(s=>s.items.some(x=>x.q===it.q))).slice(0,deficit);
+  const more=deficit-extra.length;const tfx=more>0?exDraw(pool,'tf',more):[];
+  if(extra.length)secs.push({t:'mcq',title:XTITLE.mcq,items:extra.map(it=>Object.assign({},it,{m:1})),marks:extra.length});
+  if(tfx.length)secs.push({t:'tf',title:XTITLE.tf,items:tfx.map(it=>Object.assign({},it,{m:1})),marks:tfx.length});}
+ return secs;}
+
+/* ---------- اختيار نوع الاختبار ---------- */
+function exChoose(){EX.on=false;document.getElementById('backB').style.visibility='visible';if(typeof cur!=='undefined')cur=-1;if(typeof curLesson!=='undefined')curLesson=-1;
+ const n=EXAM_CFG.nLessons,half=Math.ceil(n/2);const done=ST.after||[];
+ const kinds=[{k:'p1',n:'اختبار الفترة الأولى',rng:[...Array(half).keys()]},{k:'p2',n:'اختبار الفترة الثانية',rng:[...Array(n-half).keys()].map(i=>i+half)},{k:'fin',n:'اختبار نهاية الفصل',rng:[...Array(n).keys()]}];
+ stage.innerHTML=`${chip('📝 اختبار تجريبي')}<div class="card"><div class="big">📝✏️</div><h1 style="font-size:22px">اختبار تجريبي في ${EXAM_CFG.subject}</h1>
+  <p class="sub">ورقة مثل ورقة المدرسة: ${XAR(20)} درجة و ${XAR(15)} دقيقة. لا نجوم ولا أصوات أثناء الاختبار، وفي النهاية ورقة مصحّحة واحتفال 🎉</p>
+  ${kinds.map(K=>{const el=K.rng.filter(i=>done.includes(i));const ok=el.length>=EXAM_CFG.minLessons;const some=el.length>0;
+   return `<div style="background:#F7F9FC;border:2px solid #E1E7F0;border-radius:16px;padding:12px;margin:10px 0;text-align:right">
+    <b style="font-size:17px">${K.n}</b><div style="font-size:13px;color:#5B6B85;margin:4px 0 8px">الدروس المنجزة (بعد الحصة): ${XAR(el.length)} من ${XAR(K.rng.length)}</div>
+    ${ok?`<button class="go" style="font-size:15px;padding:9px 22px" onclick="exStart('${K.k}',${JSON.stringify(el)},false)">ابدئي الورقة الكاملة (${XAR(20)} درجة)</button>`
+      :some?`<div style="font-size:13.5px;color:#9A3B3B;margin-bottom:6px">أنجزتِ ${XAR(el.length)} من الدروس فقط؛ الورقة الكاملة تحتاج ${XAR(EXAM_CFG.minLessons)} دروس على الأقل.</div><button style="font-size:14px;padding:8px 18px" onclick="exStart('${K.k}',${JSON.stringify(el)},true)">ورقة قصيرة من الدروس المنجزة (${XAR(10)} درجات)</button>`
+      :`<div style="font-size:13.5px;color:#9A3B3B">أنهي درسًا واحدًا على الأقل (✏️ بعد الحصة) من هذه الفترة أولًا.</div>`}
+   </div>`;}).join('')}
+  <button onclick="goMap()" style="margin-top:6px">الخريطة 🏡</button></div>`;window.scrollTo({top:0});}
+
+/* ---------- بدء الورقة ---------- */
+function exStart(kind,lessons,short){EX.kind=kind;EX.short=!!short;EX.sec=exBuild(lessons,short);EX.ans=EX.sec.map(s=>s.items.map(()=>null));EX.on=true;
+ EX.left=15*60;clearInterval(EX.timer);EX.timer=setInterval(()=>{EX.left--;const t=document.getElementById('xtimer');if(t)t.textContent='⏱ '+XAR(String(Math.floor(EX.left/60)).padStart(2,'0'))+':'+XAR(String(EX.left%60).padStart(2,'0'));if(EX.left<=0){clearInterval(EX.timer);exSubmit(true);}},1000);
+ exRender();}
+function exKindName(k){return k==='p1'?'اختبار الفترة الأولى':k==='p2'?'اختبار الفترة الثانية':'اختبار نهاية الفصل';}
+function exRender(){const total=EX.sec.reduce((a,s)=>a+s.marks,0);
+ let html=`<div class="xpaper">
+  <div class="xhead"><div><b>الصف:</b> الثالث الابتدائي</div><div><b>المادة:</b> ${EXAM_CFG.subject}</div><div><b>اسم الطالبة:</b> ماريا</div><div><b>الدرجة:</b> ____ / ${XAR(total)}</div></div>
+  <div class="xtitle">${exKindName(EX.kind)} · الفصل الدراسي الأول <span id="xtimer" class="xtimer">⏱ ١٥:٠٠</span></div>`;
+ EX.sec.forEach((s,si)=>{html+=`<div class="xsec"><div class="xsech">السؤال ${XORD[si]||XAR(si+1)}: ${s.title} <span class="xmarks">(${XAR(s.marks)} ${s.marks===1?'درجة':s.marks===2?'درجتان':s.marks<=10?'درجات':'درجة'})</span></div>`;
+  if(s.t==='passage')html+=`<div class="xpass">${xesc(s.text)}</div>`;
+  s.items.forEach((it,ii)=>{html+=`<div class="xitem" id="xi_${si}_${ii}">${exItemHtml(it,si,ii)}</div>`;});
+  html+='</div>';});
+ html+=`<div style="text-align:center;margin-top:14px"><button class="go" onclick="exSubmit(false)">سلّمي الورقة ✅</button><div style="height:8px"></div><button onclick="if(confirm('تخرجين من الاختبار دون تسليم؟')){clearInterval(EX.timer);EX.on=false;goMap();}" style="font-size:13px">خروج بدون تسليم</button></div></div>`;
+ stage.innerHTML=html;window.scrollTo({top:0});
+ EX.sec.forEach((s,si)=>s.items.forEach((it,ii)=>exBind(it,si,ii)));}
+
+/* ---------- عرض كل نوع ---------- */
+function exItemHtml(it,si,ii){const id=`${si}_${ii}`;const num=`<span class="xn">${XAR(ii+1)}</span>`;
+ switch(it.t){
+ case 'tf':return `<div class="xrow">${num}<div class="xq">${xesc(it.q)}</div><div class="xtf"><button data-v="1">✓</button><button data-v="0">✗</button></div></div>`;
+ case 'mcq':return `${num}<div class="xq">${xesc(it.q)}</div><div class="xopts">${it.o.map((o,k)=>`<button data-k="${k}"><span class="xlet">${XLET[k]}</span> ${xesc(o)}</button>`).join('')}</div>`;
+ case 'match':{const R=xsh(it.pairs.map((p,k)=>k));it._R=R;return `${num}<div class="xq">${xesc(it.q)}</div><div class="xmatch"><div class="xcol">${it.pairs.map((p,k)=>`<button data-l="${k}">${xesc(p[0])}</button>`).join('')}</div><div class="xcol">${R.map(k=>`<button data-r="${k}">${xesc(it.pairs[k][1])}</button>`).join('')}</div></div>`;}
+ case 'fill':{const bank=xsh(it.bank||it.items.map(x=>x[1]));return `${num}<div class="xq">${xesc(it.q)}</div><div class="xbank">${bank.map((w,k)=>`<button data-w="${k}">${xesc(w)}</button>`).join('')}</div>${it.items.map((x,k)=>`<div class="xblankrow"><span class="xn">${XAR(k+1)}</span> ${xesc(x[0]).replace(/\.{3,}|◯|_{2,}/,'<span class="xblank" data-b="'+k+'"></span>')}${/\.{3,}|◯|_{2,}/.test(x[0])?'':' <span class="xblank" data-b="'+k+'"></span>'}</div>`).join('')}`;}
+ case 'sort':return `${num}<div class="xq">${xesc(it.q)}</div><div class="xbank">${xsh(it.items.map((x,k)=>k)).map(k=>`<button data-w="${k}">${xesc(it.items[k][0])}</button>`).join('')}</div><div class="xbins">${it.bins.map((b,k)=>`<div class="xbin" data-bin="${k}"><h4>${xesc(b)}</h4><div class="xgot"></div></div>`).join('')}</div>`;
+ case 'order':return `${num}<div class="xq">${xesc(it.q)}</div><div class="xslots">${it.seq.map((_,k)=>`<div class="xslot" data-s="${k}">${XAR(k+1)}</div>`).join('')}</div><div class="xbank">${xsh(it.seq.map((x,k)=>k)).map(k=>`<button data-w="${k}">${xesc(it.seq[k])}</button>`).join('')}</div><div style="text-align:left"><button class="xreset" style="font-size:12px;padding:4px 10px">إعادة ↺</button></div>`;
+ case 'label':return `${num}<div class="xq">${xesc(it.q)}</div><div class="xbank">${it.chips.map((c,k)=>`<button data-w="${k}">${xesc(c)}</button>`).join('')}</div><div class="xfig">${it.html}</div>`;
+ case 'short':return `${num}<div class="xq">${xesc(it.q)}</div><textarea class="xta" placeholder="اكتبي إجابتكِ هنا…"></textarea>`;
+ case 'num':return `${num}<div class="xq">${xesc(it.q)}</div><div class="xnum"><div class="xdisp">&nbsp;</div><div class="xkb">${[1,2,3,4,5,6,7,8,9].map(d=>`<button data-d="${d}">${XAR(d)}</button>`).join('')}<button data-d="del">⌫</button><button data-d="0">٠</button><button data-d="clr">مسح</button></div></div>`;
+ case 'word':return `${num}<div class="xq">${xesc(it.q)}</div><div class="xsteps">
+   <div class="xstep"><b>١ أفهم:</b> ما المطلوب في المسألة؟ اقرئيها مرتين.</div>
+   <div class="xstep"><b>٢ أخطط:</b> أي عملية أستعمل؟ <div class="xopts xplan">${['جمع','طرح','تقدير بالتقريب'].map((o,k)=>`<button data-p="${k}">${o}</button>`).join('')}</div></div>
+   <div class="xstep"><b>٣ أحل:</b><div class="xnum"><div class="xdisp">&nbsp;</div><div class="xkb">${[1,2,3,4,5,6,7,8,9].map(d=>`<button data-d="${d}">${XAR(d)}</button>`).join('')}<button data-d="del">⌫</button><button data-d="0">٠</button><button data-d="clr">مسح</button></div></div></div>
+   <div class="xstep"><b>٤ أتحقق:</b> هل الجواب معقول؟ <button class="xchk" style="font-size:13px;padding:5px 12px">راجعتُ جوابي ✔</button></div></div>`;
+ case 'dictation':return `${num}<div class="xq">اقرئي الجملة جيدًا؛ ستختفي بعد ${XAR(10)} ثوانٍ، ثم اكتبيها كما هي.</div><div class="xdict"><div class="xdtext">${xesc(it.text)}</div><div class="xdcount">⏳ ${XAR(10)}</div></div><textarea class="xta" placeholder="اكتبي الجملة هنا بعد اختفائها…" disabled></textarea>`;
+ default:return `${num}<div class="xq">${xesc(it.q||'')}</div>`;}}
+
+/* ---------- ربط التفاعل وتخزين الإجابات ---------- */
+function exBind(it,si,ii){const el=document.getElementById(`xi_${si}_${ii}`);if(!el)return;const set=v=>{EX.ans[si][ii]=v;};
+ const pickOne=(sel,attr)=>{el.querySelectorAll(sel).forEach(b=>b.onclick=()=>{el.querySelectorAll(sel).forEach(x=>x.classList.remove('xsel'));b.classList.add('xsel');set(b.dataset[attr]);});};
+ switch(it.t){
+ case 'tf':pickOne('.xtf button','v');break;
+ case 'mcq':pickOne('.xopts button','k');break;
+ case 'match':{let pick=null;const map={};set(map);
+  el.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>{el.querySelectorAll('[data-l]').forEach(x=>x.classList.remove('xsel'));b.classList.add('xsel');pick=+b.dataset.l;});
+  el.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{if(pick===null)return;const r=+b.dataset.r;Object.keys(map).forEach(k=>{if(map[k]===r)delete map[k];});map[pick]=r;
+   el.querySelectorAll('[data-l]').forEach(x=>{x.classList.remove('xsel');const m=map[x.dataset.l];x.querySelector('.xtag')?.remove();if(m!==undefined)x.insertAdjacentHTML('beforeend',`<span class="xtag">${XAR(+x.dataset.l+1)}</span>`);});
+   el.querySelectorAll('[data-r]').forEach(x=>{x.querySelector('.xtag')?.remove();const l=Object.keys(map).find(k=>map[k]===+x.dataset.r);if(l!==undefined)x.insertAdjacentHTML('beforeend',`<span class="xtag">${XAR(+l+1)}</span>`);});pick=null;});break;}
+ case 'fill':{let pick=null;const map={};set(map);const words=el.querySelectorAll('.xbank button');
+  words.forEach(b=>b.onclick=()=>{if(b.classList.contains('xused'))return;words.forEach(x=>x.classList.remove('xsel'));b.classList.add('xsel');pick=b;});
+  el.querySelectorAll('.xblank').forEach(bl=>bl.onclick=()=>{const k=bl.dataset.b;if(map[k]!==undefined){const old=[...words].find(w=>w.textContent===map[k]);if(old)old.classList.remove('xused');delete map[k];bl.textContent='';bl.classList.remove('xfilled');if(!pick)return;}
+   if(!pick)return;map[k]=pick.textContent;bl.textContent=pick.textContent;bl.classList.add('xfilled');pick.classList.add('xused');pick.classList.remove('xsel');pick=null;});break;}
+ case 'sort':{let pick=null;const map={};set(map);const words=el.querySelectorAll('.xbank button');
+  words.forEach(b=>b.onclick=()=>{words.forEach(x=>x.classList.remove('xsel'));b.classList.add('xsel');pick=b;});
+  el.querySelectorAll('.xbin').forEach(bin=>bin.onclick=()=>{if(!pick)return;const k=+pick.dataset.w;map[k]=+bin.dataset.bin;bin.querySelector('.xgot').insertAdjacentHTML('beforeend',`<span>${xesc(it.items[k][0])}</span>`);pick.remove();pick=null;});break;}
+ case 'order':{const arr=[];set(arr);const words=el.querySelectorAll('.xbank button');
+  words.forEach(b=>b.onclick=()=>{if(arr.length>=it.seq.length)return;arr.push(+b.dataset.w);const sl=el.querySelector(`.xslot[data-s="${arr.length-1}"]`);sl.textContent=it.seq[+b.dataset.w];sl.classList.add('xfilled');b.classList.add('xused');});
+  el.querySelector('.xreset').onclick=()=>{arr.length=0;el.querySelectorAll('.xslot').forEach((s,k)=>{s.textContent=XAR(k+1);s.classList.remove('xfilled');});words.forEach(b=>b.classList.remove('xused'));};break;}
+ case 'label':{let pick=null;const map={};set(map);const chips=el.querySelectorAll('.xbank button');
+  chips.forEach(b=>b.onclick=()=>{if(b.classList.contains('xused'))return;chips.forEach(x=>x.classList.remove('xsel'));b.classList.add('xsel');pick=b;});
+  el.querySelectorAll('.xtarget').forEach(t=>t.addEventListener('click',()=>{if(!pick)return;const k=t.dataset.t;if(map[k]!==undefined&&!it.reuse){const old=[...chips].find(c=>+c.dataset.w===map[k]);if(old)old.classList.remove('xused');}
+   map[k]=+pick.dataset.w;const lab=t.querySelector('.xtl')||t;if(t.tagName==='DIV'||t.tagName==='SPAN')lab.textContent=it.chips[map[k]];else{const tx=t.parentNode.querySelector(`[data-tl="${k}"]`);if(tx)tx.textContent=it.chips[map[k]];}
+   t.classList.add('xfilled');if(!it.reuse)pick.classList.add('xused');pick.classList.remove('xsel');pick=null;}));break;}
+ case 'short':el.querySelector('.xta').oninput=e=>set(e.target.value);break;
+ case 'num':case 'word':{let v='';const disp=el.querySelector('.xdisp');el.querySelectorAll('.xkb button').forEach(b=>b.onclick=()=>{const d=b.dataset.d;if(d==='del')v=v.slice(0,-1);else if(d==='clr')v='';else if(v.length<6)v+=d;disp.textContent=v?XAR(v):' ';set(v);});
+  if(it.t==='word'){el.querySelectorAll('.xplan button').forEach(b=>b.onclick=()=>{el.querySelectorAll('.xplan button').forEach(x=>x.classList.remove('xsel'));b.classList.add('xsel');});const c=el.querySelector('.xchk');c.onclick=()=>c.classList.toggle('xsel');}break;}
+ case 'dictation':{let n=10;const cnt=el.querySelector('.xdcount'),tx=el.querySelector('.xdtext'),ta=el.querySelector('.xta');const iv=setInterval(()=>{n--;cnt.textContent='⏳ '+XAR(n);if(n<=0){clearInterval(iv);tx.textContent='(اختفت الجملة… اكتبيها الآن ✍️)';tx.classList.add('xhidden');cnt.textContent='';ta.disabled=false;ta.focus();}},1000);ta.oninput=e=>set(e.target.value);break;}}}
+
+/* ---------- التصحيح ---------- */
+function exGrade(it,v){const m=it.m||1;const R=(got,c,g)=>({got:Math.round(got*2)/2,max:m,c,g,q:it.q||it.text||''});
+ switch(it.t){
+ case 'tf':{const g=v===null?'—':v==='1'?'✓':'✗';return R(v!==null&&(v==='1')===!!it.a?m:0,it.a?'✓':'✗',g);}
+ case 'mcq':{const k=v===null?-1:+v;return R(k===it.a?m:0,it.o[it.a],k>=0?it.o[k]:'—');}
+ case 'match':{const map=v||{};let ok=0;it.pairs.forEach((p,k)=>{if(map[k]===k)ok++;});return R(m*ok/it.pairs.length,it.pairs.map(p=>p[0]+' ← '+p[1]).join(' ؛ '),it.pairs.map((p,k)=>p[0]+' ← '+(map[k]!==undefined?it.pairs[map[k]][1]:'—')).join(' ؛ '));}
+ case 'fill':{const map=v||{};let ok=0;it.items.forEach((x,k)=>{if(xnorm(map[k])===xnorm(x[1]))ok++;});return R(m*ok/it.items.length,it.items.map(x=>x[1]).join(' ، '),it.items.map((x,k)=>map[k]||'—').join(' ، '));}
+ case 'sort':{const map=v||{};let ok=0;it.items.forEach((x,k)=>{if(map[k]===x[1])ok++;});return R(m*ok/it.items.length,it.items.map(x=>x[0]+' ← '+it.bins[x[1]]).join(' ؛ '),it.items.map((x,k)=>x[0]+' ← '+(map[k]!==undefined?it.bins[map[k]]:'—')).join(' ؛ '));}
+ case 'order':{const arr=v||[];let ok=0;it.seq.forEach((s,k)=>{if(arr[k]===k)ok++;});return R(m*ok/it.seq.length,it.seq.join(' ← '),arr.length?arr.map(k=>it.seq[k]).join(' ← '):'—');}
+ case 'label':{const map=v||{};let ok=0;it.targets.forEach((t,k)=>{if(map[k]===t.c)ok++;});return R(m*ok/it.targets.length,it.targets.map(t=>t.n+': '+it.chips[t.c]).join(' ؛ '),it.targets.map((t,k)=>t.n+': '+(map[k]!==undefined?it.chips[map[k]]:'—')).join(' ؛ '));}
+ case 'short':{const txt=xnorm(v||'');const keys=(it.keys||[]).map(xnorm);const hit=keys.filter(k=>k&&txt.includes(k)).length;const need=Math.max(1,Math.ceil(keys.length/2));const frac=!keys.length?(txt.length>2?1:0):Math.min(1,hit/need);return R(m*frac,it.a,v||'—');}
+ case 'num':case 'word':{const g=v?parseInt(v,10):NaN;return R(g===it.ans?m:0,XAR(it.ans)+(it.why?' ('+it.why+')':''),v?XAR(v):'—');}
+ case 'dictation':{const want=xnorm(it.text).split(' ').filter(Boolean),got=xnorm(v||'').split(' ').filter(Boolean);let ok=0;const used=new Set();want.forEach(w=>{const i=got.findIndex((g,idx)=>!used.has(idx)&&g===w);if(i>=0){used.add(i);ok++;}});return R(m*ok/Math.max(1,want.length),it.text,v||'—');}
+ default:return R(0,'',v||'—');}}
+function exSubmit(auto){if(!EX.on)return;if(!auto){const empty=EX.ans.flat().filter(a=>a===null||a===''||(typeof a==='object'&&!Array.isArray(a)&&!Object.keys(a).length)||(Array.isArray(a)&&!a.length)).length;if(empty&&!confirm(`تركتِ ${XAR(empty)} من الأسئلة بلا إجابة. تسلّمين الورقة؟`))return;}
+ clearInterval(EX.timer);EX.on=false;
+ const total=EX.sec.reduce((a,s)=>a+s.marks,0);let mark=0,stars=0;const rows=[];
+ EX.sec.forEach((s,si)=>s.items.forEach((it,ii)=>{const r=exGrade(it,EX.ans[si][ii]);mark+=r.got;if(r.got>=r.max)stars++;const Lname=EXAM_CFG.lessonName(it.L);rows.push(Object.assign(r,{ok:r.got>=r.max,tag:Lname,type:it.t}));}));
+ mark=Math.round(mark*2)/2;
+ const attempt={d:new Date().toISOString(),k:EX.kind,short:EX.short,m:mark,max:total,stars,missed:rows.filter(r=>!r.ok).map(r=>({q:r.q.slice(0,120),c:String(r.c).slice(0,140),g:String(r.g).slice(0,140),tag:r.tag,type:r.type}))};
+ if(!Array.isArray(ST.exams))ST.exams=[];ST.exams.push(attempt);save();
+ exShowCorrected(rows,mark,total,stars);}
+function exShowCorrected(rows,mark,total,stars){const wrong=rows.filter(r=>!r.ok);
+ stage.innerHTML=`<div class="xpaper"><div class="xtitle">📄 الورقة المصحّحة · الدرجة: <b>${XAR(mark)}</b> / ${XAR(total)}</div>
+  ${wrong.length?`<p style="font-size:14px;color:#5B6B85;margin:6px 0 10px">هذه الأسئلة راجعيها مع ماما (إجابتكِ ← الصحيح):</p>`+wrong.map(r=>`<div class="xwrong"><div class="xq">${xesc(r.q)}</div><div class="xgiven">✗ إجابتكِ: ${xesc(r.g)}</div><div class="xcorrect">✓ الصحيح: ${xesc(r.c)}</div><div class="xtagl">📚 ${xesc(r.tag)}</div></div>`).join(''):`<p style="font-size:17px;text-align:center;margin:14px 0">كل الإجابات صحيحة! 🌟 ورقة كاملة!</p>`}
+  <div style="text-align:center;margin-top:14px"><button class="go" onclick="exCelebrate(${mark},${total},${stars})">شاهدي نتيجتكِ 🎉</button></div></div>`;window.scrollTo({top:0});}
+function exCelebrate(mark,total,stars){if(stars>0)addStar(stars);try{applause(mark>=total*0.75);tada();confetti();}catch(e){}
+ const pct=mark/total;const msg=pct>=0.9?'ممتازة يا ماريا! ورقة تفتخر بها 🏆':pct>=0.7?'أحسنتِ يا ماريا! نتيجة جميلة 🌟':pct>=0.5?'جيدة! راجعي الأسئلة المصحّحة وستكونين أفضل 💪':'لا بأس يا بطلة، المراجعة مع ماما ستصنع الفرق 🌱';
+ stage.innerHTML=`<div class="card"><div class="big">🎉📝</div><h1>${XAR(mark)} من ${XAR(total)}</h1><p class="sub">${msg}</p><p class="sub">⭐ كسبتِ ${XAR(stars)} ${stars===1?'نجمة':stars===2?'نجمتين':stars<=10?'نجوم':'نجمة'} (نجمة لكل إجابة صحيحة)</p>
+  <button class="go" onclick="goMap()">الخريطة 🏡</button><div style="height:8px"></div><button onclick="exLog()" style="font-size:14px">📊 سجل الاختبارات</button></div>`;window.scrollTo({top:0});}
+
+/* ---------- سجل الاختبارات (لوليّ الأمر) ---------- */
+function exLog(){document.getElementById('backB').style.visibility='visible';if(typeof cur!=='undefined')cur=-1;if(typeof curLesson!=='undefined')curLesson=-1;
+ const A=(ST.exams||[]).slice().reverse();const byTag={};(ST.exams||[]).forEach(a=>(a.missed||[]).forEach(mi=>{const t=byTag[mi.tag]=byTag[mi.tag]||{n:0,qs:[]};t.n++;if(t.qs.length<3&&!t.qs.some(q=>q.q===mi.q))t.qs.push(mi);}));
+ const tags=Object.entries(byTag).sort((a,b)=>b[1].n-a[1].n).slice(0,8);
+ const fmt=d=>{try{const x=new Date(d);return XAR(x.getDate())+'/'+XAR(x.getMonth()+1)+' '+XAR(String(x.getHours()).padStart(2,'0'))+':'+XAR(String(x.getMinutes()).padStart(2,'0'));}catch(e){return '';}};
+ stage.innerHTML=`${chip('📊 سجل الاختبارات · لوليّ الأمر')}<div class="card" style="text-align:right">
+  <h2 style="text-align:center">📊 سجل اختبارات ماريا · ${EXAM_CFG.subject}</h2>
+  ${A.length?`<table class="xlog"><tr><th>التاريخ</th><th>الاختبار</th><th>الدرجة</th><th>أخطاء</th></tr>${A.map(a=>`<tr><td>${fmt(a.d)}</td><td>${exKindName(a.k)}${a.short?' (قصير)':''}</td><td><b>${XAR(a.m)}</b>/${XAR(a.max)}</td><td>${XAR((a.missed||[]).length)}</td></tr>`).join('')}</table>`:'<p class="sub" style="text-align:center">لا توجد محاولات بعد. ابدئي أول اختبار تجريبي من الخريطة 📝</p>'}
+  ${tags.length?`<h3 style="margin:16px 0 6px">🔎 أكثر ما تحتاج مراجعته (حسب عدد الأخطاء)</h3>${tags.map(([t,v])=>`<div class="xtagbox"><b>${xesc(t)}</b> <span style="color:#9A3B3B;font-weight:800">✗ ${XAR(v.n)}</span>${v.qs.map(q=>`<div class="xtagq">• ${xesc(q.q)}<br><span style="color:#227A63">✓ ${xesc(q.c)}</span></div>`).join('')}</div>`).join('')}`:''}
+  <div style="text-align:center;margin-top:14px"><button class="go" onclick="goMap()">الخريطة 🏡</button> ${A.length?`<button onclick="if(confirm('تمسحين سجل الاختبارات؟ (لا يؤثر في النجوم والدروس)')){ST.exams=[];save();exLog();}" style="font-size:12px">مسح السجل</button>`:''}</div></div>`;window.scrollTo({top:0});}
+
+
+/* معاينة لوليّ الأمر: افتحي الرابط مع #exam-demo لعرض ورقة كاملة فورًا (لا يغيّر التقدّم) */
+if(location.hash==='#exam-demo'){setTimeout(()=>{try{exStart('fin',[...Array(EXAM_CFG.nLessons).keys()],false);}catch(e){}},400);}
+/* ---------- ورقة الاختبار: التنسيق ---------- */
+document.head.insertAdjacentHTML('beforeend',`<style>
+.xpaper{background:#fff;border:1px solid #C9D2DE;border-radius:8px;padding:16px 14px 20px;color:#1E2A3A;text-align:right;box-shadow:0 2px 0 #C9D2DE,0 10px 24px rgba(30,42,58,.08);line-height:1.8}
+.xhead{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;border:2px solid #1E2A3A;border-radius:6px;padding:8px 12px;font-size:14px}
+.xtitle{text-align:center;font-weight:800;font-size:17px;margin:12px 0 4px;border-bottom:2px dashed #C9D2DE;padding-bottom:8px;display:flex;justify-content:center;gap:14px;align-items:center;flex-wrap:wrap}
+.xtimer{font-size:14px;font-weight:700;color:#6B7A90;background:#F2F5F9;border-radius:99px;padding:2px 12px}
+.xsec{margin-top:16px}.xsech{background:#EEF2F7;border-right:5px solid #1E2A3A;padding:6px 12px;font-weight:800;font-size:15px;border-radius:4px}
+.xmarks{font-weight:700;color:#6B7A90;font-size:13px}
+.xitem{padding:10px 6px;border-bottom:1px solid #EEF2F7;font-size:15.5px}.xn{display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;border:1.5px solid #1E2A3A;border-radius:50%;font-size:12px;font-weight:800;margin-left:6px}
+.xq{display:inline;font-weight:700}.xrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.xrow .xq{flex:1}
+.xtf button{width:44px;height:38px;font-size:18px;padding:0;border-radius:10px;margin-right:4px;background:#fff}
+.xopts{display:flex;flex-direction:column;gap:6px;margin-top:6px}.xopts button{text-align:right;background:#fff;font-size:15px;padding:8px 12px;border-radius:12px;font-weight:700}
+.xlet{display:inline-block;width:22px;height:22px;line-height:22px;text-align:center;border:1.5px solid #1E2A3A;border-radius:50%;font-size:12px;margin-left:6px}
+.xpaper button.xsel{background:#DDEBFF;border-color:#3F7CC9;color:#1E2A3A}.xpaper button.xused{opacity:.35;pointer-events:none}
+.xmatch{display:flex;gap:8px;margin-top:6px}.xcol{flex:1;display:flex;flex-direction:column;gap:6px}.xcol button{position:relative;background:#fff;font-size:13.5px;padding:8px 6px;line-height:1.5;text-align:center}
+.xtag{position:absolute;top:-8px;left:-6px;background:#3F7CC9;color:#fff;border-radius:50%;width:22px;height:22px;line-height:22px;font-size:12px}
+.xbank{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;justify-content:center}.xbank button{background:#FFF9E3;border-color:#F0DBA0;font-size:14px;padding:6px 12px}
+.xblankrow{margin:6px 0;font-size:15px}.xblank{display:inline-block;min-width:90px;border-bottom:2px solid #1E2A3A;text-align:center;margin:0 4px;color:#3F7CC9;font-weight:800;min-height:24px;vertical-align:bottom;cursor:pointer}
+.xbins{display:flex;gap:6px;flex-wrap:wrap}.xbin{flex:1;min-width:110px;border:2px dashed #9AA9BE;border-radius:12px;padding:6px;min-height:70px;cursor:pointer}.xbin h4{margin:0 0 4px;font-size:13px;text-align:center}.xgot{display:flex;flex-wrap:wrap;gap:4px;justify-content:center}.xgot span{background:#EEF2F7;border-radius:8px;padding:2px 8px;font-size:13px;font-weight:700}
+.xslots{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:6px 0}.xslot{min-width:54px;min-height:40px;border:2px solid #1E2A3A;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;padding:4px 8px;background:#fff}.xslot.xfilled{background:#DDEBFF}
+.xfig{margin:6px auto;max-width:360px}.xfig .xtarget{cursor:pointer}.xfig svg .xtarget{fill:rgba(63,124,201,.15);stroke:#3F7CC9;stroke-width:2.5;stroke-dasharray:4 3}.xfig svg .xtarget.xfilled{fill:rgba(63,124,201,.35);stroke-dasharray:none}
+.xfig .xtl{font-weight:800;font-size:13px;fill:#1E2A3A}.xwords{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}.xwords .xtarget{border:2px dashed #9AA9BE;border-radius:12px;padding:6px 10px;text-align:center;min-width:70px}.xwords .xtarget.xfilled{border-style:solid;border-color:#3F7CC9}.xwords .xtl{display:block;color:#3F7CC9;font-size:12px;min-height:16px}
+.xpv{display:flex;gap:6px;justify-content:center;direction:rtl}.xpv .xtarget{border:2px solid #1E2A3A;border-radius:8px;width:64px;padding:6px 4px;text-align:center}.xpv .xdig{font-size:26px;font-weight:800;display:block}.xpv .xtl{display:block;font-size:11px;color:#3F7CC9;min-height:16px}
+.xta{width:100%;font-family:inherit;font-size:16px;border:2px solid #C9D2DE;border-radius:12px;padding:10px;min-height:64px;margin-top:6px;resize:vertical}
+.xnum{max-width:300px;margin:6px auto}.xdisp{border:2px solid #1E2A3A;border-radius:10px;min-height:44px;font-size:26px;font-weight:800;text-align:center;letter-spacing:2px;margin-bottom:6px;background:#fff}
+.xkb{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.xkb button{font-size:20px;padding:8px 0;background:#fff}
+.xsteps{margin-top:6px}.xstep{background:#F7F9FC;border-radius:10px;padding:8px 10px;margin:6px 0;font-size:14px}.xplan{flex-direction:row;flex-wrap:wrap}.xplan button{flex:1;text-align:center;font-size:13px}
+.xpass{background:#FBFCFE;border:1.5px solid #C9D2DE;border-radius:8px;padding:12px 14px;font-size:17px;line-height:2.1;margin:8px 0}
+.xdict{background:#FFF9E3;border:2px solid #F0DBA0;border-radius:12px;padding:10px;text-align:center;margin-top:6px}.xdtext{font-size:19px;font-weight:800;line-height:2}.xdtext.xhidden{color:#9AA9BE;font-weight:700;font-size:14px}.xdcount{font-size:13px;color:#6B7A90}
+.xwrong{border:1.5px solid #E39B9B;border-radius:12px;padding:8px 12px;margin:8px 0;font-size:14px;background:#FFF7F7}.xgiven{color:#9B3B3B;margin-top:2px}.xcorrect{color:#227A63}.xtagl{font-size:12px;color:#6B7A90}
+.xlog{width:100%;border-collapse:collapse;font-size:13.5px;text-align:center}.xlog th,.xlog td{border:1px solid #DCE3EC;padding:6px 4px}.xlog th{background:#EEF2F7}
+.xtagbox{border:1.5px solid #E1E7F0;border-radius:12px;padding:8px 12px;margin:6px 0;font-size:14px}.xtagq{font-size:13px;margin-top:4px;line-height:1.6}
+.xchk.xsel{background:#DDF3EC;border-color:#4EB39A}
+</style>`);
+
+/* ---------- إعدادات اختبار لغتي ---------- */
+const EX_WORDS={0:[['أحبُّ لغتي الجميلةَ',['فعل','اسم','اسم']]],1:[['صعد عادلٌ إلى الطائرة',['فعل','اسم','حرف','اسم']],['ربط عادلٌ حزامَ الأمان',['فعل','اسم','اسم','اسم']]],2:[['يتمنى أحمدُ التفوقَ في مدرسته',['فعل','اسم','اسم','حرف','اسم']]],3:[['زارت نورةُ مدينةَ الرياض',['فعل','اسم','اسم','اسم']],['تقع الرياضُ وسطَ الصحراء',['فعل','اسم','اسم','اسم']]],4:[['تقع الطائفُ في منطقة مكة',['فعل','اسم','حرف','اسم','اسم']]],5:[['زرع التلاميذُ الحديقةَ في ساحة المدرسة',['فعل','اسم','اسم','حرف','اسم','اسم']]],6:[['اشترى فوازٌ القصةَ من المكتبة',['فعل','اسم','اسم','حرف','اسم']]],7:[['أغلق فوازٌ الهاتفَ في المستشفى',['فعل','اسم','اسم','حرف','اسم']]],8:[['تنقل الأقمارُ الصناعيةُ البثَّ إلى التلفاز',['فعل','اسم','اسم','اسم','حرف','اسم']]]};
+function exLabelWords(w){const words=w[0].split(' '),types=w[1],chips=['فعل','اسم','حرف'];
+ return {t:'label',reuse:true,q:'حددي نوع كل كلمة في الجملة (فعل / اسم / حرف):',chips,targets:words.map((x,k)=>({n:x,c:chips.indexOf(types[k])})),html:`<div class="xwords">${words.map((x,k)=>`<div class="xtarget" data-t="${k}"><b>${x}</b><span class="xtl"></span></div>`).join('')}</div>`};}
+const EXAM_CFG={subject:'لغتي',nLessons:L.length,minLessons:2,lessonName:i=>(L[i]||{}).name||'عام',
+ plan20:[{t:'passage',n:1,m:6},{t:'fill',n:1,m:3},{t:'sort',n:1,m:3},{t:'order',n:1,m:2,title:'رتّبي الكلمات لتكوّني جملة مفيدة'},{t:'label',n:1,m:2,title:'حدّدي نوع الكلمات في الجملة'},{t:'dictation',n:1,m:3},{t:'mcq',n:1,m:1}],
+ plan10:[{t:'passage',n:1,m:4},{t:'fill',n:1,m:2},{t:'order',n:1,m:2},{t:'dictation',n:1,m:2}],
+ label(){return exLabelWords(EX_WORDS[0][0]);},
+ gen(Li){const l=L[Li];if(!l)return [];const out=[];
+  (l.test||[]).concat(l.think||[]).forEach(s=>{
+   if(s.t==='mcq')out.push({t:'mcq',q:s.q,o:s.o,a:s.c});
+   else if(s.t==='tf')out.push({t:'tf',q:s.q.replace(/[«»"]/g,''),a:s.c});
+   else if(s.t==='match')out.push({t:'match',q:s.q,pairs:s.pairs});
+   else if(s.t==='order')out.push({t:'order',q:s.q,seq:s.seq});
+   else if(s.t==='sort2')out.push({t:'sort',q:s.q,bins:s.bins,items:s.items});
+   else if(s.t==='read')out.push({t:'dictation',text:s.q});});
+  if(l.words&&l.words.length>=3){const v=xsh(l.words).slice(0,3);out.push({t:'fill',q:'أكملي بالكلمة المناسبة من كلمات الدرس:',bank:v.map(x=>x[0]),items:v.map(x=>[x[1],x[0]])});}
+  (EX_WORDS[Li]||[]).forEach(w=>out.push(exLabelWords(w)));
+  return out;}};
 
 drawStars();goMap();applySound();serverLoad();
 </script>
