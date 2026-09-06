@@ -1,0 +1,1887 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>قِطار الكلمات 🚂 اللغة الإنجليزيَّة · الفصل الدراسي الأوَّل</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="قطار الكلمات">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F5F8FC; --card:#FFFFFF; --ink:#22364F; --leaf:#3E7BC4; --leafD:#2B5B96;
+  --sun:#F5C544; --rose:#EF7FA8; --soil:#8A5A3B; --sky:#E1F0FF; --line:#DDE6F0; --teal:#3E8E8E;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{font-family:'Baloo Bhaijaan 2','Segoe UI',Tahoma,sans-serif;
+  background:linear-gradient(180deg,var(--sky) 0%, var(--paper) 40%);
+  color:var(--ink); min-height:100vh;}
+#app{max-width:640px;margin:0 auto;padding:12px 14px 60px}
+/* topbar */
+#top{display:flex;justify-content:space-between;align-items:center;background:var(--card);
+  border-radius:18px;padding:8px 14px;box-shadow:0 3px 0 var(--line);margin-bottom:12px;
+  font-weight:800;color:var(--leafD)}
+#top button{border:none;background:#EDF4FC;border-radius:12px;padding:6px 14px;font-size:15px}
+/* cards & type */
+.chip{display:inline-block;background:var(--leaf);color:#fff;font-weight:800;font-size:13px;
+  border-radius:999px;padding:3px 14px;margin-bottom:10px}
+.chip.story{background:var(--soil)}
+.chip.prep{background:var(--teal)}
+.card{background:var(--card);border-radius:24px;padding:22px 18px;box-shadow:0 4px 0 var(--line);text-align:center}
+h1{font-size:25px;margin:6px 0 4px}
+h2{font-size:20px;margin:4px 0 14px;line-height:1.5}
+p.sub{margin:0 0 14px;font-size:15px;color:#546C88;line-height:1.8}
+.big{font-size:50px;margin:4px 0}
+button{font-family:inherit;font-weight:800;font-size:17px;color:var(--ink);
+  background:#EDF4FC;border:2px solid var(--line);border-radius:18px;
+  padding:13px 16px;cursor:pointer;transition:transform .12s}
+button:active{transform:scale(.96)}
+.go{background:var(--leaf);border-color:var(--leafD);color:#fff;font-size:18px;padding:13px 30px;
+  box-shadow:0 4px 0 var(--leafD)}
+.go:disabled{opacity:.4;box-shadow:none}
+.opts{display:flex;flex-direction:column;gap:10px;margin-top:8px}
+.opts button.ok{background:#DCEBFB;border-color:var(--leaf);color:var(--leafD)}
+.opts button.locked{pointer-events:none}
+.wrong{animation:wig .35s}
+@keyframes wig{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+.hintPulse{animation:pul 1s infinite}
+@keyframes pul{50%{box-shadow:0 0 0 6px rgba(245,197,68,.45)}}
+/* map */
+.uhead{margin:20px 4px 8px;font-size:18px;font-weight:800;color:var(--leafD)}
+.chead{margin:2px 8px 8px;font-size:13.5px;font-weight:700;color:#6C86A8}
+.lrow{background:var(--card);border-radius:20px;box-shadow:0 3px 0 var(--line);
+  padding:12px 14px;margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.lrow .lic{font-size:30px;width:44px;text-align:center;filter:grayscale(.7);opacity:.75;position:relative}
+.lrow.done{background:#EAF3FD;box-shadow:0 3px 0 #BFD6EE}
+.lrow .tick{position:absolute;top:-8px;right:-10px;background:var(--leaf);color:#fff;border-radius:50%;width:24px;height:24px;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid #fff;filter:none;opacity:1}
+.lrow .tick.gold{background:var(--sun);color:#5A4300}
+.opts button.bad,.pool button.bad,.mcol button.bad{background:#FBE3E3;border-color:#E39B9B;color:#9B3B3B}
+.hs.hint{animation:hsP .8s infinite}
+@keyframes hsP{50%{stroke-width:7;fill:rgba(245,197,68,.6)}}
+#toast{position:fixed;top:14px;left:50%;transform:translateX(-50%) scale(.6);background:var(--leaf);color:#fff;font-weight:800;font-size:19px;padding:10px 26px;border-radius:999px;box-shadow:0 6px 0 var(--leafD);z-index:70;opacity:0;pointer-events:none;transition:all .25s}
+#toast.show{opacity:1;transform:translateX(-50%) scale(1)}
+.lrow.done .lic{filter:none;opacity:1}
+.lrow .lt{flex:1;text-align:right}
+.lrow .lt b{font-size:16px;display:block;line-height:1.4}
+.lrow .lt small{color:#6C86A8;font-weight:700;font-size:12px}
+.lbtns{display:flex;flex-direction:column;gap:6px}
+.lbtns button{font-size:13px;padding:7px 12px;border-radius:12px;white-space:nowrap}
+.lbtns .bprep{background:#E6F3F3;border-color:#BFDDDD;color:var(--teal)}
+.lbtns .bprep.done{background:#D2ECEC;border-color:var(--teal)}
+.lbtns .btest{background:#FFF3D6;border-color:#F0DBA0;color:#9A7A17}
+.lbtns .btest.done{background:#DCEBFB;border-color:var(--leaf);color:var(--leafD)}
+.lbtns .bthink{background:#F3EEFA;border-color:#D9CCEC;color:#6B4FA0}
+.lbtns .bthink.done{background:#E9E0F6;border-color:#6B4FA0}
+.lockrow{opacity:.65}
+/* vocab flip */
+.vgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+.vcard{background:#F4F9FF;border:2px solid var(--line);border-radius:16px;padding:14px 10px;
+  min-height:92px;display:flex;align-items:center;justify-content:center;cursor:pointer;
+  font-weight:800;font-size:17px;line-height:1.5}
+.vcard.open{background:#FFF9E3;border-color:var(--sun);font-weight:700;font-size:13.5px;line-height:1.7}
+.vcard.seen{box-shadow:0 0 0 2px #DCEBFB inset}
+/* pools, bins, match, order (engine) */
+.pool{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:12px 0}
+.pool button{font-size:17px}
+.bins{display:flex;gap:10px}
+.bin{flex:1;background:#EDF4FC;border:2px dashed var(--leaf);border-radius:18px;min-height:110px;padding:8px}
+.bin h3{margin:2px 0 6px;font-size:15px;color:var(--leafD)}
+.bin .got{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.bin .got span{background:#fff;border-radius:12px;padding:4px 10px;font-size:14px;font-weight:700;border:1px solid var(--line)}
+.pool button.sel{background:#FFF3D6;border-color:var(--sun)}
+.mcols{display:flex;gap:10px;margin-top:8px}
+.mcol{flex:1;display:flex;flex-direction:column;gap:8px}
+.mcol button{font-size:14px;padding:11px 8px;line-height:1.5}
+.mcol button.pick{background:#FFF3D6;border-color:var(--sun)}
+.mcol button.done{background:#DCEBFB;border-color:var(--leaf);color:var(--leafD);pointer-events:none}
+.slots{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:10px 0}
+.slot{min-width:66px;min-height:50px;border:2px dashed #C3D2E2;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;font-size:13.5px;font-weight:800;
+  color:#A9BACD;padding:4px 8px}
+.slot.fill{border-style:solid;border-color:var(--leaf);background:#DCEBFB;color:var(--leafD)}
+.arrow{align-self:center;color:#A9BACD;font-size:15px}
+.qbox{background:#F4F9FF;border:2px solid var(--line);border-radius:18px;padding:16px;font-size:18px;line-height:1.8;margin-bottom:12px}
+.ans{background:#FFF9E3;border:2px solid var(--sun);border-radius:18px;padding:14px;font-size:16px;line-height:1.8;margin:12px 0;display:none;text-align:right}
+.ans.show{display:block}
+.marks{display:none;gap:10px;justify-content:center;flex-wrap:wrap}
+.marks.show{display:flex}
+.hs{fill:rgba(245,197,68,.25);stroke:var(--sun);stroke-width:2.5;cursor:pointer}
+.hs.done{fill:rgba(78,155,87,.35);stroke:var(--leaf);pointer-events:none}
+.hlabel{font-family:inherit;font-weight:800;font-size:15px;fill:var(--leafD)}
+/* overlay + confetti */
+#ovl{position:fixed;inset:0;background:rgba(46,74,48,.45);display:none;align-items:center;justify-content:center;z-index:50;padding:20px}
+#ovl.show{display:flex}
+#ovl .inner{background:var(--card);border-radius:28px;padding:30px 24px;text-align:center;max-width:420px;animation:pop .45s}
+@keyframes pop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}
+#ovl .bicon{font-size:62px}
+.conf{position:fixed;font-size:24px;z-index:60;animation:fall 1.6s linear forwards;pointer-events:none}
+@keyframes fall{to{transform:translateY(105vh) rotate(360deg);opacity:.2}}
+.nav{margin-top:18px}
+footer{text-align:center;font-size:12px;color:#93A3B7;margin-top:26px}
+footer button{border:none;background:none;color:#B3C1D2;font-size:11px;text-decoration:underline;padding:4px}
+
+/* ---- farm animations ---- */
+.an-walk,.an-walk-s{transform-box:fill-box;transform-origin:center;animation:walk 16s ease-in-out infinite}
+.an-walk-s{animation:walks 26s ease-in-out infinite}
+@keyframes walk{0%{transform:translateX(0) scaleX(1)}48%{transform:translateX(110px) scaleX(1)}52%{transform:translateX(110px) scaleX(-1)}98%{transform:translateX(0) scaleX(-1)}100%{transform:translateX(0) scaleX(1)}}
+@keyframes walks{0%{transform:translateX(0) scaleX(1)}48%{transform:translateX(60px) scaleX(1)}52%{transform:translateX(60px) scaleX(-1)}98%{transform:translateX(0) scaleX(-1)}100%{transform:translateX(0) scaleX(1)}}
+.an-bob{animation:bob 1.2s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-3px)}}
+.an-tail{transform-box:fill-box;transform-origin:left bottom;animation:tail 1.6s ease-in-out infinite alternate}
+@keyframes tail{from{transform:rotate(-12deg)}to{transform:rotate(18deg)}}
+.an-fly{animation:fly 20s linear infinite}
+@keyframes fly{0%{transform:translate(-40px,0)}50%{transform:translate(300px,-30px)}100%{transform:translate(700px,10px)}}
+.an-flutter{animation:flutter 7s ease-in-out infinite alternate}
+@keyframes flutter{0%{transform:translate(0,0)}33%{transform:translate(26px,-18px)}66%{transform:translate(-12px,-32px)}100%{transform:translate(32px,-8px)}}
+.an-wing{transform-box:fill-box;transform-origin:center;animation:wing .28s ease-in-out infinite alternate}
+@keyframes wing{from{transform:scaleX(1)}to{transform:scaleX(.25)}}
+.an-hop{animation:hop 4.5s ease-in-out infinite}
+@keyframes hop{0%,72%,100%{transform:translateY(0)}80%{transform:translateY(-24px)}88%{transform:translateY(0)}}
+.an-spin{animation:spin 50s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.an-orbit{animation:spin 24s linear infinite}
+.an-sway{transform-box:fill-box;transform-origin:bottom center;animation:sway 4s ease-in-out infinite alternate}
+@keyframes sway{from{transform:rotate(-2.5deg)}to{transform:rotate(2.5deg)}}
+.an-drift{animation:drift 22s ease-in-out infinite alternate}
+@keyframes drift{to{transform:translateX(70px)}}
+.an-rain{stroke-dasharray:7 11;animation:rain .55s linear infinite}
+@keyframes rain{to{stroke-dashoffset:-18}}
+.an-flow{stroke-dasharray:16 20;animation:flow 2.2s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-36}}
+.an-worm{animation:worm 3s ease-in-out infinite alternate}
+@keyframes worm{to{transform:translateX(16px)}}
+.an-shine{animation:shine 3s ease-in-out infinite alternate}
+@keyframes shine{to{opacity:.35}}
+@media (prefers-reduced-motion:reduce){[class^="an-"],[class*=" an-"]{animation:none}}
+.an-spinw{transform-box:fill-box;transform-origin:center;animation:spinw 1.6s linear infinite}
+@keyframes spinw{to{transform:rotate(360deg)}}
+.an-puff{animation:puff 2.4s ease-out infinite}
+@keyframes puff{0%{transform:translate(0,0) scale(.5);opacity:.9}100%{transform:translate(-70px,-90px) scale(2.1);opacity:0}}
+.an-fly2{animation:fly2 26s linear infinite}
+@keyframes fly2{0%{transform:translate(0,0)}50%{transform:translate(260px,-26px)}100%{transform:translate(560px,8px)}}
+.car{animation:carin .55s ease-out}
+@keyframes carin{0%{transform:translateY(-40px);opacity:0}70%{transform:translateY(4px)}100%{transform:translateY(0);opacity:1}}
+.vsay{border:none;background:none;font-size:17px;padding:0 4px;cursor:pointer}
+.qbox,.ans,.vcard,.opts button,.pool button,.mcol button,.slot,.bin .got span,.lt b,.lt small,
+.xq,.xopts button,.xmatch button,.xbank button,.xslot,.xblankrow,.xrow .xq,.xta,.xgiven,.xcorrect,
+.dcard,.da,.fitem,.xwrong .xq{unicode-bidi:plaintext}
+.xopts button,.xmatch button{text-align:start}
+.pbar{height:8px;background:#EAF1F8;border-radius:99px;margin:0 0 14px;overflow:hidden}
+.pbar i{display:block;height:100%;background:var(--leaf);border-radius:99px;transition:width .4s}
+.credit{margin-top:10px;font-size:12px;color:#93A0B7;font-weight:600}.credit a{color:#0A66C2;text-decoration:none}</style>
+</head>
+<body>
+<div id="app">
+  <div id="top">
+    <button id="backB" style="visibility:hidden" onclick="goMap()">🏡 الخريطة</button>
+    <button id="sndB" onclick="toggleSound()" style="font-size:18px">🔊</button><span>⭐ <span id="stars">0</span></span>
+  </div>
+  <div id="stage"></div>
+  <footer>اللّغة الإنجليزيّة · We Can! 3 · الصّفّ الثّالث · الفصل الدّراسيّ الأوّل<br><button onclick="profAsk(true)">👧 تغيير الاسم</button> · <button onclick="exLog()">📊 سجل الاختبارات</button> · <button onclick="exportProgress()">حفظ نسخة</button> · <button onclick="importProgress()">استرجاع نسخة</button> · <button onclick="hardReset()">بداية جديدة (يمسح التَّقدُّم)</button><div class="credit">© ٢٠٢٦ Dr. Asma Khattala · جميع الحقوق محفوظة · All rights reserved · <a href="https://www.linkedin.com/in/dr-asma-khattala/" target="_blank" rel="noopener">LinkedIn</a></div></footer>
+<input type="file" id="impF" accept=".json,application/json" style="display:none">
+</div>
+<div id="ovl"><div class="inner"></div></div>
+<div id="toast"></div>
+
+<script>
+/* ==================== بيانات الدروس ==================== */
+const U1='Unit 1 · الوحدة الأولى: It’s Nice to Meet You!', U2='Unit 2 · الوحدة الثَّانية: Sea Animals', U3='Unit 3 · الوحدة الثَّالثة: Sports and Activities',
+      U4='Unit 4 · الوحدة الرَّابعة: Chores', U5='Unit 5 · الوحدة الخامسة: Yesterday and Today', U6='Unit 6 · الوحدة السَّادسة: Jobs';
+const C_FO='Finding Out Time · نتعرَّف ونتحدَّث', C_GR='Grammar in Action · القاعدة في الاستعمال',
+      C_RR='Rhythms and Reading · الأناشيد والقراءة', C_PH='Phonics · أصوات الحُروف';
+
+const LESSONS=[
+/* ---------- 1 ---------- */
+{u:U1,ch:C_FO,name:'Nice to meet you!',ic:'👋',
+ idea:'نتعارف بالإنجليزيَّة: نسأل عن الاسم والعُمر ومكان السَّكن، ونردُّ بجُملة كاملة.',
+ eq:'كيف أُعرِّف بنفسي وأسأل صديقتي عن اسمها وعُمرها ومدينتها؟',
+ vocab:[
+  ['What’s your name?','ما اسمُكِ؟ — والجواب: My name’s Sara. أو I’m Sara.'],
+  ['How old are you?','كم عُمرُكِ؟ — والجواب: I’m nine years old.'],
+  ['Where do you live?','أين تسكُنين؟ — والجواب: I live in Riyadh.'],
+  ['Nice to meet you.','سُعدتُ بلقائكِ — والردّ: Nice to meet you, too.']],
+ guess:[['كيف تسألين صديقةً جديدةً عن اسمها؟','What’s your name? ثمّ تقولين: My name’s … .'],
+        ['ماذا تقولين بعد أن تقول لكِ: Nice to meet you؟','Nice to meet you, too.']],
+ test:[
+  {t:'match',q:'صِلي كلّ سُؤال بجوابه الصَّحيح.',
+   pairs:[['What’s your name?','My name’s Hashim.'],['How old are you?','I’m eleven years old.'],['Where do you live?','I live in Jeddah.'],['Nice to meet you.','Nice to meet you, too.']]},
+  {t:'mcq',q:'What is your name?',o:['I am 13.','My name is Ali.','I live in Abha.'],c:1},
+  {t:'mcq',q:'Where do you live?',o:['I like some juice.','I am fine.','I live in Riyadh.'],c:2},
+  {t:'mcq',q:'How old are you?',o:['I’m nine years old.','My name’s Nora.','It’s a seal.'],c:0},
+  {t:'order',q:'رتِّبي الكلمات لتُكوِّني جُملةً: (رتِّبيها من اليمين إلى اليسار كما تُقرأ بالإنجليزيَّة).',
+   seq:['Nice','to','meet','you.']},
+  {t:'open',q:'عرِّفي بنفسكِ بالإنجليزيَّة في ثلاث جُمل.',
+   a:'مثال: My name’s Maria. I’m nine years old. I live in Riyadh.'}],
+ think:[
+  {t:'create',q:'اصنعي بطاقة تعريف (ID card) لكِ بالإنجليزيَّة.',hints:'اكتُبي: Name, Age, City ثمّ ارسمي وجهكِ بجانبها، وقدِّميها لأهلكِ بصوتٍ عالٍ.'},
+  {t:'open',q:'سألتكِ صديقة: How old are you? فأجبتِ: I live in Jeddah. لماذا هذا الجواب غير مُناسب؟',
+   a:'لأنَّ السُّؤال عن العُمر (age)، والجواب عن المكان. الجواب الصَّحيح: I’m nine years old.'}]},
+/* ---------- 2 ---------- */
+{u:U1,ch:C_GR,name:'my, your, his, her · Whose?',ic:'🎒',
+ idea:'كلمات المِلكيَّة: my, your, his, her, our, their قبل الاسم، وmine, yours, his, hers للجواب عن Whose…?',
+ eq:'كيف أقول إنَّ هذا الشَّيء لي أو له أو لها؟',
+ vocab:[
+  ['my / your','لي / لكِ — My name is Kim. Your name is Sara.'],
+  ['his / her','له / لها — His name is Pete. Her name is Jasmine.'],
+  ['our / their','لنا / لهم — Our names are… Their names are Judy and Rose.'],
+  ['Whose…? mine / yours / hers','لِمَن…؟ — Whose shoes are these? They’re mine. / They’re Steve’s.']],
+ guess:[['This is my mother. ……… name is Jasmine.','Her name is Jasmine. (mother = she)'],
+        ['Whose shoes are these? قالها ستيف عن حذائه:','They’re his. أو They’re Steve’s.']],
+ test:[
+  {t:'mcq',q:'This is our little brother. ……… name is Ahmad.',o:['his','my','her'],c:0},
+  {t:'mcq',q:'Whose shoes are these? – They’re ……… .',o:['mine','I','she'],c:0},
+  {t:'mcq',q:'I am a teacher, ……… name is Nora.',o:['his','my','your'],c:1},
+  {t:'mcq',q:'She is a doctor, ……… name is Fatimah.',o:['her','his','my'],c:0},
+  {t:'sort2',q:'صنِّفي كلّ كلمة: قبل الاسم أم بعد فِعل الملكيَّة؟',
+   bins:['قبل الاسم: my bag 🎒','وحدها: It’s mine ✋'],
+   items:[['my',0],['mine',1],['her',0],['hers',1],['your',0],['yours',1]]},
+  {t:'open',q:'أشيري إلى ثلاثة أشياء في غُرفتكِ وقولي لِمَن هي بالإنجليزيَّة.',
+   a:'مثال: This is my bag. This is her book. These are his shoes.'}],
+ think:[
+  {t:'order',q:'رتِّبي: His / name / is / Pete.',seq:['His','name','is','Pete.']},
+  {t:'create',q:'لُعبة Whose is it? مع العائلة.',hints:'ضعي أغراضًا في كيس، اسحبي غرضًا واسألي: Whose … is this? والجواب: It’s mine / hers / his / Dad’s.'}]},
+/* ---------- 3 ---------- */
+{u:U1,ch:C_RR,name:'I have a… / Can we write…?',ic:'🔤',
+ idea:'نشيد الحُروف: I have a b, you have an i… ثمّ نجمع الحُروف لنكتُب كلمةً، ونقول can أو can’t.',
+ eq:'أيّ الكلمات أستطيع كتابتها بالحُروف الَّتي معي؟',
+ vocab:[
+  ['I have… / He has…','معي… / معه… — I have a b. He has a c.'],
+  ['bicycle','دَرَّاجة — b-i-c-y-c-l-e'],
+  ['computer','حاسوب — c-o-m-p-u-t-e-r'],
+  ['Can we write…? Yes, we can. / No, we can’t.','هل نستطيع أن نكتُب…؟ نعم نستطيع / لا نستطيع.']],
+ guess:[['معكِ الحُروف: d, e, s, r ماذا تكتُبين؟','dress — Yes, we can write dress!'],
+        ['ما الفرق بين I have وHe has؟','مع he / she / it نقول has، ومع I / you / we / they نقول have.']],
+ test:[
+  {t:'mcq',q:'He ……… a new bag.',o:['have','are','has'],c:2},
+  {t:'mcq',q:'I ……… a box.',o:['is','has','have'],c:2},
+  {t:'mcq',q:'Can we write hat? – No, ……… .',o:['he can’t','we can','we can’t'],c:2},
+  {t:'mcq',q:'Can you cook? – No, ……… .',o:['I can’t','we can','he can’t'],c:0},
+  {t:'order',q:'رتِّبي: Can / you / cook / ?',seq:['Can','you','cook','?']},
+  {t:'open',q:'اهجئي كلمة computer حرفًا حرفًا بصوتكِ.',a:'c-o-m-p-u-t-e-r'}],
+ think:[
+  {t:'create',q:'لعبة مُشاركة الحُروف Letter Sharing Game.',hints:'اكتُبي ٦ حُروف على ورقٍ صغير، اسحبي ثلاثةً واسألي: Can we write …? وحاولي تكوين كلمة حقيقيَّة.'},
+  {t:'open',q:'كم كلمةً إنجليزيَّةً تعرفينها تبدأ بحرف b؟ عُدِّيها في دقيقة.',a:'مثال: bag, bicycle, boy, boat, book, brown, bear…'}]},
+/* ---------- 4 ---------- */
+{u:U1,ch:C_PH,name:'ee, ea · i_e, ie · ai, ay',ic:'🔊',
+ idea:'أصوات هذه الوحدة: ee/ea تُقرأ (إي)، وi_e/ie تُقرأ (آي)، وai/ay تُقرأ (إيه).',
+ eq:'أيّ حرفين ناقصين في الكلمة الَّتي أراها في الصُّورة؟',
+ vocab:[
+  ['ee → sleep, sheep, meet','النَّوم، الخروف، يُقابل — صوت (إي) الطَّويل.'],
+  ['ea → read, meat, peach, cheese','يقرأ، لحم، خوخ، جُبن — أيضًا صوت (إي).'],
+  ['i_e / ie → rice, pine, pie, tie','أرُزّ، صنوبر، فطيرة، رِبطة عُنُق — صوت (آي).'],
+  ['ai / ay → rain, train, play, day','مطر، قِطار، يلعب، يوم — صوت (إيه).']],
+ guess:[['sh _ _ p (خروف): أيّ حرفين؟','ee → sheep'],['m _ _ t (لحم): أيّ حرفين؟','ea → meat']],
+ test:[
+  {t:'mcq',q:'🐑 sh __ __ p',o:['ea','ee','ai'],c:1},
+  {t:'mcq',q:'🍖 m __ __ t',o:['ee','ea','ay'],c:1},
+  {t:'mcq',q:'⚽ pl __ __',o:['ay','ea','ie'],c:0},
+  {t:'mcq',q:'🚂 tr __ __ n',o:['ee','ai','ie'],c:1},
+  {t:'match',q:'صِلي الكلمة بمعناها.',
+   pairs:[['rice','أرُزّ'],['tie','رِبطة عُنُق'],['pie','فطيرة'],['rain','مطر']]},
+  {t:'open',q:'اقرئي بصوتٍ عالٍ: meet – meat. هل الصَّوت واحد؟',a:'نعم، الصَّوت نفسُه (إي) والكتابة مُختلفة: meet = يُقابل، meat = لحم.'}],
+ think:[
+  {t:'sort2',q:'صنِّفي الكلمات حسب صوتها.',bins:['صوت (إي) ee/ea','صوت (آي) i_e/ie'],
+   items:[['sleep',0],['rice',1],['peach',0],['pie',1],['cheese',0],['pine',1]]},
+  {t:'create',q:'اصنعي بطاقات الأصوات.',hints:'اكتُبي على أربع بطاقات: ee, ea, ai, ay وارسمي لكلٍّ منها صُورةً، ثمّ علِّقيها في غُرفتكِ.'}]},
+/* ---------- 5 ---------- */
+{u:U2,ch:C_FO,name:'Sea animals · What’s that?',ic:'🐬',
+ idea:'حيوانات البحر ورأيي فيها: What’s that? It’s a whale. I think it’s big.',
+ eq:'كيف أسأل عن حيوان وأقول رأيي فيه؟',
+ vocab:[
+  ['a whale / a dolphin','حوت / دُلفين — I think a whale is big.'],
+  ['a shark / a seal','قِرش / فقمة — I think sharks are scary.'],
+  ['a seahorse / a walrus','حصان البحر / فَظّ — A seahorse is slow. A walrus is fat.'],
+  ['What are those? They’re…','ما تلك؟ إنَّها… — What are those? They’re seals.']],
+ guess:[['ما جواب: What’s that? 🦈','It’s a shark.'],['ما جواب: What are those? 🐬🐬','They’re dolphins.']],
+ test:[
+  {t:'mcq',q:'What is that? 🦈',o:['It is a dog.','It is a shark.','They are seals.'],c:1},
+  {t:'mcq',q:'Which animal has 8 legs? 🐙',o:['It is a cat.','It is an octopus.','It is a whale.'],c:1},
+  {t:'mcq',q:'What are those? 🐬🐬',o:['They’re dolphins.','It’s a shark.','I think it’s slow.'],c:0},
+  {t:'match',q:'صِلي كلّ حيوان باسمه الإنجليزيّ.',
+   pairs:[['🐋','whale'],['🦭','seal'],['🐙','octopus'],['⭐ starfish؟','starfish']]},
+  {t:'tf',q:'A seahorse is slow.',c:true,fix:'نعم، حِصان البحر بطيء: as slow as a seahorse.'},
+  {t:'tf',q:'The whale is small.',c:false,fix:'الحوت كبير: A whale is big. as big as a whale.'}],
+ think:[
+  {t:'sort2',q:'صنِّفي: حيوان بحريّ أم غير بحريّ؟',bins:['Sea animal 🌊','Not a sea animal 🏜️'],
+   items:[['dolphin',0],['horse',1],['jellyfish',0],['cat',1],['crab',0],['sheep',1]]},
+  {t:'create',q:'لُعبة Three Hints Game.',hints:'اختاري حيوانًا بحريًّا وأعطي ثلاث إشارات بالإنجليزيَّة: It’s big. It’s not scary. It swims. ودَعي أهلكِ يُخمِّنون.'}]},
+/* ---------- 6 ---------- */
+{u:U2,ch:C_GR,name:'big, bigger, the biggest',ic:'📏',
+ idea:'المُقارنة: صِفة + er للمُقارنة بين اثنين، وthe + est للأفضل بين الجميع.',
+ eq:'كيف أُقارن بين حيوانين وكيف أقول إنَّ هذا هو الأكثر؟',
+ vocab:[
+  ['cute – cuter – the cutest','لطيف – ألطف – الألطف'],
+  ['fast – faster – the fastest','سريع – أسرع – الأسرع'],
+  ['big – bigger – the biggest','كبير – أكبر – الأكبر'],
+  ['scary – scarier – the scariest','مُخيف – أكثر إخافةً – الأكثر إخافةً']],
+ guess:[['Sharks are ……… than whales.','faster (لأنَّ فيها than).'],
+        ['A baby seal is ……… .','the cutest (لأنَّ فيها the).']],
+ test:[
+  {t:'mcq',q:'Sharks are ……… than whales.',o:['fast','faster','fastest'],c:1},
+  {t:'mcq',q:'The dolphin is ……… than the seahorse.',o:['fast','faster','fastest'],c:1},
+  {t:'mcq',q:'I think a baby seal is the ……… .',o:['cute','cuter','cutest'],c:2},
+  {t:'mcq',q:'A snail is the ……… .',o:['slow','slower','slowest'],c:2},
+  {t:'mcq',q:'A polar bear is as ……… as a fish.',o:['quiet','quieter','quietest'],c:0},
+  {t:'order',q:'رتِّبي: I think / sharks / are / faster / than / whales.',
+   seq:['I think','sharks','are','faster','than','whales.']}],
+ think:[
+  {t:'open',q:'قارني بين ثلاثة حيوانات تعرفينها بالإنجليزيَّة.',
+   a:'مثال: A dolphin is fast. A shark is faster than a dolphin. A sailfish is the fastest.'},
+  {t:'create',q:'ارسمي سُلَّم المُقارنة.',hints:'ثلاث درجات: cute → cuter → the cutest وضعي على كلّ درجة حيوانًا.'}]},
+/* ---------- 7 ---------- */
+{u:U2,ch:C_RR,name:'As … as … · Just Like Something',ic:'🎵',
+ idea:'نشيد التَّشبيه: as slippery as an eel, as fat as a walrus… ونقرأ جُملًا ونُطابقها بالحيوانات.',
+ eq:'كيف أُشبِّه شيئًا بشيء بالإنجليزيَّة؟',
+ vocab:[
+  ['as … as …','مِثل… — as big as a whale (كبير مثل الحوت).'],
+  ['an eel / a seagull','ثُعبان البحر / نورس — as slippery as an eel, as noisy as a seagull.'],
+  ['as slow as a seahorse','بطيء مثل حصان البحر.'],
+  ['as white as snow','أبيض مثل الثَّلج.']],
+ guess:[['أكملي: as fat as a ………','walrus'],['أكملي: as scary as a ………','shark']],
+ test:[
+  {t:'match',q:'صِلي كلّ تشبيه بالحيوان المُناسب من النَّشيد.',
+   pairs:[['as big as a …','whale'],['as fast as a …','dolphin'],['as slow as a …','seahorse'],['as cute as a …','baby seal']]},
+  {t:'mcq',q:'It is as white as snow and as strong as a lion. ما هو؟',o:['حصان أبيض','ثُعبان','سُلحفاة'],c:0},
+  {t:'mcq',q:'It is very quiet and as slow as a snail. ما هو؟',o:['قِرش','سُلحفاة','نورس'],c:1},
+  {t:'tf',q:'as noisy as a seagull تعني: هادئ مثل النَّورس.',c:false,fix:'noisy تعني كثير الضَّجيج، لا هادئ.'},
+  {t:'order',q:'رتِّبي: I / think / sharks / are / scary.',seq:['I','think','sharks','are','scary.']},
+  {t:'open',q:'اخترعي تشبيهًا جديدًا عن حيوان تُحبِّينه.',a:'مثال: as soft as a cat, as tall as a giraffe.'}],
+ think:[
+  {t:'create',q:'اكتُبي نشيدكِ أنتِ Just Like Something.',hints:'أربعة أسطُر: as ……… as a ……… واقرئيها بإيقاعٍ وتصفيق.'},
+  {t:'open',q:'ما الفرق بين I think و I don’t think؟',a:'I think = أظنّ، I don’t think = لا أظنّ: I don’t think whales are fast.'}]},
+/* ---------- 8 ---------- */
+{u:U2,ch:C_PH,name:'oa, ow · ou, ow',ic:'🐄',
+ idea:'صوت (أوو) في goat وsnow يُكتب oa أو ow، وصوت (آو) في house وcow يُكتب ou أو ow.',
+ eq:'أيُّ الحرفين أكتُب: oa أم ou أم ow؟',
+ vocab:[
+  ['oa → goat, boat, coat','ماعِز، قارِب، مِعطف.'],
+  ['ow (أوو) → snow, window, yellow','ثلج، نافذة، أصفر.'],
+  ['ou → house, mouse','بيت، فأر.'],
+  ['ow (آو) → cow, brown, clown','بقرة، بُنِّي، مُهرِّج.']],
+ guess:[['h _ _ se (بيت):','ou → house'],['g _ _ t (ماعِز):','oa → goat']],
+ test:[
+  {t:'mcq',q:'🐭 m __ __ se',o:['oa','ou','ee'],c:1},
+  {t:'mcq',q:'🐄 c __ __',o:['ow','oa','ai'],c:0},
+  {t:'mcq',q:'🧥 c __ __ t',o:['ou','oa','ea'],c:1},
+  {t:'mcq',q:'⛵ b __ __ t',o:['ay','oa','ie'],c:1},
+  {t:'sort2',q:'صنِّفي الكلمات حسب الصَّوت.',bins:['صوت (أوو) goat/snow','صوت (آو) house/cow'],
+   items:[['snow',0],['mouse',1],['coat',0],['brown',1],['window',0],['clown',1]]},
+  {t:'open',q:'اقرئي قصَّة Jack’s house: mouse – cat – snake – cow. مَن يُطارد مَن؟',
+   a:'The cat chases the mouse, the snake scares the cat, the cow tosses the snake.'}],
+ think:[
+  {t:'create',q:'ارسمي بيت جاك This is Jack’s house.',hints:'ارسمي البيت والجُبن والفأر والقطَّة، واحكيها بالإنجليزيَّة جُملةً بعد جُملة.'},
+  {t:'open',q:'كلمة ow لها صوتان. أعطي مثالًا لكلٍّ منهما.',a:'snow (أوو) و cow (آو).'}]},
+/* ---------- 9 ---------- */
+{u:U3,ch:C_FO,name:'Sports and activities',ic:'⚽',
+ idea:'الرِّياضات الشَّائعة والخطِرة، ونقول ما نُحبّ وما نُريد تجربته: I like… / I want to try…',
+ eq:'أيّ رياضة أُحبّ؟ وأيَّ رياضة أُريد أن أُجرِّب؟',
+ vocab:[
+  ['tennis, football, basketball, volleyball','كُرة المِضرب، كُرة القدم، السَّلَّة، الطَّائرة.'],
+  ['horse riding','رُكوب الخيل — He likes horse riding.'],
+  ['scuba diving / sky diving','الغوص / القفز المِظلِّيّ.'],
+  ['rock climbing / hang gliding','تسلُّق الصُّخور / الطَّيران الشِّراعيّ.']],
+ guess:[['What sport do you like? – ………','I like football.'],
+        ['What sport does he want to try? – ………','He wants to try rock climbing.']],
+ test:[
+  {t:'mcq',q:'What sport do you like?',o:['I like football.','It’s not mine.','I live in Abha.'],c:0},
+  {t:'mcq',q:'What sport does Omar like?',o:['He likes horse riding.','I live in Abha.','Yes, I do.'],c:0},
+  {t:'match',q:'صِلي الرِّياضة بصُورتها.',
+   pairs:[['⚽','football'],['🎾','tennis'],['🏀','basketball'],['🐎','horse riding']]},
+  {t:'sort2',q:'صنِّفي الرِّياضة: شائعة أم خطِرة؟',bins:['Common sport ⚽','Dangerous sport 🪂'],
+   items:[['tennis',0],['sky diving',1],['volleyball',0],['bungee jumping',1],['basketball',0],['scuba diving',1]]},
+  {t:'order',q:'رتِّبي: I / like / horse / riding.',seq:['I','like','horse','riding.']},
+  {t:'open',q:'ما الرِّياضة الَّتي تُريدين تجربتها؟ قوليها بالإنجليزيَّة.',a:'I want to try … (rock climbing / swimming / skiing).'}],
+ think:[
+  {t:'create',q:'اعملي استبيانًا Memory Quiz.',hints:'اسألي ثلاثة من أهلكِ: What sport do you like? واكتُبي إجاباتهم في جدول ثمّ اقرئيها.'},
+  {t:'open',q:'ما الفرق بين I like و I want to try؟',a:'I like = أُحبُّها الآن، I want to try = أرغب في تجربتها لأوَّل مرَّة.'}]},
+/* ---------- 10 ---------- */
+{u:U3,ch:C_GR,name:'Do you…? Does he…?',ic:'❓',
+ idea:'أفعال المُساعدة: Do مع I/you/we/they، وDoes مع he/she/it، والجواب Yes, I do. / No, he doesn’t.',
+ eq:'متى أستعمل Do ومتى أستعمل Does؟',
+ vocab:[
+  ['Do you…? Yes, I do. / No, I don’t.','هل أنتِ…؟ نعم / لا.'],
+  ['Does he…? Yes, he does. / No, he doesn’t.','هل هو…؟ نعم / لا.'],
+  ['play tennis / play golf','نلعب بالكُرة أو المِضرب: play + رياضة بالكُرة.'],
+  ['do pottery / do painting','نمارس نشاطًا: do + نشاط مثل الفخَّار والرَّسم.']],
+ guess:[['……… she play golf?','Does (لأنَّ الفاعل she).'],['Do you ski? – No, ………','I don’t.']],
+ test:[
+  {t:'mcq',q:'……… she play golf?',o:['Do','Does','Are'],c:1},
+  {t:'mcq',q:'Do you play word games? – Yes, ……… .',o:['I do','he does','they do'],c:0},
+  {t:'mcq',q:'Does she play computer games? – No, ……… .',o:['I don’t','she doesn’t','we can’t'],c:1},
+  {t:'mcq',q:'Do you ski?',o:['Yes, she does.','Yes, I do.','Yes, he does.'],c:1},
+  {t:'sort2',q:'صنِّفي: نقول play أم do؟',bins:['play + ⚽','do + 🎨'],
+   items:[['tennis',0],['pottery',1],['football',0],['painting',1],['basketball',0],['karate',1]]},
+  {t:'open',q:'اسألي ثلاثة أسئلة بـ Do / Does عن أفراد عائلتكِ.',
+   a:'مثال: Do you play tennis? Does your father play golf? Does your sister do painting?'}],
+ think:[
+  {t:'order',q:'رتِّبي: Does / your / brother / do / karate / ?',seq:['Does','your','brother','do','karate','?']},
+  {t:'create',q:'سِباق الأسئلة Question and Answer Race.',hints:'في دقيقة واحدة: اسألي ستَّة أسئلة بـ Do/Does وسجِّلي كم جوابًا صحيحًا سمعتِ.'}]},
+/* ---------- 11 ---------- */
+{u:U3,ch:C_RR,name:'more / the most · Falconry',ic:'🦅',
+ idea:'مع الصِّفات الطَّويلة نقول more للمُقارنة وthe most للأكثر، ونقرأ نصًّا عن الصَّقارة في المملكة.',
+ eq:'كيف أُقارن بصِفة طويلة؟ وماذا أعرف عن رياضة الصَّقارة؟',
+ vocab:[
+  ['exciting – more exciting – the most exciting','مُمتِع – أكثر إمتاعًا – الأكثر إمتاعًا.'],
+  ['dangerous / difficult / boring','خطِر / صعب / مُمِلّ.'],
+  ['falconry / a falcon','الصَّقارة / صَقر — a popular sport in the Kingdom of Saudi Arabia.'],
+  ['talons / prey','مخالب / فريسة — They have very sharp talons.']],
+ guess:[['Horse riding is ……… exciting than cycling.','more'],
+        ['Hang gliding is ……… dangerous.','the most']],
+ test:[
+  {t:'mcq',q:'Horse riding is ……… than cycling.',o:['exciting','more exciting','most exciting'],c:1},
+  {t:'mcq',q:'Sky diving is the ……… sport.',o:['exciting','more exciting','most exciting'],c:2},
+  {t:'tf',q:'Many people in Saudi Arabia like falconry.',c:true,fix:'صحيح: Falconry is a popular sport in the Kingdom of Saudi Arabia.'},
+  {t:'tf',q:'Falcons slow down when they dive to catch an animal.',c:false,fix:'خطأ: They can fly fast and dive even faster.'},
+  {t:'tf',q:'Falcons can see very far.',c:true,fix:'صحيح: They see very far, so they can spot animals kilometers away.'},
+  {t:'tf',q:'Falcons have soft talons.',c:false,fix:'خطأ: They have very sharp talons.'}],
+ think:[
+  {t:'create',q:'اكتُبي نشيد More and Most خاصًّا بكِ.',hints:'… is more exciting than … / … is the most dangerous. استعملي رياضتين تعرفينهما.'},
+  {t:'open',q:'لماذا يستطيع الصَّقر صيد فريسته من بعيد؟',a:'لأنَّه يرى بعيدًا جدًّا، ويطير سريعًا، وينقضُّ أسرع، ومخالبه حادَّة.'}]},
+/* ---------- 12 ---------- */
+{u:U3,ch:C_PH,name:'oi, oy · ere, air, ear',ic:'🪙',
+ idea:'صوت (أوي) يُكتب oi في الوسط وoy في النِّهاية، وصوت (إير) يُكتب ere أو air أو ear.',
+ eq:'كيف أكتُب صوت (أوي) وصوت (إير)؟',
+ vocab:[
+  ['oi → coin, point','عُملة، نُقطة — في وسط الكلمة.'],
+  ['oy → boy, toy','ولد، لُعبة — في نهاية الكلمة.'],
+  ['air / ere → hair, chair, pair, where','شَعر، كُرسيّ، زوج، أين.'],
+  ['ear → bear, pear, wear','دُبّ، كُمَّثرى، يلبس.']],
+ guess:[['c _ _ n (عُملة):','oi → coin'],['b _ _ (ولد):','oy → boy']],
+ test:[
+  {t:'mcq',q:'🪙 c __ __ n',o:['oi','oy','ee'],c:0},
+  {t:'mcq',q:'🧒 b __ __',o:['oi','oy','ea'],c:1},
+  {t:'mcq',q:'🪑 ch __ __ __',o:['air','ere','oy'],c:0},
+  {t:'mcq',q:'🐻 b __ __ __',o:['air','ear','ere'],c:1},
+  {t:'match',q:'صِلي الكلمة بمعناها.',
+   pairs:[['toy','لُعبة'],['hair','شَعر'],['pear','كُمَّثرى'],['where','أين']]},
+  {t:'open',q:'أكملي: I’d like to try rock climbing but ………',a:'… but there is no rock. (من نشيد I’d like to … but)'}],
+ think:[
+  {t:'create',q:'اصنعي نشيد I’d like to … but …',hints:'ثلاثة أسطُر: I’d like to try … but I have no … واقرئيها لأهلكِ.'},
+  {t:'open',q:'ما الفرق في الكتابة بين coin وboy؟',a:'oi تأتي في وسط الكلمة، وoy تأتي في آخرها.'}]},
+/* ---------- 13 ---------- */
+{u:U4,ch:C_FO,name:'Chores at home',ic:'🧹',
+ idea:'الأعمال المنزليَّة: نسأل What chores do you do? ونُجيب I feed the fish. ونستعمل sometimes.',
+ eq:'ما الأعمال الَّتي أقوم بها في البيت؟ وكيف أقولها بالإنجليزيَّة؟',
+ vocab:[
+  ['feed the fish / set the table','أُطعم السَّمك / أُجهِّز المائدة.'],
+  ['wash the dishes / vacuum the floor','أغسل الصُّحون / أُنظِّف الأرض بالمِكنسة.'],
+  ['clean up my room / go shopping','أُرتِّب غُرفتي / أذهب للتَّسوُّق.'],
+  ['take out the trash / fold the laundry','أُخرج القُمامة / أطوي الغسيل.']],
+ guess:[['What chores do you do? – ………','I wash the dishes.'],
+        ['Do you take out the trash, too? – ………','Yes, I do sometimes.']],
+ test:[
+  {t:'mcq',q:'What chores do you do?',o:['I ski.','I wash the dishes.','I live in Abha.'],c:1},
+  {t:'mcq',q:'Do you take out the trash?',o:['Yes, I do.','I live in Abha.','She does.'],c:0},
+  {t:'mcq',q:'Does she vacuum the floor? – Yes, ……… .',o:['she does','she doesn’t','I do'],c:0},
+  {t:'match',q:'صِلي العمل المنزليّ بصُورته.',
+   pairs:[['🐟','feed the fish'],['🍽️','set the table'],['🧺','fold the laundry'],['🗑️','take out the trash']]},
+  {t:'order',q:'رتِّبي: I / feed / the / fish.',seq:['I','feed','the','fish.']},
+  {t:'open',q:'اذكري ثلاثة أعمال تقومين بها في بيتكِ بالإنجليزيَّة.',
+   a:'مثال: I set the table. I clean up my room. I feed the fish.'}],
+ think:[
+  {t:'create',q:'جدول Check Your Chores.',hints:'ثمانية أعمال، ولكلٍّ منها: Always (٢) – Sometimes (١) – Never (٠). اجمعي نقاطكِ: ١٣ فأكثر = I’m a great helper at home!'},
+  {t:'open',q:'أيّ عمل منزليّ تُحبِّينه أكثر ولماذا؟',a:'مثال: I like feeding the fish because it is fun.'}]},
+/* ---------- 14 ---------- */
+{u:U4,ch:C_GR,name:'He washes · She goes',ic:'✍️',
+ idea:'مع he / she / it نُضيف s إلى الفِعل، وes بعد sh, ch, s, o مثل washes وgoes.',
+ eq:'كيف يتغيَّر الفِعل مع هو وهي؟',
+ vocab:[
+  ['feed → feeds, set → sets','I feed / He feeds. I set / She sets.'],
+  ['wash → washes, watch → watches','بعد sh وch نُضيف es.'],
+  ['go → goes, do → does','بعد o نُضيف es.'],
+  ['take → takes, fold → folds, clean → cleans','نُضيف s فقط.']],
+ guess:[['I wash the dishes. → He ……… the dishes.','washes'],
+        ['I go shopping. → She ……… shopping.','goes']],
+ test:[
+  {t:'mcq',q:'He ……… the fish.',o:['feed','feeds','feeding'],c:1},
+  {t:'mcq',q:'He ……… the table.',o:['set','setting','sets'],c:2},
+  {t:'mcq',q:'I ……… tennis.',o:['play','do','does'],c:0},
+  {t:'sort2',q:'صنِّفي الفِعل مع He: نُضيف s أم es؟',bins:['+ s','+ es'],
+   items:[['feed',0],['wash',1],['take',0],['go',1],['fold',0],['watch',1]]},
+  {t:'match',q:'صِلي الفِعل بصيغته مع He / She.',
+   pairs:[['clean','cleans'],['go','goes'],['vacuum','vacuums'],['wash','washes']]},
+  {t:'open',q:'أنشدي نشيد Chores: I wash… you wash… he ………?',a:'He washes the dishes. She washes the dishes. They wash the dishes.'}],
+ think:[
+  {t:'order',q:'رتِّبي: She / washes / the / dishes.',seq:['She','washes','the','dishes.']},
+  {t:'create',q:'لُعبة الخُطوط الثَّلاثة Make Sentences.',hints:'اكتُبي في عمود: I – He – She – They، وفي عمود آخر الأفعال، وصِلي بثلاثة ألوان لتُكوِّني ثلاث جُمل صحيحة.'}]},
+/* ---------- 15 ---------- */
+{u:U4,ch:C_RR,name:'Clever Robot · What are they doing now?',ic:'🤖',
+ idea:'نشيد الرَّجُل الآليّ، ونتحدَّث عمَّا يحدُث الآن: He’s watching TV. She’s eating a snack.',
+ eq:'كيف أقول ما يفعله شخص في هذه اللَّحظة؟',
+ vocab:[
+  ['I have a little robot','معي رَجُل آليّ صغير — the smartest ever seen.'],
+  ['He washes my dishes / keeps the house clean','يغسل صُحوني / يُبقي البيت نظيفًا.'],
+  ['He’s / She’s + فِعل + ing','الآن: He’s watching TV. She’s eating a snack.'],
+  ['usually / now','عادةً / الآن — She usually vacuums. Now she’s watching TV.']],
+ guess:[['What is she doing now? 📺','She’s watching TV.'],
+        ['ما الفرق بين She vacuums و She’s vacuuming؟','الأولى عادة، والثَّانية الآن.']],
+ test:[
+  {t:'mcq',q:'What is he doing now? 📺',o:['It is a book.','He is watching TV.','He likes dolphins.'],c:1},
+  {t:'mcq',q:'She ……… a snack now.',o:['eat','eats','is eating'],c:2},
+  {t:'match',q:'صِلي الجُملة بالصُّورة.',
+   pairs:[['🧹','He vacuums the floor.'],['🍽️','I wash the dishes.'],['🏺','I do pottery.'],['🐎','He likes riding a horse.']]},
+  {t:'tf',q:'The robot in the chant bakes bread and makes a drink.',c:true,fix:'صحيح: He bakes my bread, and makes me a drink.'},
+  {t:'order',q:'رتِّبي: I / have / a / little / robot.',seq:['I','have','a','little','robot.']},
+  {t:'open',q:'صِفي رَجُلكِ الآليّ: ماذا يفعل لكِ؟',a:'مثال: He cleans my room. He makes my breakfast. He is the smartest robot.'}],
+ think:[
+  {t:'create',q:'ارسمي رَجُلكِ الآليّ واكتُبي تحته ثلاث جُمل بالإنجليزيَّة.',hints:'He …s my … . استعملي أفعال البيت: washes, cleans, bakes, folds.'},
+  {t:'open',q:'ما الفرق بين a good helper و a poor helper؟',a:'الأوَّل يُساعد دائمًا في أعمال البيت، والثَّاني نادرًا ما يُساعد.'}]},
+/* ---------- 16 ---------- */
+{u:U4,ch:C_PH,name:'ar, or, er',ic:'🚗',
+ idea:'ثلاثة أصوات: ar في car وfarm، وor في fork وdoctor، وer في teacher وsister.',
+ eq:'أيَّ الحُروف أكتُب: ar أم or أم er؟',
+ vocab:[
+  ['ar → car, farm, park, dark','سيَّارة، مزرعة، حديقة، مُظلم.'],
+  ['or → fork, doctor','شَوكة، طبيب.'],
+  ['er → teacher, brother, sister','مُعلِّمة، أخ، أُخت.'],
+  ['How do you spell…?','كيف تتهجَّى…؟ — How do you spell teacher? t-e-a-c-h-e-r.']],
+ guess:[['He is playing with a toy c _ _ .','ar → car'],['She is a doct _ _ .','or → doctor']],
+ test:[
+  {t:'mcq',q:'🚗 c __ __',o:['or','ar','er'],c:1},
+  {t:'mcq',q:'🍴 f __ __ k',o:['or','ar','ur'],c:0},
+  {t:'mcq',q:'👨‍⚕️ doct __ __',o:['er','or','ar'],c:1},
+  {t:'mcq',q:'👧 sist __ __',o:['ar','ai','er'],c:2},
+  {t:'match',q:'صِلي الكلمة بمعناها.',
+   pairs:[['farm','مزرعة'],['park','حديقة'],['brother','أخ'],['teacher','مُعلِّمة']]},
+  {t:'open',q:'اهجئي بالإنجليزيَّة: fork ثمّ teacher.',a:'f-o-r-k و t-e-a-c-h-e-r'}],
+ think:[
+  {t:'create',q:'مُسابقة التَّهجئة Spelling Bee.',hints:'اطلُبي من أهلكِ كلمةً من درسكِ، واهجئيها حرفًا حرفًا بالإنجليزيَّة. عشر كلمات = بطلة!'},
+  {t:'sort2',q:'صنِّفي حسب الصَّوت.',bins:['ar 🚗','er 👩‍🏫'],
+   items:[['farm',0],['sister',1],['park',0],['brother',1],['dark',0],['teacher',1]]}]},
+/* ---------- 17 ---------- */
+{u:U5,ch:C_FO,name:'What time do you get up?',ic:'⏰',
+ idea:'نقول الوقت بالسَّاعات، ونسأل عن العادة usually وعن الأمس yesterday.',
+ eq:'كيف أقول الوقت؟ وكيف أُفرِّق بين ما أفعله عادةً وما فعلتُه أمس؟',
+ vocab:[
+  ['What time is it? It’s three o’clock.','كم السَّاعة؟ إنَّها الثَّالثة تمامًا.'],
+  ['usually','عادةً — I usually get up at seven.'],
+  ['yesterday','أمس — Yesterday, I got up at eight.'],
+  ['get up / go to bed','أستيقظ / أنام.']],
+ guess:[['What time do you go to bed? – ………','I usually go to bed at nine thirty.'],
+        ['What time did you go to bed yesterday? – ………','Yesterday, I went to bed at ten o’clock.']],
+ test:[
+  {t:'mcq',q:'What time is it? 🕒 (3:00)',o:['It is three o’clock.','It is four o’clock.','It is nine o’clock.'],c:0},
+  {t:'mcq',q:'I usually ……… up at 5:00.',o:['got','get','going'],c:1},
+  {t:'mcq',q:'What time did you get up yesterday?',o:['Yesterday, I got up at 5:30.','I usually get up at 5:30.','Yes, I did.'],c:0},
+  {t:'mcq',q:'What time do you take a bath?',o:['She plays basketball at 3:00.','I usually take a bath at 10:00.','No, I can’t.'],c:1},
+  {t:'sort2',q:'صنِّفي الجُملة: عادة أم أمس؟',bins:['usually 🔁','yesterday 📅'],
+   items:[['I get up at seven.',0],['I got up at eight.',1],['I go to bed at nine.',0],['I went to bed at ten.',1]]},
+  {t:'open',q:'ما الوقت الَّذي تستيقظين فيه عادةً؟ قوليها بالإنجليزيَّة.',a:'I usually get up at … o’clock.'}],
+ think:[
+  {t:'create',q:'قابلي مُعلِّمتكِ وصديقتيكِ Interview.',hints:'جدول: Name – Usually – Yesterday واسألي: What time do you go to bed? / What time did you go to bed yesterday?'},
+  {t:'open',q:'كيف نقرأ 7:15 و7:30 و8:45؟',a:'a quarter past seven / half past seven / a quarter to nine.'}]},
+/* ---------- 18 ---------- */
+{u:U5,ch:C_GR,name:'get up → got up (الماضي)',ic:'🕰️',
+ idea:'أفعال الماضي غير القياسيَّة: get up → got up، eat → ate، come → came، do → did، take → took، go → went.',
+ eq:'كيف أُحوِّل جُملتي إلى الأمس؟',
+ vocab:[
+  ['get up → got up','أستيقظ → استيقظتُ.'],
+  ['eat lunch → ate lunch','أتغدَّى → تغدَّيتُ.'],
+  ['come home → came home، do homework → did homework','أعود → عُدتُ، أحلُّ الواجب → حللتُه.'],
+  ['take a bath → took a bath، go to bed → went to bed','أستحمّ → استحممتُ، أنام → نِمتُ.']],
+ guess:[['Yesterday, I ……… my homework at 5 o’clock.','did'],
+        ['What time did you ……… to bed?','go (بعد did يبقى الفِعل بلا تغيير).']],
+ test:[
+  {t:'mcq',q:'Yesterday, I ……… my homework at 5 o’clock.',o:['did','do','does'],c:0},
+  {t:'mcq',q:'What time did you ……… to bed?',o:['going','went','go'],c:2},
+  {t:'mcq',q:'I usually ……… lunch at 1:00.',o:['eats','ate','eat'],c:2},
+  {t:'match',q:'صِلي الفِعل بماضيه.',
+   pairs:[['get up','got up'],['eat','ate'],['take','took'],['go','went']]},
+  {t:'order',q:'رتِّبي: Yesterday, / I / went / to / bed / at / nine.',
+   seq:['Yesterday,','I','went','to','bed','at','nine.']},
+  {t:'open',q:'ماذا فعلتِ أمس؟ ثلاث جُمل بالماضي.',
+   a:'مثال: Yesterday, I got up at seven. I ate lunch at one. I went to bed at nine.'}],
+ think:[
+  {t:'sort2',q:'صنِّفي: مُضارع أم ماضٍ؟',bins:['Now / usually','Yesterday'],
+   items:[['get up',0],['got up',1],['eat',0],['ate',1],['go',0],['went',1]]},
+  {t:'create',q:'اكتُبي يوميَّاتكِ My day yesterday.',hints:'خمس جُمل تبدأ كلٌّ منها بـ Yesterday, I … مع ذِكر الوقت.'}]},
+/* ---------- 19 ---------- */
+{u:U5,ch:C_RR,name:'What Time Do You Do It?',ic:'🛏️',
+ idea:'نشيد اليوم: At six o’clock, I jump out of bed and brush my teeth… ونقرأ السَّاعة بالرُّبع والنِّصف.',
+ eq:'ماذا أفعل في كلّ ساعة من يومي؟',
+ vocab:[
+  ['jump out of bed / brush my teeth','أقفز من السَّرير / أُنظِّف أسناني.'],
+  ['finish school / ride the bus home','ينتهي الدَّوام / أركب الحافلة إلى البيت.'],
+  ['meet my friends / dream a lot','أُقابل صديقاتي / أحلم كثيرًا.'],
+  ['a quarter past / half past / a quarter to','والرُّبع / والنِّصف / إلَّا رُبعًا.']],
+ guess:[['7:15 كيف نقرؤها؟','a quarter past seven'],['12:30 كيف نقرؤها؟','half past twelve']],
+ test:[
+  {t:'match',q:'صِلي الوقت بقراءته.',
+   pairs:[['7:15','a quarter past seven'],['12:30','half past twelve'],['3:00','three o’clock'],['8:45','a quarter to nine']]},
+  {t:'mcq',q:'At six o’clock, I ……… out of bed.',o:['jump','jumps','jumping'],c:0},
+  {t:'mcq',q:'At ten o’clock, I jump into bed and ……… a lot.',o:['dream','dreams','dreaming'],c:0},
+  {t:'tf',q:'في النَّشيد: At one o’clock, I finish school.',c:true,fix:'صحيح: At one o’clock, I finish school and ride the bus home.'},
+  {t:'order',q:'رتِّبي: I / brush / my / teeth.',seq:['I','brush','my','teeth.']},
+  {t:'open',q:'أنشدي مقطعًا من النَّشيد عن ساعةٍ من يومكِ.',a:'مثال: At seven o’clock, I eat my breakfast and go to school.'}],
+ think:[
+  {t:'create',q:'لُعبة الحركات Action Game.',hints:'مثِّلي بحركاتكِ ما تفعلينه في وقتٍ ما، ودَعي أهلكِ يقولون بالإنجليزيَّة: At … o’clock, you …'},
+  {t:'open',q:'ارسمي ساعةً وضعي عليها 9:30 ثمّ اقرئيها.',a:'half past nine.'}]},
+/* ---------- 20 ---------- */
+{u:U5,ch:C_PH,name:'ng, nk, ck',ic:'🔔',
+ idea:'نهايات الكلمات: ng في ring وspring، وnk في think وdrink، وck في rock وclock.',
+ eq:'أيَّ نهايةٍ أكتُب: ng أم nk أم ck؟',
+ vocab:[
+  ['ng → ring, spring, swing, wing','خاتم، رَبيع، أُرجوحة، جناح.'],
+  ['nk → think, drink, ink','يُفكِّر، يشرب، حِبر.'],
+  ['ck → rock, clock, back, thick','صخرة، ساعة، ظَهر، سميك.'],
+  ['sh, ch, ph, wh','ship, chair, phone, where.']],
+ guess:[['cl _ _ k (ساعة حائط):','ck → clock'],['swi _ _ (أُرجوحة):','ng → swing']],
+ test:[
+  {t:'mcq',q:'🕰️ clo __ __',o:['ng','nk','ck'],c:2},
+  {t:'mcq',q:'🎠 swi __ __',o:['ng','nk','ck'],c:0},
+  {t:'mcq',q:'🥤 dri __ __',o:['ck','nk','ng'],c:1},
+  {t:'mcq',q:'📱 __ __ one',o:['wh','ph','ch'],c:1},
+  {t:'match',q:'صِلي الكلمة بمعناها.',
+   pairs:[['ring','خاتم'],['rock','صخرة'],['think','يُفكِّر'],['spring','رَبيع']]},
+  {t:'open',q:'اذكري كلمةً تبدأ بكلٍّ من: sh, ch, ph, wh.',a:'مثال: ship, chair, phone, where.'}],
+ think:[
+  {t:'sort2',q:'صنِّفي حسب النِّهاية.',bins:['ng 🔔','ck 🪨'],
+   items:[['ring',0],['rock',1],['spring',0],['back',1],['wing',0],['thick',1]]},
+  {t:'create',q:'اصنعي قطار الأصوات.',hints:'ثلاث عربات: ng, nk, ck وضعي في كلّ عربة ثلاث كلمات من درسكِ.'}]},
+/* ---------- 21 ---------- */
+{u:U6,ch:C_FO,name:'Jobs · What does your dad do?',ic:'👩‍⚕️',
+ idea:'المِهن: نسأل What does your dad do? ونُجيب He’s a pilot.',
+ eq:'كيف أسأل عن مِهنة شخص وأُجيب؟',
+ vocab:[
+  ['astronaut / pilot / reporter','رائد فضاء / طيَّار / مُراسِل.'],
+  ['doctor / nurse / teacher','طبيب / مُمرِّضة / مُعلِّمة.'],
+  ['engineer / architect / lawyer','مُهندس / مُهندس مِعماريّ / مُحامٍ.'],
+  ['cook / diver / firefighter','طبَّاخ / غوَّاص / رَجُل إطفاء.']],
+ guess:[['What does your mom do? – ………','She’s a teacher.'],
+        ['What does your dad do? – ………','He’s a pilot.']],
+ test:[
+  {t:'mcq',q:'What does your uncle do?',o:['reporter','Ali','in the hospital'],c:0},
+  {t:'mcq',q:'What does he do? 👨‍⚕️',o:['He’s a lawyer.','He’s a doctor.','He is Ali.'],c:1},
+  {t:'match',q:'صِلي المِهنة بالرَّمز.',
+   pairs:[['👨‍🚀','astronaut'],['✈️','pilot'],['👩‍⚕️','nurse'],['🚒','firefighter']]},
+  {t:'match',q:'صِلي المِهنة بعملها.',
+   pairs:[['They put out fires.','firefighters'],['They fly planes.','pilots'],['He helps sick people.','a doctor'],['He designs buildings.','an architect']]},
+  {t:'order',q:'رتِّبي: Firefighters / put / out / fires.',seq:['Firefighters','put','out','fires.']},
+  {t:'open',q:'ما مِهنة والدكِ أو والدتكِ؟ قوليها بالإنجليزيَّة.',a:'My dad is a … . My mom is a … .'}],
+ think:[
+  {t:'create',q:'قابلي ثلاثة من أهلكِ Interview about jobs.',hints:'جدول: Name – Dad or Mom’s name – His or her job، واسألي: What’s your dad’s name? What does he do?'},
+  {t:'open',q:'أيّ مِهنة تُحبِّينها ولماذا؟',a:'مثال: I want to be a doctor because I want to help people.'}]},
+/* ---------- 22 ---------- */
+{u:U6,ch:C_GR,name:'Who? What? Where do they work?',ic:'🏥',
+ idea:'ثلاثة أسئلة: Who’s he? / What does he do? / Where does he work? وأماكن العمل.',
+ eq:'كيف أسأل عن الشَّخص وعمله ومكان عمله؟',
+ vocab:[
+  ['Who’s he? He’s Abdullah.','مَن هو؟ إنَّه عبدالله.'],
+  ['What does he do? He’s the pilot.','ماذا يعمل؟ إنَّه الطَّيَّار.'],
+  ['Where does he work? In a hospital.','أين يعمل؟ في مُستشفى.'],
+  ['a train station / a space station / a restaurant','مَحطَّة قِطار / مَحطَّة فضاء / مَطعم.']],
+ guess:[['A: ……… is he? B: He is my father.','Who'],
+        ['Where do they work? – ………','In the hospital.']],
+ test:[
+  {t:'mcq',q:'A: ……… is he? B: He is my father.',o:['Where','What','Who'],c:2},
+  {t:'mcq',q:'Where do they work?',o:['They are doctors.','In the hospital.','Yes, they do.'],c:1},
+  {t:'mcq',q:'Where do they work? ✈️',o:['They work in an airport.','She works in a hospital.','I am work in school.'],c:0},
+  {t:'match',q:'صِلي المِهنة بمكان العمل.',
+   pairs:[['a doctor','a hospital'],['a cook','a restaurant'],['an astronaut','a space station'],['a teacher','a school']]},
+  {t:'order',q:'رتِّبي: Where / does / he / work / ?',seq:['Where','does','he','work','?']},
+  {t:'open',q:'أنشدي مقطعًا من Space Station Crew.',
+   a:'Who’s he? He’s Abdullah. What does he do? He’s the pilot. Where does he work? In a station…'}],
+ think:[
+  {t:'create',q:'اصنعي طاقم مَحطَّة الفضاء.',hints:'ارسمي أربعة أشخاص واكتُبي لكلٍّ منهم: Who / What does he do / Where does he work.'},
+  {t:'open',q:'ما الفرق بين a train station و a space station؟',a:'الأولى مَحطَّة للقِطارات على الأرض، والثَّانية مَحطَّة في الفضاء.'}]},
+/* ---------- 23 ---------- */
+{u:U6,ch:C_RR,name:'When I grow up… · 1000 stars',ic:'🌟',
+ idea:'نشيد الأحلام: When I grow up, I want to be a … ونَعُدُّ إلى الألف بالعشرات والمئات.',
+ eq:'ماذا أُريد أن أكون عندما أكبر؟ وكيف أَعُدُّ إلى ١٠٠٠؟',
+ vocab:[
+  ['When I grow up, I want to be…','عندما أكبر، أُريد أن أكون…'],
+  ['a designer / a writer / a scientist','مُصمِّمة / كاتبة / عالِمة.'],
+  ['a presenter / a baker / a TV reporter','مُقدِّمة / خبَّازة / مُراسِلة تلفزيونيَّة.'],
+  ['ten, twenty… one hundred… one thousand','عشرة، عشرون… مئة… ألف.']],
+ guess:[['أكملي: When I grow up, I want to be ………','a doctor / a teacher / a scientist…'],
+        ['ما التَّالي: seven hundred, eight hundred, ………','nine hundred, one thousand.']],
+ test:[
+  {t:'mcq',q:'1000 =',o:['hundred','thousand','ten'],c:1},
+  {t:'mcq',q:'💤 كلمة الصُّورة (يحلُم):',o:['cook','dream','waiter'],c:1},
+  {t:'order',q:'رتِّبي الأعداد من الأصغر إلى الأكبر.',
+   seq:['ten','fifty','ninety','one hundred','one thousand']},
+  {t:'match',q:'صِلي كلّ حُلم بالمِهنة.',
+   pairs:[['I want to write books.','a writer'],['I want to bake bread.','a baker'],['I want to teach children.','a teacher'],['I want to make new things.','a scientist']]},
+  {t:'mcq',q:'When I grow up, I want ……… a doctor.',o:['to be','be','being'],c:0},
+  {t:'open',q:'ماذا تُريدين أن تكوني عندما تكبُرين؟',a:'When I grow up, I want to be a … .'}],
+ think:[
+  {t:'create',q:'ارسمي نفسكِ في المُستقبل.',hints:'ارسمي نفسكِ في مِهنتكِ واكتُبي تحتها: When I grow up, I want to be a … because …'},
+  {t:'open',q:'عُدِّي بالعشرات من ١٠ إلى ١٠٠ بالإنجليزيَّة.',
+   a:'ten, twenty, thirty, forty, fifty, sixty, seventy, eighty, ninety, one hundred.'}]},
+/* ---------- 24 ---------- */
+{u:U6,ch:C_PH,name:'silent kn, gh · reads / walks / teaches',ic:'🔇',
+ idea:'حُروف لا تُنطق: k في knife وgh في night، ونهاية الأفعال بثلاثة أصوات: /z/ /s/ /ɪz/.',
+ eq:'أيّ الحُروف لا تُنطق؟ وكيف أنطق نهاية الأفعال؟',
+ vocab:[
+  ['kn → knee, knob, knock, knife','رُكبة، مِقبض، يطرُق، سِكِّين — الـ k لا تُنطق.'],
+  ['gh → right, light, night','صحيح، ضوء، ليل — gh لا تُنطق.'],
+  ['/z/ → reads, comes, plays','صوت الزاي بعد الحُروف اللَّيِّنة.'],
+  ['/s/ → walks, sleeps, eats · /ɪz/ → teaches, washes, catches','صوت السِّين / صوت (إز).']],
+ guess:[['ni _ _ t (ليل):','gh → night'],['_ _ ife (سِكِّين):','kn → knife']],
+ test:[
+  {t:'mcq',q:'🌙 ni __ __ t',o:['kn','gh','ph'],c:1},
+  {t:'mcq',q:'🚪 __ __ ock',o:['kn','gh','ng'],c:0},
+  {t:'mcq',q:'💡 li __ __ t',o:['kn','gh','ck'],c:1},
+  {t:'mcq',q:'📱 __ __ one',o:['wh','ph','th'],c:1},
+  {t:'sort2',q:'صنِّفي نهاية الفِعل: صوت /s/ أم /ɪz/؟',bins:['/s/ walks','/ɪz/ teaches'],
+   items:[['sleeps',0],['washes',1],['eats',0],['catches',1],['walks',0],['brushes',1]]},
+  {t:'open',q:'اقرئي: knife – night – phone. أيُّ حرفٍ لا يُنطق في كلٍّ منها؟',
+   a:'knife: الـ k، night: الـ gh، phone: ph تُنطق ف.'}],
+ think:[
+  {t:'create',q:'اصنعي قائمة الحُروف الصَّامتة.',hints:'اكتُبي خمس كلمات فيها حرف لا يُنطق، وضعي خطًّا تحت الحرف الصَّامت.'},
+  {t:'open',q:'أنشدي One Thousand Stars وعُدِّي بالمئات إلى الألف.',
+   a:'One hundred, two hundred… nine hundred, ONE THOUSAND stars at night!'}]}
+];
+
+/* التحدي الكبير: سؤال من كل درس */
+const FINAL=[
+ ['What’s your name? How old are you? Where do you live? أجيبي عن الثَّلاثة.','My name’s … . I’m … years old. I live in … .'],
+ ['This is my mother. ……… name is Amal.','Her name is Amal.'],
+ ['Can we write hat with c, l, e? أجيبي بجُملة.','No, we can’t write hat.'],
+ ['أعطي كلمةً فيها ee وأُخرى فيها ai.','sheep / sleep و rain / train.'],
+ ['What’s that? 🦈 و What are those? 🦭🦭','It’s a shark. / They’re seals.'],
+ ['قارني: dolphin – shark – whale بكلمة fast.','A whale is fast. A shark is faster. A dolphin is the fastest.'],
+ ['أكملي التَّشبيه: as big as a … / as slow as a …','a whale / a seahorse.'],
+ ['أعطي كلمةً فيها oa وأُخرى فيها ou.','goat / boat و house / mouse.'],
+ ['What sport do you like? What do you want to try?','I like … . I want to try … .'],
+ ['Do you play tennis? / Does she play golf? أجيبي بالنَّفي.','No, I don’t. / No, she doesn’t.'],
+ ['قارني بـ exciting بين رياضتين.','Horse riding is more exciting than cycling.'],
+ ['أعطي كلمةً فيها oi وأُخرى فيها air.','coin / point و hair / chair.'],
+ ['ما ثلاثة أعمال منزليَّة بالإنجليزيَّة؟','I feed the fish. I set the table. I wash the dishes.'],
+ ['I wash → He ……… ، I go → She ………','He washes. / She goes.'],
+ ['What is she doing now? 🧹','She’s vacuuming the floor.'],
+ ['أعطي كلمةً فيها ar وأُخرى فيها er.','car / farm و teacher / sister.'],
+ ['What time is it? 🕘 (9:30)','It’s half past nine. / It’s nine thirty.'],
+ ['حوِّلي إلى الأمس: I get up at seven.','Yesterday, I got up at seven.'],
+ ['اقرئي: 7:15 و 8:45.','a quarter past seven / a quarter to nine.'],
+ ['أعطي كلمةً تنتهي بـ ng وأُخرى بـ ck.','ring / spring و clock / rock.'],
+ ['What does your dad do? What does your mom do?','He’s a … . She’s a … .'],
+ ['Where does a doctor work? And a cook?','In a hospital. / In a restaurant.'],
+ ['When I grow up, I want to be ……… ولماذا؟','I want to be a … because … .'],
+ ['أيّ حرفٍ لا يُنطق في: knife و night؟','الـ k في knife، وgh في night.']];
+
+/* ==================== 🚂 قِطار الكلمات ==================== */
+const ARN=['١','٢','٣','٤','٥','٦','٧','٨','٩','١٠','١١','١٢','١٣','١٤','١٥','١٦','١٧','١٨','١٩','٢٠','٢١','٢٢','٢٣','٢٤'];
+const UCOL=['#7FB3E6','#4FA8B8','#6FBF73','#E8A33D','#C87FBF','#E3705A'];
+const TRAIN=[
+ {n:'Nice to meet you!',st:'العربة الأولى تحمل التَّحيَّة: What’s your name? My name’s … . Nice to meet you, too.'},
+ {n:'my · your · his · her',st:'كلمات المِلكيَّة: My name is … . Whose shoes are these? They’re mine.'},
+ {n:'I have · He has',st:'نشيد الحُروف: I have a b, you have an i… ونقول Yes, we can / No, we can’t.'},
+ {n:'ee · ea · ai · ay',st:'أصوات الوحدة الأولى: sheep, meat, rain, play.'},
+ {n:'Sea animals',st:'حيوانات البحر: whale, shark, dolphin, seal, seahorse, walrus.'},
+ {n:'bigger · the biggest',st:'المُقارنة: Sharks are faster than whales. A baby seal is the cutest.'},
+ {n:'as … as …',st:'التَّشبيه: as big as a whale, as slow as a seahorse, as noisy as a seagull.'},
+ {n:'oa · ow · ou',st:'goat وsnow بصوت (أوو)، وhouse وcow بصوت (آو).'},
+ {n:'Sports and activities',st:'الرِّياضات: football, tennis, horse riding، والخطِرة: sky diving, rock climbing.'},
+ {n:'Do you…? Does he…?',st:'أفعال المُساعدة: Do you play tennis? Yes, I do. Does she ski? No, she doesn’t.'},
+ {n:'more · the most · falconry',st:'more exciting, the most dangerous، ونصّ الصَّقارة: a popular sport in Saudi Arabia.'},
+ {n:'oi · oy · air · ear',st:'coin, boy, chair, bear — أصوات الوحدة الثَّالثة.'},
+ {n:'Chores',st:'أعمال البيت: feed the fish, set the table, fold the laundry, take out the trash.'},
+ {n:'He washes · She goes',st:'مع he وshe نُضيف s أو es: washes, goes, watches.'},
+ {n:'Clever Robot',st:'نشيد الرَّجُل الآليّ: He washes my dishes and keeps the house clean.'},
+ {n:'ar · or · er',st:'car, fork, teacher — والتَّهجئة: How do you spell teacher?'},
+ {n:'What time is it?',st:'الوقت: It’s three o’clock. I usually get up at seven.'},
+ {n:'got up · ate · went',st:'الماضي: Yesterday, I got up at eight and went to bed at nine.'},
+ {n:'What Time Do You Do It?',st:'نشيد اليوم، وقراءة السَّاعة: a quarter past, half past, a quarter to.'},
+ {n:'ng · nk · ck',st:'ring, think, clock — نهايات الوحدة الخامسة.'},
+ {n:'Jobs',st:'المِهن: pilot, doctor, engineer, astronaut, firefighter, cook.'},
+ {n:'Where do they work?',st:'Who’s he? What does he do? Where does he work? In a hospital / a space station.'},
+ {n:'When I grow up…',st:'الأحلام: When I grow up, I want to be a scientist. ونَعُدُّ إلى ONE THOUSAND.'},
+ {n:'silent kn · gh',st:'knife وnight فيهما حرف لا يُنطق، ونهايات الأفعال: reads, walks, teaches.'}];
+
+function goTrain(){curLesson=-1;document.getElementById('backB').style.visibility='visible';
+ const got=TRAIN.filter((p,i)=>ST.after.includes(i)).length;
+ const all=got>=TRAIN.length;
+ if(all){applause(false);confetti();}
+ const CW=64, X0=196, W=X0+TRAIN.length*CW+70;
+ let cars='';
+ TRAIN.forEach((p,i)=>{ if(!ST.after.includes(i))return;
+  const x=X0+i*CW, col=UCOL[Math.floor(i/4)];
+  cars+=`<g class="car" data-i="${i}">
+   <rect x="${x}" y="252" width="54" height="46" rx="8" fill="${col}"/>
+   <rect x="${x+6}" y="258" width="42" height="24" rx="5" fill="#FFF8E7"/>
+   <text x="${x+27}" y="276" text-anchor="middle" font-size="17">${LESSONS[i].ic}</text>
+   <text x="${x+27}" y="294" text-anchor="middle" font-size="11" font-family="inherit" font-weight="800" fill="#fff">${ARN[i]}</text>
+   <rect x="${x+2}" y="298" width="50" height="5" rx="2" fill="#5A4636"/>
+   <g class="an-spinw"><circle cx="${x+14}" cy="308" r="8" fill="#3E3128"/><circle cx="${x+14}" cy="308" r="3" fill="#C9C2B6"/></g>
+   <g class="an-spinw"><circle cx="${x+40}" cy="308" r="8" fill="#3E3128"/><circle cx="${x+40}" cy="308" r="3" fill="#C9C2B6"/></g>
+   <rect x="${x+54}" y="276" width="10" height="4" rx="2" fill="#5A4636"/></g>`;});
+ const svg=`<svg viewBox="0 0 ${W} 360" width="${W}" height="300" style="display:block">
+  <defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#BFE3FA"/><stop offset="1" stop-color="#F1F8FF"/></linearGradient>
+   <linearGradient id="gr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#A9D890"/><stop offset="1" stop-color="#79B563"/></linearGradient></defs>
+  <rect width="${W}" height="360" fill="url(#sky)"/>
+  <g class="an-spin" style="transform-origin:90px 62px"><circle cx="90" cy="62" r="26" fill="#FFD75E"/>
+   ${[0,45,90,135,180,225,270,315].map(a=>`<rect x="88" y="26" width="4" height="12" rx="2" fill="#FFD75E" transform="rotate(${a} 90 62)"/>`).join('')}</g>
+  <g class="an-drift" opacity=".95"><ellipse cx="300" cy="70" rx="34" ry="18" fill="#fff"/><ellipse cx="330" cy="76" rx="26" ry="14" fill="#fff"/></g>
+  <g class="an-drift" style="animation-duration:34s" opacity=".9"><ellipse cx="${Math.min(W-160,620)}" cy="52" rx="30" ry="16" fill="#fff"/><ellipse cx="${Math.min(W-130,650)}" cy="58" rx="22" ry="12" fill="#fff"/></g>
+  <g class="an-fly2"><path d="M40 108 q9 -8 18 0 q9 -8 18 0" stroke="#5B6B85" stroke-width="2.5" fill="none" stroke-linecap="round"/></g>
+  <ellipse cx="${W*0.25}" cy="252" rx="220" ry="46" fill="#BFE3A8"/><ellipse cx="${W*0.75}" cy="256" rx="240" ry="42" fill="#B2DC9B"/>
+  <rect x="0" y="250" width="${W}" height="110" fill="url(#gr)"/>
+  <rect x="0" y="316" width="${W}" height="7" fill="#8A6A45"/>
+  ${Array.from({length:Math.ceil(W/26)},(_,k)=>`<rect x="${k*26}" y="311" width="9" height="17" rx="2" fill="#6E5335"/>`).join('')}
+  <rect x="0" y="313" width="${W}" height="3" fill="#B9AFA0"/><rect x="0" y="325" width="${W}" height="3" fill="#B9AFA0"/>
+  <g class="an-puff"><circle cx="112" cy="196" r="11" fill="#fff" opacity=".85"/></g>
+  <g class="an-puff" style="animation-delay:1s"><circle cx="112" cy="196" r="9" fill="#fff" opacity=".7"/></g>
+  <g>
+   <rect x="60" y="236" width="120" height="62" rx="10" fill="#E3705A"/>
+   <rect x="150" y="204" width="34" height="34" rx="6" fill="#C9553F"/>
+   <rect x="156" y="212" width="22" height="16" rx="4" fill="#FFF8E7"/>
+   <rect x="96" y="212" width="20" height="28" rx="5" fill="#C9553F"/>
+   <path d="M92 212 h28 l6 -10 h-40 z" fill="#C9553F"/>
+   <rect x="56" y="288" width="130" height="8" rx="3" fill="#5A4636"/>
+   <g class="an-spinw"><circle cx="86" cy="308" r="12" fill="#3E3128"/><circle cx="86" cy="308" r="4" fill="#C9C2B6"/></g>
+   <g class="an-spinw"><circle cx="128" cy="308" r="10" fill="#3E3128"/><circle cx="128" cy="308" r="3.5" fill="#C9C2B6"/></g>
+   <g class="an-spinw"><circle cx="164" cy="308" r="10" fill="#3E3128"/><circle cx="164" cy="308" r="3.5" fill="#C9C2B6"/></g>
+   <text x="120" y="272" text-anchor="middle" font-size="15" font-family="inherit" font-weight="800" fill="#FFF8E7">ENGLISH</text>
+  </g>
+  ${cars}
+  ${got?'':`<text x="${Math.round(W/2)}" y="150" text-anchor="middle" font-size="18" font-family="inherit" font-weight="800" fill="#2B5B8A">القِطار ينتظر عرباته... اكسبي أوَّل شارة! 🚂</text>`}
+ </svg>`;
+ stage.innerHTML=`${chip('🚂 مشروعي: قِطار الكلمات','story')}<div class="card">
+  <h1 style="font-size:22px">${all?'🏆 اكتمل قِطار الكلمات!':'قِطار الكلمات'}</h1>
+  <p class="sub" style="margin-bottom:8px">${all?'اعرضي قِطاركِ على العائلة، واضغطي على كلّ عربة واحكي ماذا تعلَّمتِ فيها بالإنجليزيَّة!':'كلّ شارة درس تُضيف عربةً جديدةً إلى قِطاركِ. 🚃 '+got+' من ٢٤ عربةً'}</p>
+  <div id="trainbox" dir="ltr" style="overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:18px">${svg}</div>
+  <p class="sub" style="font-size:12.5px;margin:8px 0 0">اسحبي القِطار يمينًا ويسارًا لتري كلّ العربات 👉</p>
+  <div style="text-align:right;margin-top:12px">
+   ${TRAIN.map((p,i)=>{const ok=ST.after.includes(i);
+     return `<div class="fitem" data-i="${i}" style="padding:8px 10px;border-radius:12px;margin-bottom:6px;background:${ok?'#F2F8FF':'#F3F3EE'};border:2px solid ${ok?'var(--line)':'#E4E4DC'};font-weight:800;font-size:14px;cursor:${ok?'pointer':'default'};color:${ok?'var(--ink)':'#A8B3A8'}">
+      ${ok?'🚃':'🔒'} ${p.n} <span style="font-weight:700;font-size:12px;color:#6C86A8">${ok?'· اضغطي واحكي ماذا تعلَّمتِ':'· تفتحينها بشارة الدَّرس '+ARN[i]}</span>
+      <div class="fst" style="display:none;font-weight:700;font-size:13.5px;line-height:1.7;margin-top:6px;background:#FFF9E3;border-radius:10px;padding:8px">💡 ${p.st}</div></div>`;}).join('')}
+  </div></div>`;
+ stage.querySelectorAll('.fitem').forEach(d=>{const i=+d.dataset.i;
+  if(ST.after.includes(i))d.onclick=()=>{const f=d.querySelector('.fst');f.style.display=f.style.display==='none'?'block':'none';};});
+ const tb=document.getElementById('trainbox');if(tb)tb.scrollLeft=0;
+ window.scrollTo({top:0});
+}
+
+/* ==================== الحالة والحفظ ==================== */
+const SKEY_BASE='maria_english_t1';const SKEY=()=>SKEY_BASE+profSuffix();
+/* ==================== 👧 الملف الشخصي (اسم اللاعبة وتقدّمها على هذا الجهاز) ==================== */
+const PROF_KEY='maria_games_profile';let PROFILE=null;try{PROFILE=JSON.parse(localStorage.getItem(PROF_KEY)||'null');}catch(e){}
+function profName(){return (PROFILE&&PROFILE.name)||'ماريا';}
+function profSuffix(){return PROFILE&&PROFILE.name&&PROFILE.name!=='ماريا'?'::'+PROFILE.name:'';}
+function profURL(){return '/progress?u='+encodeURIComponent(profName());}
+function profSub(v){const n=profName();return n==='ماريا'?v:String(v).replace(/ماريا/g,n);}
+(function(){try{const d=Object.getOwnPropertyDescriptor(Element.prototype,'innerHTML');const hook=el=>{if(!el)return;Object.defineProperty(el,'innerHTML',{set(v){d.set.call(this,profSub(v));},get(){return d.get.call(this);},configurable:true});};hook(document.getElementById('stage'));hook(document.querySelector('#ovl .inner'));
+ const td=Object.getOwnPropertyDescriptor(Node.prototype,'textContent');const t=document.getElementById('toast');if(t)Object.defineProperty(t,'textContent',{set(v){td.set.call(this,profSub(v));},get(){return td.get.call(this);},configurable:true});document.title=profSub(document.title);}catch(e){}})();
+function profKnown(base){const names=new Set();try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith(base+'::'))names.add(k.slice(base.length+2));}if(localStorage.getItem(base))names.add('ماريا');}catch(e){}if(PROFILE&&PROFILE.name)names.add(PROFILE.name);return [...names];}
+function profAsk(change){document.getElementById('backB').style.visibility=change?'visible':'hidden';const known=profKnown(SKEY_BASE);const cur=PROFILE?PROFILE.name:'';
+ stage.innerHTML=`<div class="card"><div class="big">👧✨</div><h1 style="font-size:22px">${change?'تغيير الاسم':'أهلًا بكِ يا بطلة!'}</h1>
+  <p class="sub">${change?'اكتبي اسمًا جديدًا، أو اختاري اسمًا محفوظًا على هذا الجهاز. لكل اسم تقدّمه ونجومه الخاصة.':'اكتبي اسمكِ مرة واحدة فقط؛ سيبقى محفوظًا على هذا الجهاز، وتُكملين دائمًا من حيث توقّفتِ.'}</p>
+  <input id="pname" maxlength="20" placeholder="اسمكِ هنا…" value="${cur.replace(/"/g,'')}" style="font-family:inherit;font-size:22px;font-weight:800;text-align:center;width:100%;max-width:320px;border:2px solid #C9D2DE;border-radius:16px;padding:10px 14px;margin:6px 0 10px;background:#fff">
+  ${known.length?`<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:10px">${known.map(n=>`<button style="font-size:14px;padding:6px 14px" onclick="document.getElementById('pname').value=${JSON.stringify(n)}">👧 ${n}</button>`).join('')}</div>`:''}
+  <button class="go" onclick="profSave()">${change?'احفظي ✔':'هيا نبدأ ✨'}</button>${change?'<div style="height:8px"></div><button onclick="goMap()">رجوع</button>':''}</div>`;
+ const inp=document.getElementById('pname');inp.onkeydown=e=>{if(e.key==='Enter')profSave();};if(!change)setTimeout(()=>inp.focus(),200);window.scrollTo({top:0});}
+function profSave(){const inp=document.getElementById('pname');const n=(inp.value||'').trim().replace(/\s+/g,' ');if(!n){inp.classList.add('wrong');inp.style.borderColor='#E39B9B';setTimeout(()=>inp.classList.remove('wrong'),400);return;}
+ PROFILE={name:n,d:new Date().toISOString()};try{localStorage.setItem(PROF_KEY,JSON.stringify(PROFILE));}catch(e){}location.reload();}
+function profBoot(){if(PROFILE){goMap();serverLoad();}else profAsk(false);}
+
+let ST={stars:0,before:[],after:[],think:[],finalDone:false};
+function load(){try{const s=localStorage.getItem(SKEY());if(s)ST={...ST,...JSON.parse(s)};}catch(e){}}
+function save(){try{localStorage.setItem(SKEY(),JSON.stringify(ST));}catch(e){}serverSave();}
+let __sv=null;
+function serverSave(){clearTimeout(__sv);__sv=setTimeout(()=>{try{fetch(profURL(),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(ST)}).catch(()=>{});}catch(e){}},250);}
+function mergeST(a,b){const u=(x,y)=>Array.from(new Set([...(x||[]),...(y||[])]));const m={...a,...b};m.stars=Math.max(+a.stars||0,+b.stars||0);['before','after','think'].forEach(k=>m[k]=u(a[k],b[k]));m.finalDone=!!(a.finalDone||b.finalDone);m.exams=exMergeAttempts(a.exams,b.exams);return m;}
+function serverLoad(){try{fetch(profURL()).then(r=>r.ok?r.json():null).then(j=>{if(!j||typeof j!=='object'||Array.isArray(j))return;ST=mergeST(ST,j);try{localStorage.setItem(SKEY(),JSON.stringify(ST))}catch(e){};drawStars();applySound();if(curLesson===-1)goMap();}).catch(()=>{});}catch(e){}}
+function sndOn(){return ST.sound!==false;}
+function applySound(){const b=document.getElementById('sndB');if(b)b.textContent=sndOn()?'\u{1F50A}':'\u{1F507}';}
+function toggleSound(){ST.sound=sndOn()?false:true;save();applySound();}
+function exportProgress(){const blob=new Blob([JSON.stringify(ST,null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='third-grade-english-progress.json';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},600);}
+function importProgress(){const f=document.getElementById('impF');f.value='';f.onchange=()=>{const file=f.files[0];if(!file)return;const rd=new FileReader();rd.onload=()=>{try{const j=JSON.parse(rd.result);if(!j||typeof j!=='object'||Array.isArray(j))throw 0;ST=mergeST(ST,j);save();drawStars();applySound();alert('\u062a\u0645\u064e\u0651 \u0627\u0633\u062a\u0631\u062c\u0627\u0639 \u0627\u0644\u0646\u064f\u0651\u0633\u062e\u0629 \u0628\u0646\u062c\u0627\u062d! \u{1F31F}');goMap();}catch(e){alert('\u0627\u0644\u0645\u0644\u0641\u064f\u0651 \u063a\u064a\u0631 \u0635\u0627\u0644\u062d.');}};rd.readAsText(file);};f.click();}
+function hardReset(){if(confirm('هل تُريدين حقًّا البدء من جديد؟ سيُمسح كلّ التَّقدُّم والنُّجوم.')){ST={stars:0,before:[],after:[],think:[],finalDone:false};try{localStorage.removeItem(SKEY())}catch(e){}try{fetch(profURL(),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(ST)}).catch(()=>{}).finally(()=>location.reload());setTimeout(()=>location.reload(),800);}catch(e){location.reload();}}}
+load();
+
+let Q=[],qi=0,curLesson=-1,curMode='',stage=document.getElementById('stage');
+function drawStars(){document.getElementById('stars').textContent=ST.stars;}
+function addStar(n=1){ST.stars+=n;save();drawStars();}
+function beep(good){if(!sndOn())return;try{const C=window.__ac||(window.__ac=new (window.AudioContext||window.webkitAudioContext)());
+  const o=C.createOscillator(),g=C.createGain();o.connect(g);g.connect(C.destination);
+  o.frequency.value=good?740:200;g.gain.setValueAtTime(.12,C.currentTime);
+  g.gain.exponentialRampToValueAtTime(.001,C.currentTime+.25);o.start();o.stop(C.currentTime+.25);
+  if(good){const o2=C.createOscillator(),g2=C.createGain();o2.connect(g2);g2.connect(C.destination);
+   o2.frequency.value=988;g2.gain.setValueAtTime(.1,C.currentTime+.1);
+   g2.gain.exponentialRampToValueAtTime(.001,C.currentTime+.35);o2.start(C.currentTime+.1);o2.stop(C.currentTime+.35);}
+}catch(e){}}
+function ac(){return window.__ac||(window.__ac=new (window.AudioContext||window.webkitAudioContext)());}
+let __nz=null;
+function noiseBuf(){const C=ac();if(__nz)return __nz;const b=C.createBuffer(1,Math.floor(C.sampleRate*0.06),C.sampleRate);const d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2);__nz=b;return b;}
+function tone(f,t0,d,type,vol,dest){if(!sndOn())return;const C=ac();const o=C.createOscillator(),g=C.createGain();o.type=type||'sine';o.frequency.setValueAtTime(f,t0);g.gain.setValueAtTime(0.0001,t0);g.gain.linearRampToValueAtTime(vol,t0+.02);g.gain.exponentialRampToValueAtTime(.0005,t0+d);o.connect(g);g.connect(dest||C.destination);o.start(t0);o.stop(t0+d+.05);}
+function sparkle(){try{const C=ac(),t0=C.currentTime;[523,659,784,1047,1319].forEach((f,i)=>{tone(f,t0+i*.07,.4,'sine',.13);tone(f*2,t0+i*.07,.25,'sine',.035);});tone(2093,t0+.42,.6,'sine',.05);}catch(e){}}
+function tada(){if(!sndOn())return;try{const C=ac(),t0=C.currentTime;const lp=C.createBiquadFilter();lp.type='lowpass';lp.frequency.value=2400;lp.connect(C.destination);
+ const chord=(fs,t,d)=>fs.forEach(f=>{tone(f,t,d,'triangle',.085,lp);tone(f/2,t,d,'sine',.06,lp);});
+ chord([523,659,784],t0,.34);chord([587,740,880],t0+.32,.34);chord([659,831,988],t0+.64,.4);chord([784,988,1175,1568],t0+1.0,1.3);
+ [1568,1976,2349,3136].forEach((f,i)=>tone(f,t0+1.06+i*.08,.7,'sine',.05));
+ const o=C.createOscillator(),g=C.createGain();o.frequency.setValueAtTime(130,t0+1.0);o.frequency.exponentialRampToValueAtTime(48,t0+1.3);g.gain.setValueAtTime(.28,t0+1.0);g.gain.exponentialRampToValueAtTime(.001,t0+1.45);o.connect(g);g.connect(C.destination);o.start(t0+1.0);o.stop(t0+1.5);
+}catch(e){}}
+function applause(big){if(!sndOn())return;try{const C=ac(),t0=C.currentTime;const lp=C.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1700;const g=C.createGain();
+ g.gain.setValueAtTime(0.0001,t0);g.gain.linearRampToValueAtTime(big?.55:.32,t0+.35);g.gain.setValueAtTime(big?.55:.32,t0+(big?1.7:.9));g.gain.exponentialRampToValueAtTime(.001,t0+(big?2.8:1.7));lp.connect(g);g.connect(C.destination);
+ const n=big?80:40,dur=big?2.3:1.3;for(let k=0;k<n;k++){const s=C.createBufferSource();s.buffer=noiseBuf();const bp=C.createBiquadFilter();bp.type='bandpass';bp.frequency.value=500+Math.random()*1900;bp.Q.value=.7;const cg=C.createGain();const at=t0+Math.random()*dur;cg.gain.setValueAtTime(.3+Math.random()*.3,at);cg.gain.exponentialRampToValueAtTime(.001,at+.1);s.connect(bp);bp.connect(cg);cg.connect(lp);s.start(at);}}catch(e){}}
+function confetti(n){const em=['🚂','⭐','🔤','💙','🎈','✨'];
+ for(let i=0;i<(n||18);i++){const s=document.createElement('span');s.className='conf';
+  s.textContent=em[i%em.length];s.style.left=Math.random()*100+'vw';s.style.top='-30px';
+  s.style.animationDelay=(Math.random()*.5)+'s';document.body.appendChild(s);
+  setTimeout(()=>s.remove(),2200);}}
+const PRAISE=['Well done يا ماريا! 🌟','Excellent! 👏','رائع! Very good 🎉','صحيح! Correct ✅','عقل ذكيّ! 💡','Perfect! ✨','يا سلام عليكِ! 🌸','You are a star! ⭐'];
+let __ts=null;
+function cheer(){const tt=document.getElementById('toast');tt.textContent=PRAISE[Math.floor(Math.random()*PRAISE.length)];
+ tt.classList.add('show');clearTimeout(__ts);__ts=setTimeout(()=>tt.classList.remove('show'),1300);
+ sparkle();confetti(8);}
+function showFix(html,withNext){const f=document.getElementById('fx');if(f){f.innerHTML=html;f.classList.add('show');}
+ const m=document.getElementById('mk');if(withNext&&m)m.classList.add('show');}
+function confetti(n){const em=['🚂','⭐','🔤','💙','🎈','✨'];
+ for(let i=0;i<(n||18);i++){const s=document.createElement('span');s.className='conf';
+  s.textContent=em[i%em.length];s.style.left=Math.random()*100+'vw';s.style.top='-30px';
+  s.style.animationDelay=(Math.random()*.5)+'s';document.body.appendChild(s);
+  setTimeout(()=>s.remove(),2200);}}
+function say(t){try{if(!sndOn())return;const u=new SpeechSynthesisUtterance(String(t).replace(/[^A-Za-z0-9'’,.?! -]/g,' ').trim());if(!u.text)return;u.lang='en-US';u.rate=.85;speechSynthesis.cancel();speechSynthesis.speak(u);}catch(e){}}
+function sayable(t){return /[A-Za-z]{2}/.test(String(t));}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function chip(s,cls){return s?`<div class="chip ${cls||''}">${s}</div>`:'';}
+
+/* ==================== الخريطة ==================== */
+function goMap(){curLesson=-1;document.getElementById('backB').style.visibility='hidden';
+ const allDone=ST.after.length>=LESSONS.length;
+ let html=`<div class="card" style="padding:16px">
+  <div class="big" style="font-size:40px">🚂🔤</div>
+  <h1 style="font-size:22px">قِطار الكلمات</h1>
+  <p class="sub" style="margin-bottom:6px">أهلًا يا ماريا! 🇬🇧<br>📖 قبل الحصّة: فكرة وكلمات إنجليزيّة.<br>✏️ بعد الحصّة: اختبار ← شارة وعربة للقِطار.<br>🧠 فكّري أكثر: ألعاب ومشاريع.</p>
+  <div class="pbar"><i style="width:${Math.round(ST.after.length/LESSONS.length*100)}%"></i></div>
+  <p class="sub" style="margin:0 0 10px">🏅 ${ST.after.length} من ${LESSONS.length} شارةً · 🚃 ${ST.after.length} من ٢٤ عربةً في قِطاركِ</p><button class="go" style="font-size:16px;padding:10px 26px" onclick="goTrain()">🚂 شاهدي قِطاركِ</button><div style="height:8px"></div><button class="go" style="font-size:15px;padding:9px 22px;background:#1E2A3A;border-color:#0F1826;box-shadow:0 4px 0 #0F1826" onclick="exChoose()">📝 اختبار تجريبي</button></div>`;
+ let lastU='',lastC='';
+ LESSONS.forEach((L,i)=>{
+  if(L.u!==lastU){html+=`<div class="uhead">${L.u}</div>`;lastU=L.u;lastC='';}
+  if(L.ch!==lastC){html+=`<div class="chead">${L.ch}</div>`;lastC=L.ch;}
+  const bd=ST.before.includes(i),ad=ST.after.includes(i),td=(ST.think||[]).includes(i);
+  html+=`<div class="lrow ${ad?'done':''}">
+    <div class="lic">${L.ic}${ad?`<span class="tick ${td&&bd?'gold':''}">✓</span>`:''}</div>
+    <div class="lt"><b>الدَّرس ${ARN[i]}: ${L.name}</b>
+      <small>${ad&&bd&&td?'✓ الدَّرس مُكتمل بالكامل!':ad?'✓ تمّ الدَّرس · 🏅 الشَّارة معكِ':bd?'مُستعدَّة للحصَّة ✔':'ابدئي بالاستعداد'}</small></div>
+    <div class="lbtns">
+      <button class="bprep ${bd?'done':''}" onclick="startPrep(${i})">📖 قبل الحصَّة ${bd?'✔':''}</button>
+      <button class="btest ${ad?'done':''}" onclick="startTest(${i})">✏️ بعد الحصَّة ${ad?'🏅':''}</button>
+      <button class="bthink ${td?'done':''}" onclick="startThink(${i})">🧠 فكِّري أكثر ${td?'🌟':''}</button>
+    </div></div>`;
+ });
+ html+=`<div class="uhead">👑 التَّحدِّي الكبير</div>
+  <div class="lrow ${allDone?'':'lockrow'}">
+   <div class="lic">${ST.finalDone?'🏆':allDone?'👑':'🔒'}</div>
+   <div class="lt"><b>امزجي الدُّروس كلَّها!</b>
+     <small>${ST.finalDone?'أنتِ بطلة الإنجليزيّة! 🏆':allDone?'كلّ الشّارات معكِ: هيّا!':'اجمعي الشّارات الأربع والعشرين أوّلًا ('+ST.after.length+'/24)'}</small></div>
+   <div class="lbtns"><button class="btest" ${allDone?'':'disabled'} onclick="startFinal()">ابدئي 🚀</button></div>
+  </div>`;
+ stage.innerHTML=html;window.scrollTo({top:0});drawStars();
+}
+
+/* ==================== وضع قبل الحصة ==================== */
+function startPrep(i){curLesson=i;curMode='prep';const L=LESSONS[i];
+ document.getElementById('backB').style.visibility='visible';
+ Q=[
+  {t:'idea',L},
+  {t:'vocab',L},
+  ...L.guess.map(g=>({t:'open',prep:1,q:g[0],a:g[1]})),
+  {t:'prepDone',L,i}
+ ];qi=0;render();}
+
+/* ==================== وضع بعد الحصة ==================== */
+function startTest(i){curLesson=i;curMode='test';const L=LESSONS[i];
+ document.getElementById('backB').style.visibility='visible';
+ Q=[...L.test.map(s=>({...s,stage:`الدَّرس: ${L.name} ${L.ic}`})),{t:'lessonBadge',L,i}];qi=0;render();}
+
+function startThink(i){curLesson=i;curMode='think';const L=LESSONS[i];
+ document.getElementById('backB').style.visibility='visible';
+ Q=[...L.think.map(s=>({...s,stage:`🧠 فكِّري أكثر · ${L.name}`})),{t:'thinkDone',L,i}];qi=0;render();}
+
+function startFinal(){curMode='final';
+ document.getElementById('backB').style.visibility='visible';
+ Q=[{t:'deck',stage:'👑 التَّحدِّي الكبير · سُؤال من كلّ درس',
+     q:'٢٤ سُؤالًا. أجيبي بصوتِك بالإنجليزيّة، ثُمّ اكشفي وقيّمي نفسَك.',cards:FINAL},
+    {t:'trophy'}];qi=0;render();}
+
+function next(){qi++;if(qi>=Q.length){goMap();return;}render();window.scrollTo({top:0,behavior:'smooth'});}
+
+/* ==================== المحرّك ==================== */
+function render(){
+ const s=Q[qi];
+ if(s.t==='idea'){const L=s.L;
+  stage.innerHTML=`${chip('📖 قبل الحصَّة · الدَّرس: '+L.name,'prep')}<div class="card">
+   <div class="big">${L.ic}</div><h1 style="font-size:22px">${L.name}</h1>
+   <div class="qbox" style="text-align:right"><b>ماذا سأتعلَّم اليوم؟</b><br>${L.idea}</div>
+   <div class="qbox" style="text-align:right;background:#FFF9E3;border-color:var(--sun)"><b>السُّؤال الأساسيّ 🤔</b><br>${L.eq}</div>
+   
+   <button class="go" onclick="next()">تابعي ⬅</button></div>`;return;}
+ if(s.t==='vocab'){const L=s.L;let seen=0,need=L.vocab.length;
+  stage.innerHTML=`${chip('📖 كلمات الدَّرس الجديدة','prep')}<div class="card">
+   <p class="sub" style="margin-bottom:6px">اضغطي على الكلمة لتسمعيها 🔊 وتري معناها.</p>
+   <div class="vgrid">${L.vocab.map((v,k)=>`<div class="vcard" data-k="${k}" data-open="0">${v[0]}</div>`).join('')}</div>
+   <div class="nav"><button class="go" id="vn" disabled>عرفت الكلمات! (0/${need})</button></div></div>`;
+  const vn=document.getElementById('vn');
+  stage.querySelectorAll('.vcard').forEach(c=>{const k=+c.dataset.k;
+   c.onclick=()=>{const open=c.dataset.open==='1';
+    if(open){c.dataset.open='0';c.classList.remove('open');c.textContent=L.vocab[k][0];say(L.vocab[k][0]);}
+    else{c.dataset.open='1';c.classList.add('open');c.textContent=L.vocab[k][1];say(L.vocab[k][0]);
+     if(!c.classList.contains('seen')){c.classList.add('seen');seen++;beep(true);
+      vn.textContent=`عرفت الكلمات! (${seen}/${need})`;if(seen===need)vn.disabled=false;}}};});
+  vn.onclick=next;return;}
+ if(s.t==='prepDone'){const L=s.L;
+  if(!ST.before.includes(s.i)){ST.before.push(s.i);addStar(2);save();}
+  confetti();tada();
+  stage.innerHTML=`${chip('📖 قبل الحصة','prep')}<div class="card">
+   <div class="big">🎒✨</div><h1>أنتِ مُستعدَّة يا ماريا!</h1>
+   <p class="sub">بعد الحصَّة: اختبري نفسكِ واكسبي الشَّارة ${L.ic}</p>
+   <button class="go" onclick="goMap()">العودة إلى الخريطة 🏡</button></div>`;return;}
+ if(s.t==='lessonBadge'){const L=s.L;
+  const first=!ST.after.includes(s.i);
+  if(first){ST.after.push(s.i);save();}
+  confetti();tada();applause(false);
+  const ov=document.getElementById('ovl');
+  ov.querySelector('.inner').innerHTML=`<div class="bicon">${L.ic}</div>
+   <h1>شارة «${L.name}»!</h1>
+   <p class="sub">${first?'أحسنتِ يا ماريا! شارة جديدة تنضمّ إلى مجموعتكِ! 🌟':'راجعتِ الدَّرس من جديد، رائع! 🌟'}</p>
+   ${first?`<p class="sub">🚃 أُضيفت عربة جديدة إلى قِطاركِ: <b>${TRAIN[s.i].n}</b>!</p>`:''}
+   <button class="go" onclick="document.getElementById('ovl').classList.remove('show');goTrain()">شاهدي القِطار 🚂</button>
+   <div style="height:8px"></div>
+   <button onclick="document.getElementById('ovl').classList.remove('show');goMap()">العودة إلى الخريطة</button>`;
+  ov.classList.add('show');return;}
+ if(s.t==='thinkDone'){const L=s.L;
+  if(!ST.think)ST.think=[];
+  const first=!ST.think.includes(s.i);
+  if(first){ST.think.push(s.i);addStar(3);save();}
+  confetti();tada();
+  stage.innerHTML=`${chip('🧠 فكِّري أكثر','story')}<div class="card">
+   <div class="big">🧠✨</div><h1>عقلكِ يكبر يا ماريا!</h1>
+   <p class="sub">فكَّرتِ خارج الكتاب في درس <b>${L.name}</b> ${L.ic}${first?'، وحصلتِ على ٣ نُجوم إضافيَّة!':'. رائع أنَّكِ عُدتِ إليه!'}</p>
+   <button class="go" onclick="goMap()">العودة إلى الخريطة 🏡</button></div>`;return;}
+ if(s.t==='trophy'){
+  if(!ST.finalDone){ST.finalDone=true;addStar(10);save();}
+  applause(true);tada();confetti();setTimeout(confetti,600);
+  stage.innerHTML=`<div class="card"><div class="big">🏆👑</div>
+   <h1>مبروك يا ماريا، بطلة اللّغة الإنجليزيّة!</h1>
+   <p class="sub">أنهيتِ الدّروس الأربعة والعشرين كلّها وجمعتِ <b>${ST.stars} ⭐</b>.<br>قِطارُك اكتمل: عرضُك الكبير أن تحكي بالإنجليزيّة ماذا تحمل كلّ عربة! 💙</p>
+   <button class="go" onclick="goTrain()">إلى قِطاري 🚂</button>
+   <div style="height:8px"></div>
+   <button onclick="goMap()">العودة إلى الخريطة 🏡</button></div>`;return;}
+ if(s.t==='mcq')return rMcq(s);
+ if(s.t==='open')return rOpen(s);
+ if(s.t==='sort2')return rSort(s);
+ if(s.t==='multi')return rMulti(s);
+ if(s.t==='match')return rMatch(s);
+ if(s.t==='order')return rOrder(s);
+ if(s.t==='tf')return rTf(s);
+  if(s.t==='deck')return rDeck(s);
+ if(s.t==='create')return rCreate(s);
+}
+
+/* ---- اختيار من متعدد ---- */
+function rMcq(s){
+ stage.innerHTML=`${chip(s.stage)}<div class="card"><div class="qbox">${s.q}</div>
+  <div class="opts">${s.o.map((o,i)=>`<button data-i="${i}">${o}</button>`).join('')}</div>
+  <div class="ans" id="fx"></div><div class="marks" id="mk"><button class="go" onclick="next()">تابعي ⬅</button></div></div>`;
+ stage.querySelectorAll('.opts button').forEach(b=>b.onclick=()=>{
+  stage.querySelectorAll('.opts button').forEach(x=>x.classList.add('locked'));
+  const cb=stage.querySelector(`[data-i="${s.c}"]`);
+  if(+b.dataset.i===s.c){cheer();b.classList.add('ok');addStar();
+   if(s.why)showFix('💡 '+s.why,true);else setTimeout(next,900);}
+  else{beep(false);b.classList.add('wrong','bad');setTimeout(()=>b.classList.remove('wrong'),400);cb.classList.add('ok');
+   showFix('❌ ليس هذا. الإجابة الصَّحيحة: <b>'+s.o[s.c]+'</b>'+(s.why?'<br>💡 '+s.why:''),true);}});
+}
+/* ---- سؤال مفتوح ---- */
+function rOpen(s){
+ stage.innerHTML=`${chip(s.prep?'📖 خمِّني قبل الحصَّة!':s.kind==='whatif'?'🤔 ماذا لو؟ · '+(s.stage||''):(s.stage||''),s.prep?'prep':s.kind==='whatif'?'story':'')}<div class="card">
+  <div class="qbox">${s.q}</div>
+  <p class="sub">أجيبي بصوتكِ 🎤 ثُمّ اكشفي.</p>
+  <button class="go" id="rev">اكشفي الإجابة 👀</button>
+  <div class="ans" id="ansB">💡 ${s.a}</div>
+  <div class="marks" id="mk">
+   ${s.prep?'<button class="go" onclick="next()">تابعي ⬅</button>'
+    :'<button class="go" onclick="cheer();addStar();next()">عرفتها! ⭐</button><button onclick="next()">سأُراجعها 🌱</button>'}
+  </div></div>`;
+ document.getElementById('rev').onclick=e=>{e.target.style.display='none';
+  document.getElementById('ansB').classList.add('show');
+  document.getElementById('mk').classList.add('show');};
+}
+/* ---- تصنيف ---- */
+function rSort(s){let sel=null,left=s.items.length,miss=0;
+ stage.innerHTML=`${chip(s.stage)}<div class="card">
+  <div class="qbox">${s.q}</div>
+  <div class="pool" id="pl">${shuffle(s.items.map((it,i)=>i)).map(i=>`<button data-i="${i}">${s.items[i][0]}</button>`).join('')}</div>
+  <div class="bins">${s.bins.map((b,i)=>`<div class="bin" data-b="${i}"><h3>${b}</h3><div class="got"></div></div>`).join('')}</div>
+  <div class="ans" id="fx"></div></div>`;
+ const pl=stage.querySelector('#pl');
+ pl.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+  pl.querySelectorAll('button').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');sel=b;
+  stage.querySelectorAll('.bin').forEach(x=>x.classList.remove('hintPulse'));});
+ stage.querySelectorAll('.bin').forEach(bin=>bin.onclick=()=>{
+  if(!sel){showFix('اختاري بطاقةً أوَّلًا 👆');return;}const i=+sel.dataset.i;
+  if(s.items[i][1]===+bin.dataset.b){beep(true);if(miss===0)addStar();miss=0;bin.classList.remove('hintPulse');
+   bin.querySelector('.got').insertAdjacentHTML('beforeend',`<span>${s.items[i][0]}</span>`);
+   sel.remove();sel=null;left--;document.getElementById('fx').classList.remove('show');
+   if(left===0){cheer();setTimeout(next,1000);}}
+  else{beep(false);miss++;sel.classList.add('wrong');setTimeout(()=>sel&&sel.classList.remove('wrong'),400);
+   stage.querySelector(`.bin[data-b="${s.items[i][1]}"]`).classList.add('hintPulse');
+   showFix('❌ ليس هُنا. <b>'+s.items[i][0]+'</b> مكانه في: <b>'+s.bins[s.items[i][1]]+'</b> (اضغطي عليه)');}});
+}
+/* ---- اختيار متعدد ---- */
+function rMulti(s){
+ stage.innerHTML=`${chip(s.stage)}<div class="card"><div class="qbox">${s.q}</div>
+  <div class="pool">${s.items.map((it,i)=>`<button data-i="${i}">${it}</button>`).join('')}</div>
+  <button class="go" id="chk">تحقَّقي ✅</button>
+  <div class="ans" id="fx"></div><div class="marks" id="mk"><button class="go" onclick="next()">تابعي ⬅</button></div></div>`;
+ stage.querySelectorAll('.pool button').forEach(b=>b.onclick=()=>b.classList.toggle('sel'));
+ document.getElementById('chk').onclick=e=>{
+  const sel=[...stage.querySelectorAll('.pool button.sel')].map(b=>+b.dataset.i).sort((a,b)=>a-b).join(',');
+  e.target.style.display='none';
+  stage.querySelectorAll('.pool button').forEach(b=>{b.classList.add('locked');const i=+b.dataset.i;
+   if(s.correct.includes(i))b.classList.add('ok');else if(b.classList.contains('sel'))b.classList.add('bad');});
+  if(sel===s.correct.join(',')){cheer();addStar(2);setTimeout(next,1000);}
+  else{beep(false);showFix('❌ ليس تمامًا. الإجابة الصَّحيحة (بالأخضر): <b>'+s.correct.map(i=>s.items[i]).join('، ')+'</b>',true);}};
+}
+/* ---- مطابقة ---- */
+function rMatch(s){let pick=null,left=s.pairs.length,miss=0;
+ const R=shuffle(s.pairs.map((p,i)=>i));
+ stage.innerHTML=`${chip(s.stage)}<div class="card"><div class="qbox">${s.q}</div>
+  <div class="mcols">
+   <div class="mcol">${s.pairs.map((p,i)=>`<button data-l="${i}">${p[0]}</button>`).join('')}</div>
+   <div class="mcol">${R.map(i=>`<button data-r="${i}">${s.pairs[i][1]}</button>`).join('')}</div>
+  </div><div class="ans" id="fx"></div></div>`;
+ stage.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>{
+  stage.querySelectorAll('[data-l]').forEach(x=>x.classList.remove('pick'));
+  stage.querySelectorAll('[data-r]').forEach(x=>x.classList.remove('hintPulse'));
+  b.classList.add('pick');pick=+b.dataset.l;});
+ stage.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{
+  if(pick===null){showFix('اختاري أوَّلًا الكلمة من العمود الأيمن 👉');return;}
+  if(+b.dataset.r===pick){beep(true);if(miss===0)addStar();miss=0;b.classList.add('done');b.classList.remove('hintPulse');
+   const lb=stage.querySelector(`[data-l="${pick}"]`);lb.classList.remove('pick');lb.classList.add('done');
+   pick=null;left--;document.getElementById('fx').classList.remove('show');
+   if(left===0){cheer();setTimeout(next,1000);}}
+  else{beep(false);miss++;b.classList.add('wrong');setTimeout(()=>b.classList.remove('wrong'),400);
+   stage.querySelector(`[data-r="${pick}"]`).classList.add('hintPulse');
+   showFix('❌ ليس هذا. <b>'+s.pairs[pick][0]+'</b> يُطابق: <b>'+s.pairs[pick][1]+'</b> (اضغطي عليها)');}});
+}
+/* ---- ترتيب ---- */
+function rOrder(s){let pos=0,miss=0;
+ stage.innerHTML=`${chip(s.stage)}<div class="card"><div class="qbox">${s.q}</div>
+  <div class="slots">${s.seq.map((_,i)=>`<div class="slot" data-s="${i}">${i+1}</div>${i<s.seq.length-1?'<div class="arrow">←</div>':''}`).join('')}</div>
+  <div class="pool">${shuffle(s.seq.map((c,i)=>i)).map(i=>`<button data-i="${i}" style="font-size:15px">${s.seq[i]}</button>`).join('')}</div>
+  <div class="ans" id="fx"></div></div>`;
+ stage.querySelectorAll('.pool button').forEach(b=>b.onclick=()=>{
+  if(+b.dataset.i===pos){beep(true);if(miss===0)addStar();
+   const sl=stage.querySelector(`[data-s="${pos}"]`);sl.classList.add('fill');sl.textContent=s.seq[pos];
+   b.remove();pos++;miss=0;document.getElementById('fx').classList.remove('show');
+   if(pos===s.seq.length){cheer();setTimeout(next,1000);}}
+  else{beep(false);miss++;b.classList.add('wrong');setTimeout(()=>b.classList.remove('wrong'),400);
+   const c=stage.querySelector(`.pool [data-i="${pos}"]`);if(c)c.classList.add('hintPulse');
+   showFix('❌ ليس هذا. الخُطوة التَّالية الصَّحيحة هي: <b>'+s.seq[pos]+'</b> (اضغطي عليها)');}});
+}
+/* ---- صح / خطأ ---- */
+function rTf(s){
+ stage.innerHTML=`${chip(s.stage)}<div class="card"><div class="qbox">${s.q}</div>
+  <div class="pool"><button data-v="1">صحيح ✅</button><button data-v="0">خطأ ❌</button></div>
+  <div class="ans" id="fx"></div>
+  <div class="marks" id="mk"><button class="go" onclick="next()">تابعي ⬅</button></div></div>`;
+ stage.querySelectorAll('.pool button').forEach(b=>b.onclick=()=>{
+  const v=b.dataset.v==='1';
+  stage.querySelectorAll('.pool button').forEach(x=>x.classList.add('locked'));
+  const cb=stage.querySelector(`[data-v="${s.c?'1':'0'}"]`);cb.classList.add('ok');
+  if(v===s.c){cheer();addStar();showFix('✅ '+s.fix,true);}
+  else{beep(false);b.classList.add('wrong','bad');setTimeout(()=>b.classList.remove('wrong'),400);
+   showFix('❌ ليس هذا. العبارة <b>'+(s.c?'صحيحة':'خاطئة')+'</b>.<br>'+s.fix,true);}});
+}
+function rCreate(s){
+ stage.innerHTML=`${chip('🎨 صمِّمي وجرِّبي · '+(s.stage||''),'story')}<div class="card"><div class="qbox">${s.q}</div>
+  <p class="sub">على ورقة أو بصوتكِ مع ماما.</p>
+  <button id="hint">أفكار مُساعدة 💡</button><div class="ans" id="hb">💡 ${s.hints}</div>
+  <div class="nav"><button class="go" onclick="addStar(2);next()">أنجزتها! ⭐⭐</button></div></div>`;
+ document.getElementById('hint').onclick=e=>{e.target.style.display='none';document.getElementById('hb').classList.add('show');};
+}
+/* ---- بطاقات التحدي ---- */
+function rDeck(s){let marked=0;
+ stage.innerHTML=`${chip(s.stage,'story')}<div class="card"><div class="qbox">${s.q}</div>
+  <div class="deck" style="display:flex;flex-direction:column;gap:12px;text-align:right">
+  ${s.cards.map((c,i)=>`
+   <div class="dcard" data-i="${i}" style="background:#F6FBF3;border:2px solid var(--line);border-radius:18px;padding:14px">
+    <span class="tag" style="float:left;font-size:20px"></span>
+    <div style="font-size:16px;font-weight:800;line-height:1.7">🎯 ${i+1}. ${c[0]}</div>
+    <div class="da" style="display:none;background:#FFF9E3;border-radius:12px;padding:10px;margin-top:8px;font-size:14.5px;line-height:1.7">💡 ${c[1]}</div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+     <button class="rv" style="font-size:13px;padding:8px 14px">اكشفي 👀</button>
+     <button class="y go" style="display:none;font-size:13px;padding:8px 14px">عرفتها ⭐</button>
+     <button class="n" style="display:none;font-size:13px;padding:8px 14px">سأُراجعها 🌱</button>
+    </div></div>`).join('')}</div>
+  <div class="nav"><button class="go" id="dn" disabled>أكملت التَّحدِّي! (0/${s.cards.length})</button></div></div>`;
+ const dn=document.getElementById('dn');
+ stage.querySelectorAll('.dcard').forEach(dc=>{
+  const rv=dc.querySelector('.rv'),y=dc.querySelector('.y'),n=dc.querySelector('.n'),da=dc.querySelector('.da');
+  rv.onclick=()=>{da.style.display='block';rv.style.display='none';y.style.display='';n.style.display='';};
+  function mark(star){if(dc.dataset.m)return;dc.dataset.m='1';
+   dc.style.borderColor='var(--leaf)';dc.querySelector('.tag').textContent=star?'⭐':'🌱';
+   if(star){addStar();cheer();}
+   y.style.display='none';n.style.display='none';marked++;
+   dn.textContent=`أكملت التَّحدِّي! (${marked}/${s.cards.length})`;
+   if(marked===s.cards.length)dn.disabled=false;}
+  y.onclick=()=>mark(true);n.onclick=()=>mark(false);});
+ dn.onclick=next;
+}
+
+
+
+/* ==================== 📝 EXAM MODE ==================== */
+/* ===================== بنك أسئلة اللغة الإنجليزية من الأوراق الحقيقية (١٤٤٦–١٤٤٧ · الفصل الأول) =====================
+   المصادر: ملفّا اختبارات الفترة الأولى والفترة الثانية للصف الثالث الابتدائي (موقع واجباتي) + كتاب We Can! 3
+   src: E1..E20 (الفترة الأولى) · F1..F6 (الفترة الثانية) · L: رقم الدرس في التطبيق (0..23)
+   needsCheck: لا يوجد نموذج إجابة واضح في الورقة، أو نموذج الإجابة متعارض
+   الأنواع: tf | mcq | match | fill | order | short                                                          */
+const EXAM_BANK=[
+/* ---------- E1 · English Language · 3rd elementary · period Exam \20 (مع نموذج الإجابة) ---------- */
+{src:'E1',L:0,t:'match',q:'Answer the questions: صلي كل سؤال بجوابه.',pairs:[['Where do you live?','I live in Jeddah.'],['How old are you?','I am eleven years old.'],['What’s your name?','My name is Ali.'],['What do you think about whale?','I think whale is fast.']]},
+{src:'E1',L:4,t:'mcq',q:'Reorder: a – It’s – walrus',o:['It’s a walrus.','walrus it’s a.'],a:0},
+{src:'E1',L:4,t:'tf',q:'\u{1F476}\u{1F4D6} I am eating cheese.',a:false},
+{src:'E1',L:1,t:'tf',q:'\u{1F9E2} This is my T-shirt.',a:false},
+{src:'E1',L:4,t:'tf',q:'\u{1F419} I think sharks are scary.',a:false},
+{src:'E1',L:4,t:'tf',q:'\u{1F40E} It’s a seahorse.',a:true},
+{src:'E1',L:5,t:'mcq',q:'Sharks are …… than whales.',o:['fast','faster','fastest'],a:1},
+{src:'E1',L:1,t:'mcq',q:'Omar and …… family live in Riyadh.',o:['our','her','his'],a:2},
+{src:'E1',L:2,t:'mcq',q:'She …… a new bag.',o:['are','have','has'],a:2},
+{src:'E1',L:5,t:'mcq',q:'A polar bear is as …… as a fish.',o:['quiet','quieter','quietest'],a:0},
+{src:'E1',L:4,t:'fill',q:'Choose the correct word under each picture:',bank:['squid','crab','bicycle','pie','seagull'],items:[['\u{1F991} ...','squid'],['\u{1F980} ...','crab'],['\u{1F6B2} ...','bicycle'],['\u{1F967} ...','pie'],['\u{1F426} ...','seagull']]},
+{src:'E1',L:7,t:'fill',q:'Fill in the missing letters:',bank:['ou','t','ie','ai'],items:[['\u{1F401} m ... se','ou'],['\u{1F422} ... urtle','t'],['\u{1F454} t ...','ie'],['\u{1F327}️ r ... n','ai']]},
+/* ---------- E2 · I. CHOOSE (مع نموذج الإجابة) ---------- */
+{src:'E2',L:4,t:'mcq',q:'\u{1F9AD} What is that?',o:['It’s a seahorse.','It’s a seal.'],a:1},
+{src:'E2',L:0,t:'mcq',q:'Where do you live?',o:['I like some juice.','I live in Riyadh.'],a:1},
+{src:'E2',L:8,t:'tf',q:'\u{1F6DF} He can swim.',a:false},
+{src:'E2',L:2,t:'tf',q:'\u{1F5A5}️ This is a computer.',a:true},
+{src:'E2',L:4,t:'tf',q:'\u{1F40B} The whale is small.',a:false},
+{src:'E2',L:0,t:'order',q:'Rearrange: to – nice – you – meet',seq:['Nice','to','meet','you']},
+{src:'E2',L:1,t:'mcq',q:'…… skirt is this? It’s mine.',o:['who','whose','where'],a:1},
+{src:'E2',L:1,t:'mcq',q:'I am a teacher, …… name is Nora.',o:['his','my','your'],a:1},
+{src:'E2',L:6,t:'mcq',q:'As fast …… a dolphin.',o:['is','as','has'],a:1},
+{src:'E2',L:4,t:'fill',q:'Write the correct word under each picture:',bank:['cap','crab','starfish'],items:[['\u{1F9E2} ...','cap'],['\u{1F980} ...','crab'],['⭐ ...','starfish']]},
+{src:'E2',L:3,t:'fill',q:'Choose the correct letter: (ai – ea – ow – ee – oa – ou)',bank:['ea','ee','ou','ow'],items:[['\u{1F356} m ... t','ea'],['\u{1F411} sh ... p','ee'],['\u{1F401} m ... se','ou'],['\u{1F404} c ...','ow']]},
+/* ---------- E3 · First Period Exam \20 (مع نموذج الإجابة) ---------- */
+{src:'E3',L:0,t:'mcq',q:'What is your name?',o:['I am 13.','My name is Ali.'],a:1},
+{src:'E3',L:4,t:'mcq',q:'\u{1F9AD} What is that?',o:['It’s a seal.','It’s a whale.'],a:0},
+{src:'E3',L:4,t:'tf',q:'\u{1F42C} This is a dolphin.',a:true},
+{src:'E3',L:5,t:'mcq',q:'Seahorse is …… .',o:['fast','scary','slow'],a:2},
+{src:'E3',L:2,t:'mcq',q:'I …… a box.',o:['is','has','have'],a:2},
+{src:'E3',L:4,t:'fill',q:'Choose the correct word under each picture:',bank:['sandals','cap','T-shirts','starfish','crab','seahorse'],items:[['\u{1F461} ...','sandals'],['\u{1F9E2} ...','cap'],['\u{1F455} ...','T-shirts'],['⭐ ...','starfish'],['\u{1F980} ...','crab'],['\u{1F40E} ...','seahorse']]},
+{src:'E3',L:3,t:'fill',q:'Choose the correct letter:',bank:['ee','ea','ay','ow','ou'],items:[['\u{1F411} sh ... p','ee'],['\u{1F356} m ... t','ea'],['⚽ pl ...','ay'],['\u{1F404} c ...','ow'],['\u{1F401} m ... se','ou']]},
+/* ---------- E4 · 1st period Exam \20 (مع نموذج الإجابة) ---------- */
+{src:'E4',L:1,t:'mcq',q:'This is our little brother. …… name is Ahmad.',o:['his','my','her'],a:0},
+{src:'E4',L:1,t:'mcq',q:'Whose shoes are these? – They’re …… .',o:['mine','I','she'],a:0},
+{src:'E4',L:2,t:'mcq',q:'He …… a new bag.',o:['have','are','has'],a:2},
+{src:'E4',L:5,t:'mcq',q:'A dolphin is …… .',o:['cute','cuter','cutest'],a:0},
+{src:'E4',L:5,t:'mcq',q:'A snail is the …… .',o:['slow','slower','slowest'],a:2},
+{src:'E4',L:2,t:'order',q:'Reorder: cook \\ you \\ Can \\ ?',seq:['Can','you','cook','?']},
+{src:'E4',L:2,t:'order',q:'Reorder: have \\ They \\ a car.',seq:['They','have','a car.']},
+{src:'E4',L:4,t:'mcq',q:'\u{1F40E} What’s that? It’s a …… .',o:['seahorse','fish','sharks'],a:0},
+{src:'E4',L:4,t:'mcq',q:'\u{1F9AD}\u{1F9AD} What are those? Those are …… .',o:['crocodile','seagull','baby seals'],a:2},
+{src:'E4',L:4,t:'mcq',q:'\u{1F980} What’s that? It’s a …… .',o:['squid','crab','jellyfish'],a:1},
+{src:'E4',L:0,t:'match',q:'Match:',pairs:[['What’s your name?','My name is Ali.'],['Nice to meet you.','Nice to meet you, too.']]},
+{src:'E4',L:3,t:'fill',q:'Write the correct words under each picture:',bank:['sleep','goat','rice','turtle'],items:[['\u{1F634} ...','sleep'],['\u{1F422} ...','turtle'],['\u{1F35A} ...','rice'],['\u{1F410} ...','goat']]},
+{src:'E4',L:7,t:'fill',q:'Complete the missing letters: (ee – ay – ou – oa)',bank:['oa','ee','ay','ou'],items:[['\u{1F9E5} C ... t','oa'],['\u{1F411} Sh ... p','ee'],['⚽ Pl ...','ay'],['\u{1F3E0} H ... se','ou']]},
+/* ---------- E5 · First Exam 1447 AH · Ms. Tahani Al-Ghamdi (مع نموذج الإجابة) ---------- */
+{src:'E5',L:4,t:'mcq',q:'Which animal has 8 legs? \u{1F419}',o:['It is a cat.','It is an octopus.'],a:1},
+{src:'E5',L:4,t:'mcq',q:'\u{1F988} What is this?',o:['It is a dog.','It is a shark.'],a:1},
+{src:'E5',L:0,t:'order',q:'Rearrange the words to form a sentence: to – you – Meet – Nice',seq:['Nice','to','meet','you.']},
+{src:'E5',L:2,t:'mcq',q:'They …… my friends.',o:['am','is','are'],a:2},
+{src:'E5',L:1,t:'mcq',q:'This hat is …… .',o:['I','my','mine'],a:2},
+{src:'E5',L:5,t:'mcq',q:'Ali is …… than Ahmed.',o:['tall','taller','tallest'],a:1},
+{src:'E5',L:4,t:'mcq',q:'⭐ Choose the correct answer:',o:['starfish','book'],a:0},
+{src:'E5',L:8,t:'mcq',q:'\u{1F461} Choose the correct answer:',o:['sandals','coat'],a:0},
+{src:'E5',L:3,t:'fill',q:'Choose the correct missing letters:',bank:['ay','ee','ow','oa'],items:[['⚽ pl ...','ay'],['\u{1F9C0} ch ... se','ee'],['\u{1F404} c ...','ow'],['\u{1F6F6} b ... t','oa']]},
+/* ---------- E6 · اختبار الفترة الأولى ١٤٤٧هـ ---------- */
+{src:'E6',L:0,t:'match',q:'Match the questions in column (A) with the correct answers in column (B):',pairs:[['What is your name?','My name is Rose.'],['Where do you live?','I live in Dammam.'],['How old are you?','I am 9 years old.']]},
+{src:'E6',L:1,t:'order',q:'Rearrange: name / Pete / . / His / is',seq:['His','name','is','Pete.']},
+{src:'E6',L:4,t:'tf',q:'\u{1F9AD} The seal is cute.',a:true},
+{src:'E6',L:4,t:'tf',q:'\u{1F40E} The seahorse is slow.',a:true},
+{src:'E6',L:4,t:'tf',q:'\u{1F988} The shark is scary.',a:true,needsCheck:true},
+{src:'E6',L:2,t:'mcq',q:'I …… a bicycle.',o:['has','have'],a:1},
+{src:'E6',L:2,t:'mcq',q:'He …… a computer.',o:['has','have'],a:0},
+{src:'E6',L:5,t:'mcq',q:'The dolphin is …… than the seahorse.',o:['fast','faster','fastest'],a:1},
+{src:'E6',L:4,t:'fill',q:'Write the correct number under each picture:',bank:['starfish','computer','cap','crab'],items:[['\u{1F5A5}️ ...','computer'],['\u{1F9E2} ...','cap'],['⭐ ...','starfish'],['\u{1F980} ...','crab']]},
+/* ---------- E7 · اختبار الفترة الأولى · T. Najah Aljuhani ---------- */
+{src:'E7',L:0,t:'match',q:'Match:',pairs:[['What is your name?','My name is Ahmed'],['How old are you?','I’m 9 years old'],['Where do you live?','I live in Jeddah'],['Do you have a brother?','Yes, I do']]},
+{src:'E7',L:1,t:'mcq',q:'This is my mother, …… name is Amal.',o:['her','his'],a:0},
+{src:'E7',L:2,t:'mcq',q:'She …… from Saudi Arabia.',o:['are','is'],a:1},
+{src:'E7',L:6,t:'mcq',q:'As fat …… a walrus.',o:['is','as'],a:1},
+{src:'E7',L:2,t:'mcq',q:'She …… a red dress.',o:['have','has'],a:1},
+{src:'E7',L:5,t:'mcq',q:'A dolphin is …… than a seahorse.',o:['cute','cuter'],a:1},
+{src:'E7',L:1,t:'mcq',q:'…… hat is this? It is mine.',o:['whose','how'],a:0},
+{src:'E7',L:0,t:'order',q:'Rearrange: to meet nice you.',seq:['Nice','to','meet','you.']},
+{src:'E7',L:3,t:'fill',q:'Write the word under the picture:',bank:['starfish','rain','dolphin','pie'],items:[['\u{1F967} ...','pie'],['\u{1F42C} ...','dolphin'],['\u{1F327}️ ...','rain'],['⭐ ...','starfish']]},
+{src:'E7',L:7,t:'fill',q:'Fill with: (oa – ou)',bank:['ou','oa','ou','oa'],items:[['\u{1F3E0} h ... se','ou'],['\u{1F9E5} c ... t','oa'],['\u{1F401} m ... se','ou'],['\u{1F6F6} b ... t','oa']]},
+/* ---------- E8 · اختبار الفترة الأولى (ساعة ونصف · ٢٠) ---------- */
+{src:'E8',L:4,t:'fill',q:'Write each under the correct picture:',bank:['seahorse','dolphin','starfish','eel','turtle','seagull'],items:[['\u{1F40D} ... (eel)','eel'],['\u{1F40E} ...','seahorse'],['\u{1F422} ...','turtle'],['\u{1F42C} ...','dolphin'],['\u{1F426} ...','seagull'],['⭐ ...','starfish']]},
+{src:'E8',L:2,t:'mcq',q:'These …… my books.',o:['are','am'],a:0},
+{src:'E8',L:1,t:'mcq',q:'…… shoes are these? – They’re mine.',o:['Whose','What'],a:0},
+{src:'E8',L:5,t:'mcq',q:'A whale is …… than a fish.',o:['big','bigger'],a:1},
+{src:'E8',L:6,t:'mcq',q:'It is as …… as a mouse.',o:['small','smaller'],a:0},
+{src:'E8',L:7,t:'fill',q:'Choose the correct answer:',bank:['ee','oa','ai','ow'],items:[['\u{1F411} Sh ... P','ee'],['\u{1F9E5} C ... t','oa'],['\u{1F686} Tr ... n','ai'],['\u{1F404} C ...','ow']]},
+/* ---------- E9 · اختبار الفترة ١٤٤٦ ---------- */
+{src:'E9',L:4,t:'mcq',q:'Which of the following is a sea animal?',o:['seahorse','horse'],a:0},
+/* ---------- E10 · اختبار الفترة ١٤٤٦ (نسخة) ---------- */
+{src:'E10',L:0,t:'mcq',q:'How old are you?',o:['I am 11 years old.','I am fine.'],a:0},
+{src:'E10',L:3,t:'fill',q:'Choose the correct letter: (ai – ea – ay – ee)',bank:['ai','ea','ee','ay'],items:[['\u{1F327}️ r ... n','ai'],['\u{1F4D6} r ... d','ea'],['\u{1F411} sh ... p','ee'],['⚽ pl ...','ay']]},
+{src:'E10',L:1,t:'fill',q:'Put the word under its picture:',bank:['tie','T-shirts','cap','computer'],items:[['\u{1F9E2} ...','cap'],['\u{1F454} ...','tie'],['\u{1F455} ...','T-shirts'],['\u{1F5A5}️ ...','computer']]},
+/* ---------- E11 · اختبار منتصف الفصل · Fekry Basubaih (١) ---------- */
+{src:'E11',L:0,t:'match',q:'Match:',pairs:[['Where do you live?','I live in Jeddah.'],['What’s your name?','My name’s Hashim.'],['How old are you?','I’m eleven years old.']]},
+{src:'E11',L:2,t:'mcq',q:'Can you cook? No, …… .',o:['I can’t.','we can.','he can’t.'],a:0},
+{src:'E11',L:2,t:'mcq',q:'I …… a bicycle.',o:['have','has','is'],a:0},
+{src:'E11',L:2,t:'mcq',q:'She …… long brown hair.',o:['has','have','are'],a:0},
+{src:'E11',L:6,t:'tf',q:'I think a walrus is fat.',a:true},
+{src:'E11',L:4,t:'tf',q:'I think sharks are slow.',a:false},
+{src:'E11',L:4,t:'fill',q:'Write the word under the picture:',bank:['sheep','starfish','jellyfish'],items:[['\u{1F411} ...','sheep'],['⭐ ...','starfish']]},
+{src:'E11',L:4,t:'match',q:'Match the word to the picture:',pairs:[['\u{1F40B}','whale'],['\u{1F45F}','shoes'],['\u{1F9E5}','coat'],['\u{1F426}','seagull']]},
+{src:'E11',L:7,t:'fill',q:'Fill in:',bank:['ow','ay','ee'],items:[['\u{1FA9F} wind ...','ow'],['\u{1F3C0} pl ...','ay'],['\u{1F9C0} ch ... se','ee']]},
+/* ---------- E12 · اختبار منتصف الفصل · Fekry Basubaih (٢) ---------- */
+{src:'E12',L:1,t:'match',q:'Match:',pairs:[['Where do you live?','I live in Dammam.'],['Whose scissors are these?','They’re mine.'],['How old are you?','I’m eleven years old.']]},
+{src:'E12',L:5,t:'order',q:'Rearrange: whales. / are / than / faster / I think sharks',seq:['I think sharks','are','faster','than','whales.']},
+{src:'E12',L:2,t:'mcq',q:'Can we write hat? No, …… .',o:['he can’t.','we can.','we can’t.'],a:2},
+{src:'E12',L:2,t:'mcq',q:'I …… a computer.',o:['has','have','is'],a:1},
+{src:'E12',L:4,t:'tf',q:'I think a seahorse is slow.',a:true},
+{src:'E12',L:4,t:'fill',q:'Write the word under the picture:',bank:['seahorse','starfish','jellyfish'],items:[['\u{1F40E} ...','seahorse'],['\u{1FAB8} ...','jellyfish']]},
+{src:'E12',L:4,t:'match',q:'Match the word to the picture:',pairs:[['\u{1F9AD}','walrus'],['\u{1F40D}','eel'],['⭐','starfish'],['\u{1F457}','dress']]},
+{src:'E12',L:7,t:'fill',q:'Fill in:',bank:['ow','oa','ee'],items:[['\u{1F921} cl ... n','ow'],['\u{1F6F6} b ... t','oa'],['\u{1F634} sl ... p','ee']]},
+/* ---------- E13 · We Can 3 – Unit 1 (مع نموذج الإجابة) ---------- */
+{src:'E13',L:0,t:'mcq',q:'What’s your name?',o:['I’m eleven years old.','My name’s Labeeb.'],a:1},
+{src:'E13',L:0,t:'mcq',q:'How old are you?',o:['I’m ten years old.','I live in Jeddah.'],a:0},
+{src:'E13',L:0,t:'mcq',q:'Where do you live?',o:['My name’s Nora.','I live in Jeddah.'],a:1},
+{src:'E13',L:1,t:'mcq',q:'…… name is Labeeb.',o:['His','Their'],a:0},
+{src:'E13',L:2,t:'mcq',q:'He …… a cap.',o:['has','have'],a:0},
+{src:'E13',L:1,t:'mcq',q:'Whose shoes are these? They’re …… .',o:['his','hers'],a:0},
+{src:'E13',L:3,t:'fill',q:'Listen & choose the correct letters:',bank:['ie','ai','ay','ea','ee'],items:[['\u{1F967} p ...','ie'],['\u{1F686} tr ... n','ai'],['⚽ pl ...','ay'],['\u{1F4D6} r ... d','ea'],['\u{1F634} sl ... p','ee']]},
+/* ---------- E14 · We Can 3 – Unit 2 (مع نموذج الإجابة) ---------- */
+{src:'E14',L:4,t:'mcq',q:'\u{1F988} What’s that?',o:['They’re slow.','It’s a shark.'],a:1},
+{src:'E14',L:4,t:'mcq',q:'\u{1F42C}\u{1F42C} What are those?',o:['They’re dolphins.','I think it’s slow.'],a:0},
+{src:'E14',L:5,t:'order',q:'Order from fast to the fastest:',seq:['I think whales are fast.','I think sharks are faster than whales.','I think dolphins are the fastest.']},
+{src:'E14',L:4,t:'mcq',q:'\u{1F40D} Choose:',o:['eel','dolphin'],a:0},
+{src:'E14',L:4,t:'mcq',q:'⭐ Choose:',o:['shark','starfish'],a:1},
+{src:'E14',L:5,t:'mcq',q:'\u{1F408} Choose: The cat is …… .',o:['fat','thin'],a:0},
+{src:'E14',L:7,t:'fill',q:'Listen & choose:',bank:['ow','oa','ou','oa','ow'],items:[['\u{1F404} c ...','ow'],['\u{1F410} g ... t','oa'],['\u{1F401} m ... se','ou'],['\u{1F9E5} c ... t','oa'],['☃️ sn ...','ow']]},
+/* ---------- E15 · We Can 3 – Unit 3 (مع نموذج الإجابة) ---------- */
+{src:'E15',L:8,t:'mcq',q:'What sport do you like?',o:['I like football.','It’s not mine.'],a:0},
+{src:'E15',L:8,t:'mcq',q:'What sport does Omar like?',o:['He likes horse riding.','I live in Abha.'],a:0},
+{src:'E15',L:9,t:'mcq',q:'Do you ski?',o:['Yes, she does.','Yes, I do.'],a:1},
+{src:'E15',L:9,t:'mcq',q:'…… painting.',o:['I play','I do'],a:1},
+{src:'E15',L:9,t:'mcq',q:'He …… tennis.',o:['like','likes'],a:1},
+{src:'E15',L:8,t:'match',q:'Match the sport to its picture:',pairs:[['⚽','football'],['\u{1FA82}','sky diving'],['\u{1F3BE}','tennis'],['\u{1F93F}','scuba diving'],['\u{1F40E}','horse riding'],['\u{1F3C0}','basketball']]},
+{src:'E15',L:11,t:'fill',q:'Listen & write:',bank:['oy','oi','oy','ear','ere','air'],items:[['\u{1F9D2} b ...','oy'],['\u{1FA99} c ... n','oi'],['\u{1F9F8} t ...','oy'],['\u{1F43B} b ...','ear'],['❓ wh ...','ere'],['\u{1F467} h ...','air']]},
+{src:'E15',L:10,t:'short',q:'Copy: Falcons can see very far',a:'Falcons can see very far'},
+/* ---------- E16 · We Can 3 – Unit 4 (مع نموذج الإجابة) ---------- */
+{src:'E16',L:12,t:'mcq',q:'What chores do you do?',o:['I ski.','I wash the dishes.'],a:1},
+{src:'E16',L:12,t:'mcq',q:'Do you take out the trash?',o:['Yes, I do.','I live in Abha.'],a:0},
+{src:'E16',L:12,t:'mcq',q:'Does she vacuum the floor? Yes, …… .',o:['she does','she doesn’t'],a:0},
+{src:'E16',L:13,t:'mcq',q:'\u{1F41F} …… the fish.',o:['I feed','I feeds'],a:0},
+{src:'E16',L:13,t:'mcq',q:'\u{1F37D}️ …… the dishes.',o:['She wash','She washes'],a:1},
+{src:'E16',L:13,t:'mcq',q:'\u{1F5D1}️ …… out the trash.',o:['He takes','He take'],a:0},
+{src:'E16',L:12,t:'match',q:'Match:',pairs:[['\u{1F37D}️','dishes'],['\u{1F9F9}','vacuum'],['\u{1F5D1}️','trash'],['\u{1F41F}','fish'],['\u{1F6D2}','shopping'],['\u{1F60A}','smile']]},
+{src:'E16',L:15,t:'fill',q:'Listen & write:',bank:['ar','or','or','er','ar','or'],items:[['\u{1F697} c ...','ar'],['\u{1F468}‍⚕️ doct ...','or'],['\u{1F374} f ... k','or'],['\u{1F466}\u{1F466} broth ... s','er'],['\u{1F33E} f ... m','ar'],['\u{1F40E} h ... se','or']]},
+{src:'E16',L:14,t:'short',q:'Copy: I have a little robot',a:'I have a little robot'},
+/* ---------- E17 · We Can 3.1 – Unit 3 reading (مع نموذج الإجابة) ---------- */
+{src:'E17',L:8,t:'mcq',q:'Read: «Ali plays football. He plays with his brother. His sister likes tennis.» What does Ali play?',o:['Tennis','Football'],a:1},
+{src:'E17',L:8,t:'tf',q:'Read: «… His sister likes tennis.» – Ali’s sister likes tennis.',a:true},
+{src:'E17',L:9,t:'mcq',q:'Do you play word games? – Yes, …… .',o:['I do.','he does.'],a:0},
+{src:'E17',L:9,t:'mcq',q:'Does he do karate? – Yes, …… .',o:['they do.','he does.'],a:1},
+{src:'E17',L:9,t:'mcq',q:'Do you ski? – No, …… .',o:['I don’t.','she doesn’t.'],a:0},
+{src:'E17',L:9,t:'mcq',q:'Does she play computer games? – No, …… .',o:['I don’t.','she doesn’t.'],a:1},
+{src:'E17',L:11,t:'fill',q:'Choose the correct letters:',bank:['oi','oy','ear','oy'],items:[['\u{1FA99} c ... n','oi'],['\u{1F9D2} b ...','oy'],['\u{1F43B} b ...','ear'],['\u{1F916} t ...','oy']]},
+{src:'E17',L:11,t:'mcq',q:'\u{1F350} I eat a …… .',o:['pear','bair'],a:0},
+{src:'E17',L:11,t:'mcq',q:'\u{1FA91} Choose:',o:['chair','cheese'],a:0},
+{src:'E17',L:11,t:'mcq',q:'\u{1F467} Choose:',o:['hair','tear'],a:0},
+/* ---------- E18 · Fekry Basubaih · صفحة ٢ ---------- */
+{src:'E18',L:5,t:'mcq',q:'I think a baby seal is the …… .',o:['cute.','cuter.','cutest.'],a:2},
+{src:'E18',L:1,t:'mcq',q:'She is a doctor, …… name is Fatimah.',o:['her','his','my'],a:0},
+{src:'E18',L:6,t:'match',q:'Match the sentence to the animal:',pairs:[['It’s beautiful and as fast as the wind.','\u{1F40E} horse'],['It is very quiet and as slow as a snail.','\u{1F422} turtle']]},
+{src:'E18',L:4,t:'fill',q:'Write the word under the picture:',bank:['sheep','starfish','jellyfish','seahorse'],items:[['\u{1F411} ...','sheep'],['⭐ ...','starfish'],['\u{1F40E} ...','seahorse'],['\u{1FAB8} ...','jellyfish']]},
+/* ---------- E19 · Mid-term Exam · Tr. Abeer Nasser ---------- */
+{src:'E19',L:0,t:'mcq',q:'What’s your name?',o:['Good bye','My name is Salwa','I’m great thanks'],a:1},
+{src:'E19',L:0,t:'mcq',q:'Where do you live?',o:['It’s mine','I’m hungry','I live in Abha'],a:2},
+{src:'E19',L:0,t:'mcq',q:'How old are you?',o:['I’m 9 years old','It’s not mine','I’m happy'],a:0},
+{src:'E19',L:2,t:'order',q:'Rearrange: one / have / I / sister',seq:['I','have','one','sister']},
+{src:'E19',L:2,t:'order',q:'Rearrange: can / He / macaroni / cook.',seq:['He','can','cook','macaroni.']},
+{src:'E19',L:5,t:'order',q:'Rearrange: a dolphin / is / I think / cute.',seq:['I think','a dolphin','is','cute.']},
+{src:'E19',L:2,t:'mcq',q:'She …… two friends.',o:['am','have','has'],a:2},
+{src:'E19',L:4,t:'mcq',q:'\u{1F9AD} I think a walrus is …… .',o:['scary','fat','cute'],a:1},
+{src:'E19',L:2,t:'mcq',q:'\u{1F697} I …… drive a car.',o:['has','is','can'],a:2},
+{src:'E19',L:4,t:'fill',q:'Vocabulary: write the word under the picture.',bank:['crab','octopus','computer','cap','jellyfish','seagull'],items:[['\u{1FAB8} ...','jellyfish'],['\u{1F426} ...','seagull'],['\u{1F9E2} ...','cap'],['\u{1F980} ...','crab'],['\u{1F5A5}️ ...','computer'],['\u{1F419} ...','octopus']]},
+{src:'E19',L:3,t:'fill',q:'Choose to fill the missing letters: (ee – ai – oa – ea – ie – ou)',bank:['oa','ea','ou','ee','ie','ai'],items:[['\u{1F410} g ... t','oa'],['\u{1F356} m ... t','ea'],['\u{1F401} m ... se','ou'],['\u{1F9C0} Ch ... se','ee'],['\u{1F454} t ...','ie'],['\u{1F686} Tr ... n','ai']]},
+/* ---------- E20 · اختبار منتصف الفصل ١٤٤٦ (حقيبتي) ---------- */
+{src:'E20',L:0,t:'mcq',q:'How are you?',o:['I am fine. Thank you.','Nice to meet you.'],a:0},
+{src:'E20',L:0,t:'mcq',q:'Nice to meet you.',o:['I am fine. Thank you.','Nice to meet you too.'],a:1},
+{src:'E20',L:4,t:'tf',q:'⭐ A starfish is big.',a:false},
+{src:'E20',L:5,t:'tf',q:'\u{1F40B}\u{1F42C} Whales are faster than a dolphin.',a:false},
+{src:'E20',L:5,t:'tf',q:'\u{1F9AD} A baby seal is the cutest.',a:true},
+{src:'E20',L:2,t:'match',q:'Match the sentence to the picture:',pairs:[['I have a bicycle.','\u{1F6B2}'],['He has a pen.','✏️'],['This is a computer.','\u{1F5A5}️'],['She has a cat.','\u{1F408}']]},
+{src:'E20',L:7,t:'fill',q:'Fill in the missing vowel: (a – e – o – i – u)',bank:['o','e','a'],items:[['\u{1FA9F} wind ... w','o'],['\u{1F411} she ... p','e'],['\u{1F410} go ... t','a']]},
+{src:'E20',L:0,t:'short',q:'Write: I live in Saudi Arabia',a:'I live in Saudi Arabia'},
+/* ---------- F1 · 2nd period Exam \20 (مع نموذج الإجابة) ---------- */
+{src:'F1',L:12,t:'match',q:'Answer the questions: صلي كل سؤال بجوابه.',pairs:[['What chores do you do?','I feed the fish.'],['What is she doing now?','She’s eating a snack.'],['What sport or activity do you want to try?','I want to try scuba diving'],['Does he vacuum the floor?','Yes, he does.']]},
+{src:'F1',L:10,t:'mcq',q:'Reorder: is – Pottery – boring',o:['boring is pottery','Pottery is boring'],a:1},
+{src:'F1',L:12,t:'tf',q:'\u{1F9FA} He folds the laundry.',a:true,needsCheck:true},
+{src:'F1',L:10,t:'tf',q:'\u{1F6FC} Rock climbing is the most difficult.',a:false,needsCheck:true},
+{src:'F1',L:12,t:'tf',q:'\u{1F37D}️ He sets the table.',a:true,needsCheck:true},
+{src:'F1',L:10,t:'tf',q:'\u{1F985} Many people in Saudi Arabia like falconry.',a:true},
+{src:'F1',L:9,t:'mcq',q:'I …… tennis.',o:['play','do','does'],a:0},
+{src:'F1',L:14,t:'mcq',q:'He is …… the fish.',o:['feed','feeds','feeding'],a:2},
+{src:'F1',L:13,t:'mcq',q:'I cook and …… the table.',o:['setting','sets','set'],a:2},
+{src:'F1',L:10,t:'mcq',q:'Horse riding is …… than cycling.',o:['exciting','more exciting','most exciting'],a:1},
+{src:'F1',L:14,t:'fill',q:'Choose the correct word under each picture:',bank:['robot','ski','car','drink','jog'],items:[['\u{1F916} ...','robot'],['⛷️ ...','ski'],['\u{1F697} ...','car'],['\u{1F964} ...','drink'],['\u{1F3C3}‍♀️ ...','jog']]},
+{src:'F1',L:15,t:'fill',q:'Fill in the missing letters:',bank:['f','ai','er','or'],items:[['\u{1F3CC}️ gol ...','f'],['\u{1F467} h ... r','ai'],['\u{1F468}‍\u{1F469}‍\u{1F466} sist ...','er'],['\u{1F468}‍⚕️ doct ...','or']]},
+/* ---------- F2 · اختبار الفترة الثانية ١٤٤٧ (مع نموذج الإجابة) ---------- */
+{src:'F2',L:8,t:'mcq',q:'⚽ What sport do you like?',o:['I like painting.','I like football.'],a:1},
+{src:'F2',L:16,t:'mcq',q:'\u{1F552} What time is it?',o:['It is three o’clock.','It is four o’clock.'],a:0},
+{src:'F2',L:9,t:'tf',q:'\u{1F3A8} I do painting.',a:true},
+{src:'F2',L:12,t:'tf',q:'\u{1F6D2} I feed the fish.',a:false},
+{src:'F2',L:16,t:'tf',q:'\u{1F634} I eat my lunch.',a:false},
+{src:'F2',L:8,t:'order',q:'Rearrange: horse – I – riding – like.',seq:['I','like','horse','riding']},
+{src:'F2',L:12,t:'mcq',q:'\u{1F9FA} I …… the laundry.',o:['play','fold','feed'],a:1},
+{src:'F2',L:9,t:'mcq',q:'\u{1F3CC}️ I …… golf.',o:['play','do','go'],a:0},
+{src:'F2',L:16,t:'mcq',q:'I usually …… up at 5:00.',o:['got','get','going'],a:1},
+{src:'F2',L:19,t:'fill',q:'Choose the correct word under each picture:',bank:['brush','robot','hang gliding'],items:[['\u{1FAA5} ...','brush'],['\u{1FA82} ...','hang gliding'],['\u{1F916} ...','robot']]},
+{src:'F2',L:19,t:'fill',q:'Choose the correct letter:',bank:['ng','or','ar','oy'],items:[['\u{1F6DD} swi ...','ng'],['\u{1F374} f ... k','or'],['\u{1F697} c ...','ar'],['\u{1F9F8} t ...','oy']]},
+/* ---------- F3 · Second Exam 1447 AH · Ms. Tahani (مع نموذج الإجابة) ---------- */
+{src:'F3',L:8,t:'mcq',q:'What sport does he like?',o:['He likes tennis.','He likes dolphins.'],a:0},
+{src:'F3',L:15,t:'mcq',q:'How do you spell teacher?',o:['t – e – a – c – h – e – r','He is Ali.'],a:0},
+{src:'F3',L:14,t:'mcq',q:'What is he doing now?',o:['It is a book.','He is watching TV.'],a:1},
+{src:'F3',L:12,t:'order',q:'Rearrange the words to form a sentence: the – feed – I – fish',seq:['I','feed','the','fish.']},
+{src:'F3',L:8,t:'mcq',q:'\u{1F40E} Choose the correct sentence:',o:['He likes riding horse.','He likes volleyball.'],a:0},
+{src:'F3',L:12,t:'mcq',q:'\u{1F9F9} Choose the correct sentence:',o:['He cleans up the room.','He vacuums the floor.'],a:1},
+{src:'F3',L:9,t:'mcq',q:'\u{1F3FA} Choose the correct sentence:',o:['I do pottery.','I do painting.'],a:0},
+{src:'F3',L:12,t:'mcq',q:'\u{1F9FC} Choose the correct sentence:',o:['I wash the dishes.','I set the table.'],a:0},
+{src:'F3',L:9,t:'mcq',q:'…… she play golf?',o:['Do','Does','Are'],a:1},
+{src:'F3',L:13,t:'mcq',q:'He …… the table.',o:['set','setting','sets'],a:2},
+{src:'F3',L:10,t:'mcq',q:'Sky diving is the …… sport.',o:['exciting','more exciting','most exciting'],a:2},
+{src:'F3',L:8,t:'mcq',q:'\u{1F3BE} Choose:',o:['racket','football'],a:0},
+{src:'F3',L:10,t:'mcq',q:'\u{1F985} Choose:',o:['tennis','falconry'],a:1},
+{src:'F3',L:20,t:'mcq',q:'\u{1F525} Choose:',o:['fire','smile'],a:0},
+{src:'F3',L:7,t:'mcq',q:'\u{1F3E0} Choose:',o:['bread','house'],a:1},
+{src:'F3',L:11,t:'fill',q:'Choose the correct missing letters:',bank:['oy','air','ar','or'],items:[['\u{1F466} b ...','oy'],['\u{1FA91} ch ...','air'],['\u{1F697} c ...','ar'],['\u{1F468}‍⚕️ doct ...','or']]},
+/* ---------- F4 · Second Period Exam (نسخة) ---------- */
+{src:'F4',L:19,t:'fill',q:'Choose the correct word under each picture:',bank:['clock','brush','computer games','smile','robot','hang gliding'],items:[['⏰ ...','clock'],['\u{1FAA5} ...','brush'],['\u{1F3AE} ...','computer games'],['\u{1F642} ...','smile'],['\u{1F916} ...','robot'],['\u{1FA82} ...','hang gliding']]},
+/* ---------- F5 · Exam units 5 & 6 \20 (مع نموذج الإجابة) ---------- */
+{src:'F5',L:17,t:'mcq',q:'What time did you get up yesterday?',o:['Yesterday, I got up at 5:30','I usually get up at 5:30','Yes, I did.'],a:0},
+{src:'F5',L:20,t:'mcq',q:'What does he do?',o:['Good afternoon','He’s a lawyer','No, he isn’t.'],a:1},
+{src:'F5',L:21,t:'mcq',q:'✈️ Where do they work?',o:['They work in airport.','She works in hospital','I am work in school.'],a:0},
+{src:'F5',L:16,t:'mcq',q:'What time do you take a bath?',o:['She plays basketball at 3:00','I usually take bath at 10:00','No, I can’t.'],a:1},
+{src:'F5',L:21,t:'mcq',q:'What does she …… ?',o:['do','does','doing'],a:0},
+{src:'F5',L:17,t:'mcq',q:'I usually …… lunch at 1:00.',o:['eats','ate','eat'],a:2},
+{src:'F5',L:21,t:'mcq',q:'Where do you …… ?',o:['work','works','working'],a:0},
+{src:'F5',L:17,t:'mcq',q:'What time did you …… to bed?',o:['going','went','go'],a:2},
+{src:'F5',L:20,t:'match',q:'Match:',pairs:[['It’s 5 o’clock.','\u{1F551} clock'],['A doctor helps sick people and works in a hospital.','\u{1F468}‍⚕️ doctor'],['I usually play football at 8:30.','\u{1F552} 8:30'],['When I grow up, I want to be a writer.','\u{1F9D2}✍️ writer']]},
+{src:'F5',L:20,t:'fill',q:'Write the correct word under each picture:',bank:['ring','astronaut','pilot','ink'],items:[['\u{1F468}‍✈️ ...','pilot'],['\u{1F58B}️ ...','ink'],['\u{1F468}‍\u{1F680} ...','astronaut'],['\u{1F48D} ...','ring']]},
+{src:'F5',L:23,t:'fill',q:'Fill in the missing letters:',bank:['sh','Kn','gh','th'],items:[['\u{1F6A2} ... ip','sh'],['\u{1F6AA} ... ob','Kn'],['\u{1F319} Ni ... t','gh'],['\u{1F914} ... ink','th']]},
+/* ---------- F6 · Quiz Unit 5 6 \20 (مع نموذج الإجابة) ---------- */
+{src:'F6',L:17,t:'mcq',q:'What time did you take a bath yesterday?',o:['I usually take a bath at 9 o’clock.','Yesterday, I took a bath at 9 o’clock.'],a:1},
+{src:'F6',L:9,t:'mcq',q:'Do you like cheese?',o:['No, it isn’t.','Yes, I do.'],a:1},
+{src:'F6',L:21,t:'mcq',q:'Where do they work?',o:['They are doctors.','In the hospital.'],a:1},
+{src:'F6',L:20,t:'mcq',q:'What does your uncle do?',o:['reporter','Ali'],a:0},
+{src:'F6',L:20,t:'order',q:'Rearrange the words to form a sentence: put – Firefighters – fires – out',seq:['Firefighters','put','out','fires.']},
+{src:'F6',L:17,t:'mcq',q:'\u{1F971} Choose the correct sentence:',o:['He played football.','He got up.'],a:1},
+{src:'F6',L:20,t:'mcq',q:'\u{1F468}‍\u{1F373} Choose the correct sentence:',o:['He is a businessman.','He is a cook.'],a:1},
+{src:'F6',L:18,t:'mcq',q:'\u{1F68C} Choose the correct sentence:',o:['I ride the bus home.','I jump into bed.'],a:0},
+{src:'F6',L:20,t:'mcq',q:'\u{1F477} Choose the correct sentence:',o:['I design buildings.','I teach English.'],a:0},
+{src:'F6',L:21,t:'mcq',q:'A: …… is he? B: He is my father.',o:['Where','What','Who'],a:2},
+{src:'F6',L:17,t:'mcq',q:'Yesterday, I …… my homework at 5 o’clock.',o:['did','do','does'],a:0},
+{src:'F6',L:22,t:'mcq',q:'\u{1F6B2} Choose:',o:['fire','bike'],a:1},
+{src:'F6',L:22,t:'mcq',q:'1000 =',o:['thousand','hundred'],a:0},
+{src:'F6',L:14,t:'mcq',q:'\u{1F4AD} Choose:',o:['cook','dream'],a:1},
+{src:'F6',L:20,t:'mcq',q:'\u{1F477}‍♂️ Choose:',o:['waiter','engineer'],a:1},
+{src:'F6',L:23,t:'fill',q:'Choose the correct missing letters:',bank:['gh','kn','ng','ch','Ph'],items:[['\u{1F4A1} li ... t','gh'],['\u{1F6AA} ... ock','kn'],['\u{1F338} spri ...','ng'],['\u{1F352} ... erry','ch'],['\u{1F4F1} ... one','Ph']]}
+];
+
+/* ---------- إعدادات اختبار اللغة الإنجليزية ---------- */
+const EXAM_CFG={subject:'اللغة الإنجليزية',
+ titles:{match:'General Questions · صلي كل سؤال بجوابه',
+         order:'Controlled Writing · رتّبي الكلمات لتكوين جملة',
+         tf:'Reading · ضعي علامة ✓ أو ✗',
+         mcq:'Grammar · Choose the correct answer',
+         fill:'Vocabulary & Orthography · اكتبي الكلمة أو الحروف الناقصة',
+         short:'Writing · اكتبي الجملة',
+         sort:'صنّفي'},
+ nLessons:LESSONS.length,minLessons:3,lessonName:i=>(LESSONS[i]||{}).name||'عام',
+ plan20:[{t:'match',n:1,m:4},{t:'order',n:2,m:1},{t:'tf',n:4,m:1},{t:'mcq',n:6,m:1},{t:'fill',n:1,m:4}],
+ plan10:[{t:'match',n:1,m:3},{t:'order',n:1,m:1},{t:'tf',n:3,m:1},{t:'mcq',n:3,m:1}],
+ gen(Li){const Ls=LESSONS[Li];if(!Ls)return [];const out=[];
+  (Ls.test||[]).concat(Ls.think||[]).forEach(s=>{
+   if(s.t==='mcq')out.push({t:'mcq',q:s.q,o:s.o,a:s.c});
+   else if(s.t==='tf')out.push({t:'tf',q:s.q.replace(/^["«]|["»]$/g,''),a:s.c});
+   else if(s.t==='match')out.push({t:'match',q:s.q,pairs:s.pairs});
+   else if(s.t==='order')out.push({t:'order',q:s.q,seq:s.seq});
+   else if(s.t==='sort2')out.push({t:'mcq',q:'«'+s.items[0][0]+'» — '+s.q,o:s.bins,a:s.items[0][1]});});
+  if(Ls.vocab&&Ls.vocab.length>=3){const v=xsh(Ls.vocab).slice(0,4);
+   out.push({t:'fill',q:'أكملي بالكلمة الإنجليزية المناسبة:',bank:v.map(x=>x[0]),items:v.map(x=>[x[1].split('—')[0].trim()+' ...',x[0]])});}
+  return out;}};
+
+/* ==================== 📝 اختبار تجريبي · محرك مشترك (يُضمَّن داخل كل تطبيق) ====================
+   يعتمد على: EXAM_BANK (بنك الأوراق الحقيقية) و EXAM_CFG (إعدادات المادة) و دوال التطبيق: addStar, save, goMap,
+   stage, applause, tada, confetti, ST.  لا أصوات ولا نجوم أثناء الاختبار؛ احتفال واحد في النهاية.           */
+const EX={sec:[],ans:[],timer:null,left:0,kind:'',on:false};
+const XAR=n=>String(n).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
+const XLAT=s=>String(s).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+const XORD=['الأول','الثاني','الثالث','الرابع','الخامس','السادس','السابع','الثامن','التاسع','العاشر'];
+const XLET=['أ','ب','ج','د','هـ','و'];
+const xsh=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const xnorm=s=>String(s||'').replace(/[ً-ْٰـ]/g,'').replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').replace(/[^؀-ۿ0-9a-zA-Z\s]/g,' ').replace(/\s+/g,' ').trim();
+const xesc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+const XTITLE0={tf:'ضعي علامة ✓ أو ✗ أمام كل عبارة',mcq:'اختاري الإجابة الصحيحة',match:'صلي كل عبارة بما يناسبها',fill:'أكملي الفراغ من الكلمات التالية (كل كلمة تُستعمل مرة واحدة)',order:'رتّبي',label:'حدّدي على الرسم',short:'اكتبي الإجابة',num:'أكملي',word:'حلّي المسألة بالخطوات الأربع',passage:'اقرئي النص ثم أجيبي',dictation:'إملاء منظور',sort:'صنّفي',extract:'استخرجي من النص'};
+const XTITLE=Object.assign({},XTITLE0,(typeof EXAM_CFG!=='undefined'&&EXAM_CFG.titles)||{});
+
+/* ---------- قواعد «استخرجي من النص» (كما في الأوراق) ---------- */
+const XSUN='تثدذرزسشصضطظلن',XMOON='ءابجحخعغفقكمهوي';
+const xstrip=w=>String(w||'').replace(/[،؛:.!؟()«»"'\-\[\]]/g,'');
+function xRule(rule,w){w=xstrip(w);if(!w)return false;const bare=w.replace(/[ً-ْٰ]/g,'');const voc=/[ً-ْ]/.test(w);const core=bare.replace(/^[وفبك]?ال/,'');
+ switch(rule){
+ case 'sun':{const m=bare.match(/^[وفبك]?ال(.)/);return !!m&&XSUN.includes(m[1])&&!/^[وفبك]?الله/.test(bare);}
+ case 'moon':{const m=bare.match(/^[وفبك]?ال(.)/);return !!m&&XMOON.includes(m[1]);}
+ case 'ta_marbuta':return /ة$/.test(bare);
+ case 'ta_maftuha':return /ت$/.test(bare)&&bare.length>2;
+ case 'tanween_fath':return /ً/.test(w);case 'tanween_kasr':return /ٍ/.test(w);case 'tanween_damm':return /ٌ/.test(w);
+ case 'hamza_qat':return /^[وف]?[أإآ]/.test(bare);
+ case 'hamza_wasl':return /^[وف]?ا(?!ل)/.test(bare);
+ case 'shadda':return /ّ/.test(w);
+ case 'madd_alif':{for(let i=1;i<w.length;i++){if(w[i]!=='ا'||w[i-1]==='ً')continue;const before=w.slice(0,i).replace(/[ً-ْٰ]/g,'');if(/^[وفبك]?$/.test(before))continue;return true;}return false;}
+ case 'madd_waw':return voc?/ُو(?![ً-ْ])/.test(w):core.slice(1).includes('و');
+ case 'madd_ya':return voc?/ِي(?![ً-ْ])/.test(w):core.slice(1).includes('ي');}
+ return false;}
+const XRULE_NAME={sun:'كلمة تحتوي (ال) الشمسية',moon:'كلمة تحتوي (ال) القمرية',ta_marbuta:'كلمة مختومة بتاء مربوطة',ta_maftuha:'كلمة مختومة بتاء مفتوحة',tanween_fath:'كلمة مختومة بتنوين الفتح',tanween_kasr:'كلمة مختومة بتنوين الكسر',tanween_damm:'كلمة مختومة بتنوين الضم',hamza_qat:'كلمة تبدأ بهمزة قطع',hamza_wasl:'كلمة تبدأ بهمزة وصل',shadda:'كلمة بها حرف مضعف (شدة)',madd_alif:'كلمة بها مد بالألف',madd_waw:'كلمة بها مد بالواو',madd_ya:'كلمة بها مد بالياء'};
+function xFirstMatch(text,rule){return (String(text||'').split(/\s+/).map(xstrip).find(w=>xRule(rule,w)))||'';}
+
+/* ---------- تجميع الأسئلة المتاحة ---------- */
+function exMergeAttempts(x,y){const m={};[...(x||[]),...(y||[])].forEach(a=>{if(a&&a.d)m[a.d]=a;});return Object.values(m).sort((p,q)=>p.d<q.d?-1:1);}
+function exPool(lessons){const pool={};const add=it=>{(pool[it.t]=pool[it.t]||[]).push(it);};
+ EXAM_BANK.filter(b=>lessons.includes(b.L)).forEach(b=>{let it=Object.assign({},b);if(it.t==='label'&&!it.targets&&EXAM_CFG.label)it=Object.assign(it,EXAM_CFG.label(it.fig));add(it);});
+ lessons.forEach(L=>{try{(EXAM_CFG.gen(L)||[]).forEach(it=>{it.L=L;add(it);});}catch(e){}});
+ return pool;}
+function exDraw(pool,t,n){const src=xsh(pool[t]||[]);const out=[];const seen=new Set();
+ for(const it of src){if(out.length>=n)break;const k=xnorm(it.q||it.text||'')+(it.seq||it.pairs||it.items||'');if(seen.has(k))continue;seen.add(k);out.push(it);}
+ return out;}
+function exBuild(lessons,short){const plan=short?EXAM_CFG.plan10:EXAM_CFG.plan20;const pool=exPool(lessons);const secs=[];let deficit=0;
+ plan.forEach(p=>{let items=exDraw(pool,p.t,p.n);
+  if(p.t==='passage'){items=items.slice(0,1);if(items.length){const ps=items[0];const sub=xsh(ps.items).slice(0,p.m);secs.push({t:'passage',title:XTITLE.passage,text:ps.text,L:ps.L,items:sub.map(s=>Object.assign({},s,{L:ps.L,m:1})),marks:sub.length});deficit+=p.m-sub.length;}else deficit+=p.m;return;}
+  if(items.length<p.n)deficit+=(p.n-items.length)*p.m;
+  if(items.length)secs.push({t:p.t,title:p.title||XTITLE[p.t],items:items.map(it=>Object.assign({},it,{m:p.m})),marks:items.length*p.m});});
+ if(deficit>0){const extra=exDraw(pool,'mcq',deficit*3).filter(it=>!secs.some(s=>s.items.some(x=>x.q===it.q))).slice(0,deficit);
+  const more=deficit-extra.length;const tfx=more>0?exDraw(pool,'tf',more):[];
+  if(extra.length)secs.push({t:'mcq',title:XTITLE.mcq,items:extra.map(it=>Object.assign({},it,{m:1})),marks:extra.length});
+  if(tfx.length)secs.push({t:'tf',title:XTITLE.tf,items:tfx.map(it=>Object.assign({},it,{m:1})),marks:tfx.length});}
+ return secs;}
+
+/* ---------- النماذج الثابتة ---------- */
+function exNorm(it){it=Object.assign({},it);if(it.t==='label'&&!it.targets&&EXAM_CFG.label)it=Object.assign(it,EXAM_CFG.label(it.fig,it));return it;}
+function exPaperBest(id){const A=(ST.exams||[]).filter(a=>a.pid===id);if(!A.length)return null;return A.reduce((b,a)=>a.m>b.m?a:b);}
+function exStartPaper(id){const P=(typeof EXAM_PAPERS!=='undefined'?EXAM_PAPERS:[]).find(x=>x.id===id);if(!P)return;
+ EX.kind=P.kind;EX.short=false;EX.pid=P.id;EX.pname=P.name;
+ EX.sec=P.secs.map(sec=>{const items=sec.items.map(it=>Object.assign(exNorm(it),{m:sec.m}));const o={t:sec.t,title:sec.title||XTITLE[sec.t],items,marks:items.length*sec.m};if(sec.t==='passage'){o.text=sec.text;o.L=sec.L;}return o;});
+ EX.ans=EX.sec.map(s=>s.items.map(()=>null));exIntro();}
+
+/* ---------- اختيار نوع الاختبار ---------- */
+function exChoose(){EX.on=false;document.getElementById('backB').style.visibility='visible';if(typeof cur!=='undefined')cur=-1;if(typeof curLesson!=='undefined')curLesson=-1;
+ const n=EXAM_CFG.nLessons,half=Math.ceil(n/2);const done=ST.after||[];const PAP=(typeof EXAM_PAPERS!=='undefined'?EXAM_PAPERS:[]);
+ const kinds=[{k:'p1',n:'اختبار الفترة الأولى',rng:[...Array(half).keys()]},{k:'p2',n:'اختبار الفترة الثانية',rng:[...Array(n-half).keys()].map(i=>i+half)},{k:'fin',n:'اختبار نهاية الفصل',rng:[...Array(n).keys()]}];
+ stage.innerHTML=`${chip('📝 اختبار تجريبي')}<div class="card"><div class="big">📝✏️</div><h1 style="font-size:22px">اختبارات ${EXAM_CFG.subject} التجريبية</h1>
+  <p class="sub">كل ورقة مثل ورقة المدرسة: ${XAR(20)} درجة و ${XAR(15)} دقيقة. لا نجوم ولا أصوات أثناء الاختبار، وفي النهاية تظهر الدرجة فورًا ثم الورقة المصحّحة 🎉</p>
+  ${kinds.map(K=>{const el=K.rng.filter(i=>done.includes(i));const few=el.length<Math.ceil(K.rng.length/2);const papers=PAP.filter(p=>p.kind===K.k);
+   return `<div style="background:#F7F9FC;border:2px solid #E1E7F0;border-radius:16px;padding:12px;margin:10px 0;text-align:right">
+    <b style="font-size:17px">${K.n}</b><div style="font-size:13px;color:#5B6B85;margin:4px 0 8px">الدروس المنجزة (✏️ بعد الحصة): ${XAR(el.length)} من ${XAR(K.rng.length)}${few?' · <span style="color:#9A7A17">يُفضَّل إكمال دروس هذه الفترة أولًا</span>':''}</div>
+    ${papers.map(p=>{const b=exPaperBest(p.id);return `<div style="display:flex;align-items:center;gap:8px;margin:6px 0;flex-wrap:wrap"><button class="go" style="font-size:14px;padding:8px 16px" onclick="exStartPaper('${p.id}')">${b?'🔁 ':'📄 '}${p.name}</button><span style="font-size:13px;color:${b?'#227A63':'#9AA9BE'}">${b?'أفضل درجة: '+XAR(b.m)+' / '+XAR(b.max)+' ✓':'لم تُحلّ بعد'}</span></div>`;}).join('')}
+    ${el.length?`<div style="margin-top:6px"><button style="font-size:13px;padding:7px 14px" onclick="exStart('${K.k}',${JSON.stringify(el)},${el.length<EXAM_CFG.minLessons})">🎲 ورقة عشوائية جديدة من الدروس المنجزة (${XAR(el.length<EXAM_CFG.minLessons?10:20)} درجة)</button></div>`:''}
+   </div>`;}).join('')}
+  <button onclick="goMap()" style="margin-top:6px">الخريطة 🏡</button></div>`;window.scrollTo({top:0});}
+
+/* ---------- بدء الورقة ---------- */
+function exStart(kind,lessons,short){EX.kind=kind;EX.short=!!short;EX.pid=null;EX.pname=null;EX.sec=exBuild(lessons,short);EX.ans=EX.sec.map(s=>s.items.map(()=>null));exIntro();}
+function exIntro(){EX.on=false;const total=EX.sec.reduce((a,s)=>a+s.marks,0);
+ stage.innerHTML=`<div class="xpaper"><div class="xhead"><div><b>المادة:</b> ${EXAM_CFG.subject}</div><div><b>الصف:</b> الثالث الابتدائي</div><div><b>الزمن:</b> ${XAR(15)} دقيقة</div><div><b>الدرجة:</b> ${XAR(total)}</div></div>
+  <div class="xtitle">${EX.pname||exKindName(EX.kind)}</div>
+  <div class="xsec"><div class="xsech">تعليمات الاختبار</div><ul class="xinstr"><li>اقرئي السؤال جيدًا قبل البدء في الإجابة.</li><li>أجيبي بهدوء، ولا تتركي سؤالًا بدون إجابة.</li><li>راجعي إجاباتكِ أكثر من مرة قبل التسليم.</li><li>الأسئلة: ${EX.sec.map((s,i)=>'السؤال '+(XORD[i]||XAR(i+1))+' ('+XAR(s.marks)+')').join(' · ')}</li></ul></div>
+  <div style="text-align:center;margin-top:14px"><button class="go" onclick="exBegin()">نستعين بالله ونبدأ ✍️</button><div style="height:8px"></div><button onclick="goMap()" style="font-size:13px">رجوع</button></div></div>`;window.scrollTo({top:0});}
+function exBegin(){EX.on=true;EX.left=15*60;clearInterval(EX.timer);EX.timer=setInterval(()=>{EX.left--;const t=document.getElementById('xtimer');if(t)t.textContent='⏱ '+XAR(String(Math.floor(EX.left/60)).padStart(2,'0'))+':'+XAR(String(EX.left%60).padStart(2,'0'));if(EX.left<=0){clearInterval(EX.timer);exSubmit(true);}},1000);exRender();}
+function exKindName(k){return k==='p1'?'اختبار الفترة الأولى':k==='p2'?'اختبار الفترة الثانية':'اختبار نهاية الفصل';}
+function exRender(){const total=EX.sec.reduce((a,s)=>a+s.marks,0);
+ let html=`<div class="xpaper">
+  <div class="xhead"><div><b>الصف:</b> الثالث الابتدائي</div><div><b>المادة:</b> ${EXAM_CFG.subject}</div><div><b>اسم الطالبة:</b> ماريا</div><div><b>الدرجة:</b> ____ / ${XAR(total)}</div></div>
+  <div class="xtitle">${EX.pname||exKindName(EX.kind)} · الفصل الدراسي الأول </div><div class="xfloat"><span id="xtimer" class="xtimer">⏱ ١٥:٠٠</span></div>`;
+ EX.sec.forEach((s,si)=>{const part=s.part||(EXAM_CFG.partOf?EXAM_CFG.partOf(s.t):'');html+=`<div class="xsec"><div class="xsech">السؤال ${XORD[si]||XAR(si+1)}${part?' ('+part+')':''}: ${s.title} <span class="xmarks">(${s.marks===1?'درجة واحدة':s.marks===2?'درجتان':XAR(s.marks)+' درجات'})</span></div>`;
+  if(s.t==='passage'){const tap=s.items.some(it=>it.t==='extract');html+=`<div class="xpass ${tap?'xtap':''}" data-pass="${si}">${tap?String(s.text).split(/(\s+)/).map(tok=>/^\s+$/.test(tok)||!tok?tok:`<span class="xw">${xesc(tok)}</span>`).join(''):xesc(s.text)}</div>${tap?'<div class="xhint">لأسئلة «استخرجي»: اضغطي زر السؤال ثم اضغطي الكلمة المناسبة في النص 👆</div>':''}`;}
+  s.items.forEach((it,ii)=>{html+=`<div class="xitem" id="xi_${si}_${ii}">${exItemHtml(it,si,ii)}</div>`;});
+  html+='</div>';});
+ html+=`<div style="text-align:center;margin-top:14px"><button class="go" onclick="exSubmit(false)">سلّمي الورقة ✅</button><div style="height:8px"></div><button onclick="if(confirm('تخرجين من الاختبار دون تسليم؟')){clearInterval(EX.timer);EX.on=false;goMap();}" style="font-size:13px">خروج بدون تسليم</button></div></div>`;
+ stage.innerHTML=html;window.scrollTo({top:0});
+ EX.sec.forEach((s,si)=>s.items.forEach((it,ii)=>exBind(it,si,ii)));}
+
+/* ---------- عرض كل نوع ---------- */
+function exItemHtml(it,si,ii){const id=`${si}_${ii}`;const num=`<span class="xn">${XAR(ii+1)}</span>`;
+ switch(it.t){
+ case 'tf':return `<div class="xrow">${num}<div class="xq">${xesc(it.q)}</div><div class="xtf"><button data-v="1">✓</button><button data-v="0">✗</button></div></div>`;
+ case 'mcq':return `${num}<div class="xq">${xesc(it.q)}</div><div class="xopts">${it.o.map((o,k)=>`<button data-k="${k}"><span class="xlet">${XLET[k]}</span> ${xesc(o)}</button>`).join('')}</div>`;
+ case 'match':{const R=xsh(it.pairs.map((p,k)=>k));it._R=R;return `${num}<div class="xq">${xesc(it.q)}</div><div class="xmatch"><div class="xcol">${it.pairs.map((p,k)=>`<button data-l="${k}">${xesc(p[0])}</button>`).join('')}</div><div class="xcol">${R.map(k=>`<button data-r="${k}">${xesc(it.pairs[k][1])}</button>`).join('')}</div></div>`;}
+ case 'fill':{const bank=xsh(it.bank||it.items.map(x=>x[1]));return `${num}<div class="xq">${xesc(it.q)}</div><div class="xbank">${bank.map((w,k)=>`<button data-w="${k}">${xesc(w)}</button>`).join('')}</div>${it.items.map((x,k)=>`<div class="xblankrow"><span class="xn">${XAR(k+1)}</span> ${xesc(x[0]).replace(/\.{3,}|◯|_{2,}/,'<span class="xblank" data-b="'+k+'"></span>')}${/\.{3,}|◯|_{2,}/.test(x[0])?'':' <span class="xblank" data-b="'+k+'"></span>'}</div>`).join('')}`;}
+ case 'sort':return `${num}<div class="xq">${xesc(it.q)}</div><div class="xbank">${xsh(it.items.map((x,k)=>k)).map(k=>`<button data-w="${k}">${xesc(it.items[k][0])}</button>`).join('')}</div><div class="xbins">${it.bins.map((b,k)=>`<div class="xbin" data-bin="${k}"><h4>${xesc(b)}</h4><div class="xgot"></div></div>`).join('')}</div>`;
+ case 'order':return `${num}<div class="xq">${xesc(it.q)}</div><div class="xslots">${it.seq.map((_,k)=>`<div class="xslot" data-s="${k}">${XAR(k+1)}</div>`).join('')}</div><div class="xbank">${xsh(it.seq.map((x,k)=>k)).map(k=>`<button data-w="${k}">${xesc(it.seq[k])}</button>`).join('')}</div><div style="text-align:left"><button class="xreset" style="font-size:12px;padding:4px 10px">إعادة ↺</button></div>`;
+ case 'label':return `${num}<div class="xq">${xesc(it.q)}</div><div class="xbank">${it.chips.map((c,k)=>`<button data-w="${k}">${xesc(c)}</button>`).join('')}</div><div class="xfig">${it.html}</div>`;
+ case 'short':return `${num}<div class="xq">${xesc(it.q)}</div><textarea class="xta" placeholder="اكتبي إجابتكِ هنا…"></textarea>`;
+ case 'num':return `${num}<div class="xq">${xesc(it.q)}</div><div class="xnum"><div class="xdisp">&nbsp;</div><div class="xkb">${[1,2,3,4,5,6,7,8,9].map(d=>`<button data-d="${d}">${XAR(d)}</button>`).join('')}<button data-d="del">⌫</button><button data-d="0">٠</button><button data-d="clr">مسح</button></div></div>`;
+ case 'word':return `${num}<div class="xq">${xesc(it.q)}</div><div class="xsteps">
+   <div class="xstep"><b>١ أفهم:</b> ما المطلوب في المسألة؟ اقرئيها مرتين.</div>
+   <div class="xstep"><b>٢ أخطط:</b> أي عملية أستعمل؟ <div class="xopts xplan">${['جمع','طرح','تقدير بالتقريب'].map((o,k)=>`<button data-p="${k}">${o}</button>`).join('')}</div></div>
+   <div class="xstep"><b>٣ أحل:</b><div class="xnum"><div class="xdisp">&nbsp;</div><div class="xkb">${[1,2,3,4,5,6,7,8,9].map(d=>`<button data-d="${d}">${XAR(d)}</button>`).join('')}<button data-d="del">⌫</button><button data-d="0">٠</button><button data-d="clr">مسح</button></div></div></div>
+   <div class="xstep"><b>٤ أتحقق:</b> هل الجواب معقول؟ <button class="xchk" style="font-size:13px;padding:5px 12px">راجعتُ جوابي ✔</button></div></div>`;
+ case 'extract':return `${num}<div class="xq">${xesc(it.q||('استخرجي من النص '+(XRULE_NAME[it.rule]||'')))}</div><div class="xpick"><button class="xpickbtn">اختاري الكلمة من النص 👆</button> <span class="xchosen">—</span></div>`;
+ case 'dictation':return `${num}<div class="xq">اقرئي الجملة جيدًا؛ ستختفي بعد ${XAR(30)} ثانية، ثم اكتبيها كما هي.</div><div class="xdict"><div class="xdtext">${xesc(it.text)}</div><div class="xdcount">⏳ ${XAR(30)}</div></div><textarea class="xta" placeholder="اكتبي الجملة هنا بعد اختفائها…" disabled></textarea>`;
+ default:return `${num}<div class="xq">${xesc(it.q||'')}</div>`;}}
+
+/* ---------- ربط التفاعل وتخزين الإجابات ---------- */
+function exBind(it,si,ii){const el=document.getElementById(`xi_${si}_${ii}`);if(!el)return;const set=v=>{EX.ans[si][ii]=v;};
+ const pickOne=(sel,attr)=>{el.querySelectorAll(sel).forEach(b=>b.onclick=()=>{el.querySelectorAll(sel).forEach(x=>x.classList.remove('xsel'));b.classList.add('xsel');set(b.dataset[attr]);});};
+ switch(it.t){
+ case 'tf':pickOne('.xtf button','v');break;
+ case 'mcq':pickOne('.xopts button','k');break;
+ case 'match':{let pick=null;const map={};set(map);
+  el.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>{el.querySelectorAll('[data-l]').forEach(x=>x.classList.remove('xsel'));b.classList.add('xsel');pick=+b.dataset.l;});
+  el.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{if(pick===null)return;const r=+b.dataset.r;Object.keys(map).forEach(k=>{if(map[k]===r)delete map[k];});map[pick]=r;
+   el.querySelectorAll('[data-l]').forEach(x=>{x.classList.remove('xsel');const m=map[x.dataset.l];x.querySelector('.xtag')?.remove();if(m!==undefined)x.insertAdjacentHTML('beforeend',`<span class="xtag">${XAR(+x.dataset.l+1)}</span>`);});
+   el.querySelectorAll('[data-r]').forEach(x=>{x.querySelector('.xtag')?.remove();const l=Object.keys(map).find(k=>map[k]===+x.dataset.r);if(l!==undefined)x.insertAdjacentHTML('beforeend',`<span class="xtag">${XAR(+l+1)}</span>`);});pick=null;});break;}
+ case 'fill':{let pick=null;const map={};set(map);const words=el.querySelectorAll('.xbank button');
+  words.forEach(b=>b.onclick=()=>{if(b.classList.contains('xused'))return;words.forEach(x=>x.classList.remove('xsel'));b.classList.add('xsel');pick=b;});
+  el.querySelectorAll('.xblank').forEach(bl=>bl.onclick=()=>{const k=bl.dataset.b;if(map[k]!==undefined){const old=[...words].find(w=>w.textContent===map[k]);if(old)old.classList.remove('xused');delete map[k];bl.textContent='';bl.classList.remove('xfilled');if(!pick)return;}
+   if(!pick)return;map[k]=pick.textContent;bl.textContent=pick.textContent;bl.classList.add('xfilled');pick.classList.add('xused');pick.classList.remove('xsel');pick=null;});break;}
+ case 'sort':{let pick=null;const map={};set(map);const words=el.querySelectorAll('.xbank button');
+  words.forEach(b=>b.onclick=()=>{words.forEach(x=>x.classList.remove('xsel'));b.classList.add('xsel');pick=b;});
+  el.querySelectorAll('.xbin').forEach(bin=>bin.onclick=()=>{if(!pick)return;const k=+pick.dataset.w;map[k]=+bin.dataset.bin;bin.querySelector('.xgot').insertAdjacentHTML('beforeend',`<span>${xesc(it.items[k][0])}</span>`);pick.remove();pick=null;});break;}
+ case 'order':{const arr=[];set(arr);const words=el.querySelectorAll('.xbank button');
+  words.forEach(b=>b.onclick=()=>{if(arr.length>=it.seq.length)return;arr.push(+b.dataset.w);const sl=el.querySelector(`.xslot[data-s="${arr.length-1}"]`);sl.textContent=it.seq[+b.dataset.w];sl.classList.add('xfilled');b.classList.add('xused');});
+  el.querySelector('.xreset').onclick=()=>{arr.length=0;el.querySelectorAll('.xslot').forEach((s,k)=>{s.textContent=XAR(k+1);s.classList.remove('xfilled');});words.forEach(b=>b.classList.remove('xused'));};break;}
+ case 'label':{let pick=null;const map={};set(map);const chips=el.querySelectorAll('.xbank button');
+  chips.forEach(b=>b.onclick=()=>{if(b.classList.contains('xused'))return;chips.forEach(x=>x.classList.remove('xsel'));b.classList.add('xsel');pick=b;});
+  el.querySelectorAll('.xtarget').forEach(t=>t.addEventListener('click',()=>{if(!pick)return;const k=t.dataset.t;if(map[k]!==undefined&&!it.reuse){const old=[...chips].find(c=>+c.dataset.w===map[k]);if(old)old.classList.remove('xused');}
+   map[k]=+pick.dataset.w;const lab=t.querySelector('.xtl')||t;if(t.tagName==='DIV'||t.tagName==='SPAN')lab.textContent=it.chips[map[k]];else{const tx=t.parentNode.querySelector(`[data-tl="${k}"]`);if(tx)tx.textContent=it.chips[map[k]];}
+   t.classList.add('xfilled');if(!it.reuse)pick.classList.add('xused');pick.classList.remove('xsel');pick=null;}));break;}
+ case 'short':el.querySelector('.xta').oninput=e=>set(e.target.value);break;
+ case 'extract':{const btn=el.querySelector('.xpickbtn');btn.onclick=()=>{document.querySelectorAll('.xpickbtn').forEach(b=>b.classList.remove('xsel'));btn.classList.add('xsel');EX.active={si,ii};const ps=document.querySelector(`.xpass[data-pass="${si}"]`);if(ps){document.querySelectorAll('.xpass').forEach(p=>p.classList.remove('xactive'));ps.classList.add('xactive');ps.scrollIntoView({behavior:'smooth',block:'center'});}};
+  const ps=document.querySelector(`.xpass[data-pass="${si}"]`);if(ps&&!ps.dataset.bound){ps.dataset.bound='1';ps.querySelectorAll('.xw').forEach(w=>w.onclick=()=>{if(!EX.active||EX.active.si!==si)return;const a=EX.active;EX.ans[a.si][a.ii]=w.textContent;const item=document.getElementById(`xi_${a.si}_${a.ii}`);if(item){item.querySelector('.xchosen').textContent=w.textContent;item.querySelector('.xpickbtn').classList.remove('xsel');}ps.querySelectorAll('.xw').forEach(x=>x.classList.remove('xhit'));w.classList.add('xhit');ps.classList.remove('xactive');EX.active=null;});}break;}
+ case 'num':case 'word':{let v='';const disp=el.querySelector('.xdisp');el.querySelectorAll('.xkb button').forEach(b=>b.onclick=()=>{const d=b.dataset.d;if(d==='del')v=v.slice(0,-1);else if(d==='clr')v='';else if(v.length<6)v+=d;disp.textContent=v?XAR(v):' ';set(v);});
+  if(it.t==='word'){el.querySelectorAll('.xplan button').forEach(b=>b.onclick=()=>{el.querySelectorAll('.xplan button').forEach(x=>x.classList.remove('xsel'));b.classList.add('xsel');});const c=el.querySelector('.xchk');c.onclick=()=>c.classList.toggle('xsel');}break;}
+ case 'dictation':{let n=30;const cnt=el.querySelector('.xdcount'),tx=el.querySelector('.xdtext'),ta=el.querySelector('.xta');const iv=setInterval(()=>{n--;cnt.textContent='⏳ '+XAR(n);if(n<=0){clearInterval(iv);tx.textContent='(اختفت الجملة… اكتبيها الآن ✍️)';tx.classList.add('xhidden');cnt.textContent='';ta.disabled=false;ta.focus();}},1000);ta.oninput=e=>set(e.target.value);break;}}}
+
+/* ---------- التصحيح ---------- */
+function exGrade(it,v){const m=it.m||1;const R=(got,c,g)=>({got:Math.round(got*2)/2,max:m,c,g,q:it.q||it.text||''});
+ switch(it.t){
+ case 'tf':{const g=v===null?'—':v==='1'?'✓':'✗';return R(v!==null&&(v==='1')===!!it.a?m:0,it.a?'✓':'✗',g);}
+ case 'mcq':{const k=v===null?-1:+v;return R(k===it.a?m:0,it.o[it.a],k>=0?it.o[k]:'—');}
+ case 'match':{const map=v||{};let ok=0;it.pairs.forEach((p,k)=>{if(map[k]===k)ok++;});return R(m*ok/it.pairs.length,it.pairs.map(p=>p[0]+' ← '+p[1]).join(' ؛ '),it.pairs.map((p,k)=>p[0]+' ← '+(map[k]!==undefined?it.pairs[map[k]][1]:'—')).join(' ؛ '));}
+ case 'fill':{const map=v||{};let ok=0;it.items.forEach((x,k)=>{if(xnorm(map[k])===xnorm(x[1]))ok++;});return R(m*ok/it.items.length,it.items.map(x=>x[1]).join(' ، '),it.items.map((x,k)=>map[k]||'—').join(' ، '));}
+ case 'sort':{const map=v||{};let ok=0;it.items.forEach((x,k)=>{if(map[k]===x[1])ok++;});return R(m*ok/it.items.length,it.items.map(x=>x[0]+' ← '+it.bins[x[1]]).join(' ؛ '),it.items.map((x,k)=>x[0]+' ← '+(map[k]!==undefined?it.bins[map[k]]:'—')).join(' ؛ '));}
+ case 'order':{const arr=v||[];let ok=0;it.seq.forEach((s,k)=>{if(arr[k]===k)ok++;});return R(m*ok/it.seq.length,it.seq.join(' ← '),arr.length?arr.map(k=>it.seq[k]).join(' ← '):'—');}
+ case 'label':{const map=v||{};let ok=0;it.targets.forEach((t,k)=>{if(map[k]===t.c)ok++;});return R(m*ok/it.targets.length,it.targets.map(t=>t.n+': '+it.chips[t.c]).join(' ؛ '),it.targets.map((t,k)=>t.n+': '+(map[k]!==undefined?it.chips[map[k]]:'—')).join(' ؛ '));}
+ case 'extract':{const w=v?xstrip(v):'';const ok=!!w&&(xRule(it.rule,w)||(it.accept||[]).map(xnorm).includes(xnorm(w)));const sec=EX.sec.find(x=>x.items.includes(it));const ex=(it.accept&&it.accept[0])||xFirstMatch(sec&&sec.text,it.rule)||'';return R(ok?m:0,'مثال: '+ex,w||'—');}
+ case 'short':{const txt=xnorm(v||'');const keys=(it.keys||[]).map(xnorm);const hit=keys.filter(k=>k&&txt.includes(k)).length;const need=Math.max(1,Math.ceil(keys.length/2));const frac=!keys.length?(txt.length>2?1:0):Math.min(1,hit/need);return R(m*frac,it.a,v||'—');}
+ case 'num':case 'word':{const g=v?parseInt(v,10):NaN;return R(g===it.ans?m:0,XAR(it.ans)+(it.why?' ('+it.why+')':''),v?XAR(v):'—');}
+ case 'dictation':{const want=xnorm(it.text).split(' ').filter(Boolean),got=xnorm(v||'').split(' ').filter(Boolean);let ok=0;const used=new Set();want.forEach(w=>{const i=got.findIndex((g,idx)=>!used.has(idx)&&g===w);if(i>=0){used.add(i);ok++;}});return R(m*ok/Math.max(1,want.length),it.text,v||'—');}
+ default:return R(0,'',v||'—');}}
+function exSubmit(auto){if(!EX.on)return;if(!auto){const empty=EX.ans.flat().filter(a=>a===null||a===''||(typeof a==='object'&&!Array.isArray(a)&&!Object.keys(a).length)||(Array.isArray(a)&&!a.length)).length;if(empty&&!confirm(`تركتِ ${XAR(empty)} من الأسئلة بلا إجابة. تسلّمين الورقة؟`))return;}
+ clearInterval(EX.timer);EX.on=false;
+ const total=EX.sec.reduce((a,s)=>a+s.marks,0);let mark=0,stars=0;const rows=[];
+ EX.sec.forEach((s,si)=>s.items.forEach((it,ii)=>{const r=exGrade(it,EX.ans[si][ii]);mark+=r.got;if(r.got>=r.max)stars++;const Lname=EXAM_CFG.lessonName(it.L);rows.push(Object.assign(r,{ok:r.got>=r.max,tag:Lname,type:it.t}));}));
+ mark=Math.round(mark*2)/2;
+ const attempt={d:new Date().toISOString(),k:EX.kind,pid:EX.pid||null,pn:EX.pname||null,short:EX.short,m:mark,max:total,stars,missed:rows.filter(r=>!r.ok).map(r=>({q:r.q.slice(0,120),c:String(r.c).slice(0,140),g:String(r.g).slice(0,140),tag:r.tag,type:r.type}))};
+ if(!Array.isArray(ST.exams))ST.exams=[];ST.exams.push(attempt);save();
+ EX.last={rows,mark,total,stars};exCelebrate(mark,total,stars);}
+function exShowCorrected(rows,mark,total,stars){const wrong=rows.filter(r=>!r.ok);
+ stage.innerHTML=`<div class="xpaper"><div class="xtitle">📄 الورقة المصحّحة · الدرجة: <b>${XAR(mark)}</b> / ${XAR(total)}</div>
+  ${wrong.length?`<p style="font-size:14px;color:#5B6B85;margin:6px 0 10px">هذه الأسئلة راجعيها مع ماما (إجابتكِ ← الصحيح):</p>`+wrong.map(r=>`<div class="xwrong"><div class="xq">${xesc(r.q)}</div><div class="xgiven">✗ إجابتكِ: ${xesc(r.g)}</div><div class="xcorrect">✓ الصحيح: ${xesc(r.c)}</div><div class="xtagl">📚 ${xesc(r.tag)}</div></div>`).join(''):`<p style="font-size:17px;text-align:center;margin:14px 0">كل الإجابات صحيحة! 🌟 ورقة كاملة!</p>`}
+  <div style="text-align:center;margin-top:14px"><button class="go" onclick="goMap()">الخريطة 🏡</button> <button onclick="exLog()" style="font-size:14px">📊 السجل</button></div></div>`;window.scrollTo({top:0});}
+function exCelebrate(mark,total,stars){if(stars>0)addStar(stars);try{applause(mark>=total*0.75);tada();confetti();}catch(e){}const wrongN=(EX.last&&EX.last.rows)?EX.last.rows.filter(r=>!r.ok).length:0;
+ const pct=mark/total;const msg=pct>=0.9?'ممتازة يا ماريا! ورقة تفتخر بها 🏆':pct>=0.7?'أحسنتِ يا ماريا! نتيجة جميلة 🌟':pct>=0.5?'جيدة! راجعي الأسئلة المصحّحة وستكونين أفضل 💪':'لا بأس يا بطلة، المراجعة مع ماما ستصنع الفرق 🌱';
+ stage.innerHTML=`<div class="card"><div class="big">🎉📝</div><h1>${XAR(mark)} من ${XAR(total)}</h1><p class="sub">${msg}</p><p class="sub">⭐ كسبتِ ${XAR(stars)} ${stars===1?'نجمة':stars===2?'نجمتين':stars<=10?'نجوم':'نجمة'} (نجمة لكل إجابة صحيحة)</p>
+  <button class="go" onclick="exShowCorrected(EX.last.rows,EX.last.mark,EX.last.total,EX.last.stars)">${wrongN?'شاهدي الورقة المصحّحة ('+XAR(wrongN)+') 📄':'شاهدي الورقة 📄'}</button><div style="height:8px"></div><button onclick="goMap()">الخريطة 🏡</button> <button onclick="exLog()" style="font-size:14px">📊 السجل</button></div>`;window.scrollTo({top:0});}
+
+/* ---------- سجل الاختبارات (لوليّ الأمر) ---------- */
+function exLog(){document.getElementById('backB').style.visibility='visible';if(typeof cur!=='undefined')cur=-1;if(typeof curLesson!=='undefined')curLesson=-1;
+ const A=(ST.exams||[]).slice().reverse();const byTag={};(ST.exams||[]).forEach(a=>(a.missed||[]).forEach(mi=>{const t=byTag[mi.tag]=byTag[mi.tag]||{n:0,qs:[]};t.n++;if(t.qs.length<3&&!t.qs.some(q=>q.q===mi.q))t.qs.push(mi);}));
+ const tags=Object.entries(byTag).sort((a,b)=>b[1].n-a[1].n).slice(0,8);
+ const fmt=d=>{try{const x=new Date(d);return XAR(x.getDate())+'/'+XAR(x.getMonth()+1)+' '+XAR(String(x.getHours()).padStart(2,'0'))+':'+XAR(String(x.getMinutes()).padStart(2,'0'));}catch(e){return '';}};
+ stage.innerHTML=`${chip('📊 سجل الاختبارات · لوليّ الأمر')}<div class="card" style="text-align:right">
+  <h2 style="text-align:center">📊 سجل اختبارات ماريا · ${EXAM_CFG.subject}</h2>
+  ${A.length?`<table class="xlog"><tr><th>التاريخ</th><th>الاختبار</th><th>الدرجة</th><th>أخطاء</th></tr>${A.map(a=>`<tr><td>${fmt(a.d)}</td><td>${a.pn||exKindName(a.k)}${a.short?' (قصير)':''}</td><td><b>${XAR(a.m)}</b>/${XAR(a.max)}</td><td>${XAR((a.missed||[]).length)}</td></tr>`).join('')}</table>`:'<p class="sub" style="text-align:center">لا توجد محاولات بعد. ابدئي أول اختبار تجريبي من الخريطة 📝</p>'}
+  ${tags.length?`<h3 style="margin:16px 0 6px">🔎 أكثر ما تحتاج مراجعته (حسب عدد الأخطاء)</h3>${tags.map(([t,v])=>`<div class="xtagbox"><b>${xesc(t)}</b> <span style="color:#9A3B3B;font-weight:800">✗ ${XAR(v.n)}</span>${v.qs.map(q=>`<div class="xtagq">• ${xesc(q.q)}<br><span style="color:#227A63">✓ ${xesc(q.c)}</span></div>`).join('')}</div>`).join('')}`:''}
+  <div style="text-align:center;margin-top:14px"><button class="go" onclick="goMap()">الخريطة 🏡</button> ${A.length?`<button onclick="if(confirm('تمسحين سجل الاختبارات؟ (لا يؤثر في النجوم والدروس)')){ST.exams=[];save();exLog();}" style="font-size:12px">مسح السجل</button>`:''}</div></div>`;window.scrollTo({top:0});}
+
+
+/* معاينة لوليّ الأمر: افتحي الرابط مع #exam-demo لعرض ورقة كاملة فورًا (لا يغيّر التقدّم) */
+if(location.hash==='#exam-demo'){setTimeout(()=>{try{if(typeof EXAM_PAPERS!=='undefined'&&EXAM_PAPERS.length)exStartPaper(EXAM_PAPERS[Math.floor(Math.random()*EXAM_PAPERS.length)].id);else exStart('fin',[...Array(EXAM_CFG.nLessons).keys()],false);exBegin();}catch(e){}},400);}
+/* ---------- ورقة الاختبار: التنسيق ---------- */
+document.head.insertAdjacentHTML('beforeend',`<style>
+.xpaper{background:#fff;border:1px solid #C9D2DE;border-radius:8px;padding:16px 14px 20px;color:#1E2A3A;text-align:right;box-shadow:0 2px 0 #C9D2DE,0 10px 24px rgba(30,42,58,.08);line-height:1.8}
+.xhead{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;border:2px solid #1E2A3A;border-radius:6px;padding:8px 12px;font-size:14px}
+.xtitle{text-align:center;font-weight:800;font-size:17px;margin:12px 0 4px;border-bottom:2px dashed #C9D2DE;padding-bottom:8px;display:flex;justify-content:center;gap:14px;align-items:center;flex-wrap:wrap}
+.xfloat{position:sticky;top:8px;z-index:20;display:flex;justify-content:center;pointer-events:none;margin:-4px 0 6px}.xtimer{font-size:15px;font-weight:800;color:#1E2A3A;background:#FFF9E3;border:2px solid #F0DBA0;border-radius:99px;padding:4px 16px;box-shadow:0 4px 12px rgba(30,42,58,.18)}
+.xsec{margin-top:16px}.xsech{background:#EEF2F7;border-right:5px solid #1E2A3A;padding:6px 12px;font-weight:800;font-size:15px;border-radius:4px}
+.xmarks{font-weight:700;color:#6B7A90;font-size:13px}
+.xitem{padding:10px 6px;border-bottom:1px solid #EEF2F7;font-size:15.5px}.xn{display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;border:1.5px solid #1E2A3A;border-radius:50%;font-size:12px;font-weight:800;margin-left:6px}
+.xq{display:inline;font-weight:700}.xrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.xrow .xq{flex:1}
+.xtf button{width:44px;height:38px;font-size:18px;padding:0;border-radius:10px;margin-right:4px;background:#fff}
+.xopts{display:flex;flex-direction:column;gap:6px;margin-top:6px}.xopts button{text-align:right;background:#fff;font-size:15px;padding:8px 12px;border-radius:12px;font-weight:700}
+.xlet{display:inline-block;width:22px;height:22px;line-height:22px;text-align:center;border:1.5px solid #1E2A3A;border-radius:50%;font-size:12px;margin-left:6px}
+.xpaper button.xsel{background:#DDEBFF;border-color:#3F7CC9;color:#1E2A3A}.xpaper button.xused{opacity:.35;pointer-events:none}
+.xmatch{display:flex;gap:8px;margin-top:6px}.xcol{flex:1;display:flex;flex-direction:column;gap:6px}.xcol button{position:relative;background:#fff;font-size:13.5px;padding:8px 6px;line-height:1.5;text-align:center}
+.xtag{position:absolute;top:-8px;left:-6px;background:#3F7CC9;color:#fff;border-radius:50%;width:22px;height:22px;line-height:22px;font-size:12px}
+.xbank{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;justify-content:center}.xbank button{background:#FFF9E3;border-color:#F0DBA0;font-size:14px;padding:6px 12px}
+.xblankrow{margin:6px 0;font-size:15px}.xblank{display:inline-block;min-width:90px;border-bottom:2px solid #1E2A3A;text-align:center;margin:0 4px;color:#3F7CC9;font-weight:800;min-height:24px;vertical-align:bottom;cursor:pointer}
+.xbins{display:flex;gap:6px;flex-wrap:wrap}.xbin{flex:1;min-width:110px;border:2px dashed #9AA9BE;border-radius:12px;padding:6px;min-height:70px;cursor:pointer}.xbin h4{margin:0 0 4px;font-size:13px;text-align:center}.xgot{display:flex;flex-wrap:wrap;gap:4px;justify-content:center}.xgot span{background:#EEF2F7;border-radius:8px;padding:2px 8px;font-size:13px;font-weight:700}
+.xslots{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:6px 0}.xslot{min-width:54px;min-height:40px;border:2px solid #1E2A3A;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;padding:4px 8px;background:#fff}.xslot.xfilled{background:#DDEBFF}
+.xfig{margin:6px auto;max-width:360px}.xfig .xtarget{cursor:pointer}.xfig svg .xtarget{fill:rgba(63,124,201,.15);stroke:#3F7CC9;stroke-width:2.5;stroke-dasharray:4 3}.xfig svg .xtarget.xfilled{fill:rgba(63,124,201,.35);stroke-dasharray:none}
+.xfig .xtl{font-weight:800;font-size:13px;fill:#1E2A3A}.xwords{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}.xwords .xtarget{border:2px dashed #9AA9BE;border-radius:12px;padding:6px 10px;text-align:center;min-width:70px}.xwords .xtarget.xfilled{border-style:solid;border-color:#3F7CC9}.xwords .xtl{display:block;color:#3F7CC9;font-size:12px;min-height:16px}
+.xpv{display:flex;gap:6px;justify-content:center;direction:rtl}.xpv .xtarget{border:2px solid #1E2A3A;border-radius:8px;width:64px;padding:6px 4px;text-align:center}.xpv .xdig{font-size:26px;font-weight:800;display:block}.xpv .xtl{display:block;font-size:11px;color:#3F7CC9;min-height:16px}
+.xta{width:100%;font-family:inherit;font-size:16px;border:2px solid #C9D2DE;border-radius:12px;padding:10px;min-height:64px;margin-top:6px;resize:vertical}
+.xnum{max-width:300px;margin:6px auto}.xdisp{border:2px solid #1E2A3A;border-radius:10px;min-height:44px;font-size:26px;font-weight:800;text-align:center;letter-spacing:2px;margin-bottom:6px;background:#fff}
+.xkb{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.xkb button{font-size:20px;padding:8px 0;background:#fff}
+.xsteps{margin-top:6px}.xstep{background:#F7F9FC;border-radius:10px;padding:8px 10px;margin:6px 0;font-size:14px}.xplan{flex-direction:row;flex-wrap:wrap}.xplan button{flex:1;text-align:center;font-size:13px}
+.xpass.xtap .xw{cursor:pointer;border-radius:6px;padding:0 2px}.xpass.xactive{border-color:#3F7CC9;box-shadow:0 0 0 3px rgba(63,124,201,.2)}.xpass.xactive .xw:hover{background:#DDEBFF}.xpass .xw.xhit{background:#DDEBFF;outline:2px solid #3F7CC9}.xhint{font-size:12.5px;color:#6B7A90;margin:4px 0 6px}.xpick{margin-top:6px}.xpickbtn{font-size:13px;padding:6px 12px;background:#fff}.xchosen{font-weight:800;color:#3F7CC9;margin-right:8px}.xinstr{font-size:15px;line-height:2;padding-right:22px}
+.xpass{background:#FBFCFE;border:1.5px solid #C9D2DE;border-radius:8px;padding:12px 14px;font-size:17px;line-height:2.1;margin:8px 0}
+.xdict{background:#FFF9E3;border:2px solid #F0DBA0;border-radius:12px;padding:10px;text-align:center;margin-top:6px}.xdtext{font-size:19px;font-weight:800;line-height:2}.xdtext.xhidden{color:#9AA9BE;font-weight:700;font-size:14px}.xdcount{font-size:13px;color:#6B7A90}
+.xwrong{border:1.5px solid #E39B9B;border-radius:12px;padding:8px 12px;margin:8px 0;font-size:14px;background:#FFF7F7}.xgiven{color:#9B3B3B;margin-top:2px}.xcorrect{color:#227A63}.xtagl{font-size:12px;color:#6B7A90}
+.xlog{width:100%;border-collapse:collapse;font-size:13.5px;text-align:center}.xlog th,.xlog td{border:1px solid #DCE3EC;padding:6px 4px}.xlog th{background:#EEF2F7}
+.xtagbox{border:1.5px solid #E1E7F0;border-radius:12px;padding:8px 12px;margin:6px 0;font-size:14px}.xtagq{font-size:13px;margin-top:4px;line-height:1.6}
+.xchk.xsel{background:#DDF3EC;border-color:#4EB39A}
+</style>`);
+
+/* ===================== نماذج اختبارات اللغة الإنجليزية الثابتة (٦ نماذج · ٢٠ درجة لكل نموذج) =====================
+   مبنية من أوراق اختبارات الفترتين الأولى والثانية (١٤٤٦–١٤٤٧) ومن كتاب We Can! 3 (الوحدات ١–٦).
+   L = رقم الدرس في التطبيق. توزيع الدرجات: match 4 + order 2 + tf 4 + mcq 6 + fill 4 = 20 */
+const EXAM_PAPERS=[
+/* ================= الفترة الأولى (الوحدات ١–٢) ================= */
+{id:'eng-p1-a',kind:'p1',name:'First Period Exam (1) · اختبار الفترة الأولى',secs:[
+ {t:'match',m:4,items:[
+  {L:0,t:'match',q:'Answer the questions: صلي كل سؤال بجوابه.',pairs:[['Where do you live?','I live in Jeddah.'],['How old are you?','I am eleven years old.'],['What’s your name?','My name is Ali.'],['What do you think about whale?','I think whale is fast.']]}]},
+ {t:'order',m:1,items:[
+  {L:0,t:'order',q:'Rearrange: to – nice – you – meet',seq:['Nice','to','meet','you']},
+  {L:1,t:'order',q:'Rearrange: name / Pete / . / His / is',seq:['His','name','is','Pete.']}]},
+ {t:'tf',m:1,items:[
+  {L:4,t:'tf',q:'\u{1F476}\u{1F4D6} I am eating cheese.',a:false},
+  {L:1,t:'tf',q:'\u{1F9E2} This is my T-shirt.',a:false},
+  {L:4,t:'tf',q:'\u{1F419} I think sharks are scary.',a:false},
+  {L:4,t:'tf',q:'\u{1F40E} It’s a seahorse.',a:true}]},
+ {t:'mcq',m:1,items:[
+  {L:5,t:'mcq',q:'Sharks are …… than whales.',o:['fast','faster','fastest'],a:1},
+  {L:1,t:'mcq',q:'Omar and …… family live in Riyadh.',o:['our','her','his'],a:2},
+  {L:2,t:'mcq',q:'She …… a new bag.',o:['are','have','has'],a:2},
+  {L:5,t:'mcq',q:'A polar bear is as …… as a fish.',o:['quiet','quieter','quietest'],a:0},
+  {L:1,t:'mcq',q:'…… skirt is this? It’s mine.',o:['who','whose','where'],a:1},
+  {L:4,t:'mcq',q:'\u{1F9AD} What is that?',o:['It’s a seahorse.','It’s a seal.'],a:1}]},
+ {t:'fill',m:4,items:[
+  {L:4,t:'fill',q:'Choose the correct word under each picture:',bank:['squid','crab','bicycle','pie','seagull'],items:[['\u{1F991} ...','squid'],['\u{1F980} ...','crab'],['\u{1F6B2} ...','bicycle'],['\u{1F967} ...','pie'],['\u{1F426} ...','seagull']]}]}]},
+
+{id:'eng-p1-b',kind:'p1',name:'First Period Exam (2) · اختبار الفترة الأولى',secs:[
+ {t:'match',m:4,items:[
+  {L:0,t:'match',q:'Match the questions in column (A) with the correct answers in column (B):',pairs:[['What is your name?','My name is Ahmed'],['How old are you?','I’m 9 years old'],['Where do you live?','I live in Dammam.'],['Do you have a brother?','Yes, I do']]}]},
+ {t:'order',m:1,items:[
+  {L:2,t:'order',q:'Reorder: cook \\ you \\ Can \\ ?',seq:['Can','you','cook','?']},
+  {L:5,t:'order',q:'Rearrange: whales. / are / than / faster / I think sharks',seq:['I think sharks','are','faster','than','whales.']}]},
+ {t:'tf',m:1,items:[
+  {L:4,t:'tf',q:'\u{1F9AD} The seal is cute.',a:true},
+  {L:4,t:'tf',q:'\u{1F40E} The seahorse is slow.',a:true},
+  {L:4,t:'tf',q:'\u{1F40B} The whale is small.',a:false},
+  {L:5,t:'tf',q:'\u{1F40B}\u{1F42C} Whales are faster than a dolphin.',a:false}]},
+ {t:'mcq',m:1,items:[
+  {L:1,t:'mcq',q:'This is our little brother. …… name is Ahmad.',o:['his','my','her'],a:0},
+  {L:1,t:'mcq',q:'Whose shoes are these? – They’re …… .',o:['mine','I','she'],a:0},
+  {L:5,t:'mcq',q:'A snail is the …… .',o:['slow','slower','slowest'],a:2},
+  {L:2,t:'mcq',q:'I …… a bicycle.',o:['has','have'],a:1},
+  {L:6,t:'mcq',q:'As fast …… a dolphin.',o:['is','as','has'],a:1},
+  {L:4,t:'mcq',q:'Which animal has 8 legs? \u{1F419}',o:['It is a cat.','It is an octopus.'],a:1}]},
+ {t:'fill',m:4,items:[
+  {L:3,t:'fill',q:'Choose the correct letter: (ai – ea – ow – ee – oa – ou)',bank:['ea','ee','ou','ow'],items:[['\u{1F356} m ... t','ea'],['\u{1F411} sh ... p','ee'],['\u{1F401} m ... se','ou'],['\u{1F404} c ...','ow']]}]}]},
+
+/* ================= الفترة الثانية (الوحدات ٣–٤) ================= */
+{id:'eng-p2-a',kind:'p2',name:'Second Period Exam (1) · اختبار الفترة الثانية',secs:[
+ {t:'match',m:4,items:[
+  {L:12,t:'match',q:'Answer the questions: صلي كل سؤال بجوابه.',pairs:[['What chores do you do?','I feed the fish.'],['What is she doing now?','She’s eating a snack.'],['What sport or activity do you want to try?','I want to try scuba diving'],['Does he vacuum the floor?','Yes, he does.']]}]},
+ {t:'order',m:1,items:[
+  {L:8,t:'order',q:'Rearrange: horse – I – riding – like.',seq:['I','like','horse','riding']},
+  {L:12,t:'order',q:'Rearrange the words to form a sentence: the – feed – I – fish',seq:['I','feed','the','fish.']}]},
+ {t:'tf',m:1,items:[
+  {L:9,t:'tf',q:'\u{1F3A8} I do painting.',a:true},
+  {L:12,t:'tf',q:'\u{1F6D2} I feed the fish.',a:false},
+  {L:10,t:'tf',q:'\u{1F985} Many people in Saudi Arabia like falconry.',a:true},
+  {L:10,t:'tf',q:'\u{1F985} Falcons have soft talons.',a:false}]},
+ {t:'mcq',m:1,items:[
+  {L:9,t:'mcq',q:'I …… tennis.',o:['play','do','does'],a:0},
+  {L:14,t:'mcq',q:'He is …… the fish.',o:['feed','feeds','feeding'],a:2},
+  {L:13,t:'mcq',q:'I cook and …… the table.',o:['setting','sets','set'],a:2},
+  {L:10,t:'mcq',q:'Horse riding is …… than cycling.',o:['exciting','more exciting','most exciting'],a:1},
+  {L:9,t:'mcq',q:'…… she play golf?',o:['Do','Does','Are'],a:1},
+  {L:12,t:'mcq',q:'Does she vacuum the floor? Yes, …… .',o:['she does','she doesn’t'],a:0}]},
+ {t:'fill',m:4,items:[
+  {L:14,t:'fill',q:'Choose the correct word under each picture:',bank:['robot','ski','car','drink','jog'],items:[['\u{1F916} ...','robot'],['⛷️ ...','ski'],['\u{1F697} ...','car'],['\u{1F964} ...','drink'],['\u{1F3C3}‍♀️ ...','jog']]}]}]},
+
+{id:'eng-p2-b',kind:'p2',name:'Second Period Exam (2) · اختبار الفترة الثانية',secs:[
+ {t:'match',m:4,items:[
+  {L:12,t:'match',q:'Match the chore to its picture:',pairs:[['\u{1F37D}️','dishes'],['\u{1F9F9}','vacuum'],['\u{1F5D1}️','trash'],['\u{1F41F}','fish']]}]},
+ {t:'order',m:1,items:[
+  {L:8,t:'order',q:'Rearrange: I / like / football.',seq:['I','like','football.']},
+  {L:13,t:'order',q:'Rearrange: dishes. / the / She / washes',seq:['She','washes','the','dishes.']}]},
+ {t:'tf',m:1,items:[
+  {L:8,t:'tf',q:'Read: «Ali plays football. He plays with his brother. His sister likes tennis.» – Ali’s sister likes tennis.',a:true},
+  {L:16,t:'tf',q:'\u{1F634} I eat my lunch.',a:false},
+  {L:12,t:'tf',q:'\u{1F37D}️ He sets the table.',a:true},
+  {L:10,t:'tf',q:'\u{1F985} Falcons can see very far.',a:true}]},
+ {t:'mcq',m:1,items:[
+  {L:8,t:'mcq',q:'What sport does Omar like?',o:['He likes horse riding.','I live in Abha.'],a:0},
+  {L:9,t:'mcq',q:'Do you ski?',o:['Yes, she does.','Yes, I do.'],a:1},
+  {L:9,t:'mcq',q:'Does she play computer games? – No, …… .',o:['I don’t.','she doesn’t.'],a:1},
+  {L:13,t:'mcq',q:'\u{1F37D}️ …… the dishes.',o:['She wash','She washes'],a:1},
+  {L:10,t:'mcq',q:'Sky diving is the …… sport.',o:['exciting','more exciting','most exciting'],a:2},
+  {L:14,t:'mcq',q:'What is he doing now?',o:['It is a book.','He is watching TV.'],a:1}]},
+ {t:'fill',m:4,items:[
+  {L:15,t:'fill',q:'Choose the correct missing letters:',bank:['ar','or','er','or'],items:[['\u{1F697} c ...','ar'],['\u{1F468}‍⚕️ doct ...','or'],['\u{1F468}‍\u{1F469}‍\u{1F466} sist ...','er'],['\u{1F374} f ... k','or']]}]}]},
+
+/* ================= نهاية الفصل (الوحدات ١–٦) ================= */
+{id:'eng-fin-a',kind:'fin',name:'End of Term Exam (1) · اختبار نهاية الفصل',secs:[
+ {t:'match',m:4,items:[
+  {L:20,t:'match',q:'Match:',pairs:[['It’s 5 o’clock.','\u{1F551} clock'],['A doctor helps sick people and works in a hospital.','\u{1F468}‍⚕️ doctor'],['I usually play football at 8:30.','\u{1F552} 8:30'],['When I grow up, I want to be a writer.','\u{1F9D2}✍️ writer']]}]},
+ {t:'order',m:1,items:[
+  {L:20,t:'order',q:'Rearrange the words to form a sentence: put – Firefighters – fires – out',seq:['Firefighters','put','out','fires.']},
+  {L:0,t:'order',q:'Rearrange the words to form a sentence: to – you – Meet – Nice',seq:['Nice','to','meet','you.']}]},
+ {t:'tf',m:1,items:[
+  {L:4,t:'tf',q:'⭐ A starfish is big.',a:false},
+  {L:5,t:'tf',q:'\u{1F9AD} A baby seal is the cutest.',a:true},
+  {L:12,t:'tf',q:'\u{1F9FA} He folds the laundry.',a:true},
+  {L:2,t:'tf',q:'\u{1F5A5}️ This is a computer.',a:true}]},
+ {t:'mcq',m:1,items:[
+  {L:17,t:'mcq',q:'What time did you get up yesterday?',o:['Yesterday, I got up at 5:30','I usually get up at 5:30','Yes, I did.'],a:0},
+  {L:20,t:'mcq',q:'What does he do?',o:['Good afternoon','He’s a lawyer','No, he isn’t.'],a:1},
+  {L:21,t:'mcq',q:'Where do they work?',o:['They are doctors.','In the hospital.'],a:1},
+  {L:17,t:'mcq',q:'Yesterday, I …… my homework at 5 o’clock.',o:['did','do','does'],a:0},
+  {L:21,t:'mcq',q:'A: …… is he? B: He is my father.',o:['Where','What','Who'],a:2},
+  {L:16,t:'mcq',q:'I usually …… up at 5:00.',o:['got','get','going'],a:1}]},
+ {t:'fill',m:4,items:[
+  {L:20,t:'fill',q:'Write the correct word under each picture:',bank:['ring','astronaut','pilot','ink'],items:[['\u{1F468}‍✈️ ...','pilot'],['\u{1F58B}️ ...','ink'],['\u{1F468}‍\u{1F680} ...','astronaut'],['\u{1F48D} ...','ring']]}]}]},
+
+{id:'eng-fin-b',kind:'fin',name:'End of Term Exam (2) · اختبار نهاية الفصل',secs:[
+ {t:'match',m:4,items:[
+  {L:0,t:'match',q:'Match the questions with the correct answers:',pairs:[['What is your name?','My name is Rose.'],['Where do you live?','I live in Dammam.'],['How old are you?','I am 9 years old.'],['Nice to meet you.','Nice to meet you, too.']]}]},
+ {t:'order',m:1,items:[
+  {L:19,t:'order',q:'Rearrange: I / brush / my / teeth.',seq:['I','brush','my','teeth.']},
+  {L:18,t:'order',q:'Rearrange: Yesterday, / I / went / to / bed / at / nine.',seq:['Yesterday,','I','went','to','bed','at','nine.']}]},
+ {t:'tf',m:1,items:[
+  {L:4,t:'tf',q:'\u{1F988} Sharks are scary.',a:true},
+  {L:4,t:'tf',q:'\u{1F40E} A seahorse is slow.',a:true},
+  {L:6,t:'tf',q:'I think a walrus is fat.',a:true},
+  {L:4,t:'tf',q:'I think sharks are slow.',a:false}]},
+ {t:'mcq',m:1,items:[
+  {L:22,t:'mcq',q:'1000 =',o:['thousand','hundred'],a:0},
+  {L:20,t:'mcq',q:'What does your uncle do?',o:['reporter','Ali'],a:0},
+  {L:21,t:'mcq',q:'What does she …… ?',o:['do','does','doing'],a:0},
+  {L:17,t:'mcq',q:'I usually …… lunch at 1:00.',o:['eats','ate','eat'],a:2},
+  {L:16,t:'mcq',q:'\u{1F552} What time is it? (3:00)',o:['It is three o’clock.','It is four o’clock.'],a:0},
+  {L:15,t:'mcq',q:'How do you spell teacher?',o:['t – e – a – c – h – e – r','He is Ali.'],a:0}]},
+ {t:'fill',m:4,items:[
+  {L:23,t:'fill',q:'Choose the correct missing letters:',bank:['gh','kn','ng','ch','sh'],items:[['\u{1F4A1} li ... t','gh'],['\u{1F6AA} ... ock','kn'],['\u{1F338} spri ...','ng'],['\u{1F352} ... erry','ch'],['\u{1F6A2} ... ip','sh']]}]}]}
+];
+
+drawStars();applySound();profBoot();
+</script>
+</body>
+</html>
