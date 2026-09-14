@@ -93,6 +93,88 @@ footer{text-align:center;font-size:12px;color:#93A0B7;margin-top:26px}footer but
 <div id="ovl"><div class="inner"></div></div><div id="toast"></div>
 
 <script>
+/* ==================== ✨ مؤثِّرات الفرح (مشتركة لكلّ الألعاب) ==================== */
+(function(){
+ if(window.FX)return;
+ const S=document.createElement('style');
+ S.textContent=`
+ #fxc{position:fixed;inset:0;pointer-events:none;z-index:9998}
+ .fx-star{position:fixed;font-weight:900;font-size:22px;color:#E3A400;text-shadow:0 2px 0 #fff;
+   pointer-events:none;z-index:9999;animation:fxrise 1.3s ease-out forwards}
+ @keyframes fxrise{0%{transform:translateY(0) scale(.6);opacity:0}15%{opacity:1;transform:translateY(-8px) scale(1.2)}100%{transform:translateY(-70px) scale(1);opacity:0}}
+ .fx-bump{animation:fxbump .5s cubic-bezier(.2,1.6,.4,1)}
+ @keyframes fxbump{0%{transform:scale(1)}40%{transform:scale(1.35)}100%{transform:scale(1)}}
+ .fx-spark{transform-box:fill-box;transform-origin:center;animation:fxspark 1.2s ease-out forwards}
+ @keyframes fxspark{0%{opacity:0;transform:scale(.2) rotate(0)}30%{opacity:1}100%{opacity:0;transform:scale(1.6) rotate(90deg)}}
+ .fx-ring{transform-box:fill-box;transform-origin:center;animation:fxring 1s ease-out forwards}
+ @keyframes fxring{0%{opacity:.9;transform:scale(.3)}100%{opacity:0;transform:scale(2.2)}}
+ .fx-banner{position:fixed;left:50%;top:18%;transform:translateX(-50%) scale(.6);background:#fff;color:#2B2450;
+   font-weight:900;font-size:24px;padding:14px 28px;border-radius:999px;box-shadow:0 10px 40px rgba(0,0,0,.25);
+   z-index:9999;pointer-events:none;animation:fxban 3.2s cubic-bezier(.2,1.4,.4,1) forwards;white-space:nowrap}
+ .fxdr{animation:fxdrift 14s ease-in-out infinite alternate}
+ @keyframes fxdrift{from{transform:translateX(-14px)}to{transform:translateX(18px)}}
+ .fxbob{animation:fxbob 3.2s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+ @keyframes fxbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+ .fxtw{animation:fxtw 2.2s ease-in-out infinite}
+ @keyframes fxtw{0%,100%{opacity:.35}50%{opacity:1}}
+ @keyframes fxban{0%{opacity:0;transform:translateX(-50%) scale(.5)}12%{opacity:1;transform:translateX(-50%) scale(1.05)}18%{transform:translateX(-50%) scale(1)}85%{opacity:1}100%{opacity:0;transform:translateX(-50%) scale(.9)}}
+ `;
+ document.head.appendChild(S);
+ let cv=null,ctx=null,parts=[],raf=0;
+ function canvas(){if(cv)return cv;cv=document.createElement('canvas');cv.id='fxc';document.body.appendChild(cv);ctx=cv.getContext('2d');
+  const rs=()=>{cv.width=innerWidth*devicePixelRatio;cv.height=innerHeight*devicePixelRatio;ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);};
+  rs();addEventListener('resize',rs);return cv;}
+ const COL=['#FF5E7E','#FFC53D','#4FA3C7','#6FBF73','#B678D8','#FF8A3D','#fff'];
+ function burst(x,y,n,spread,grav){canvas();
+  for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,v=(2+Math.random()*spread);
+   parts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-2,g:grav,life:1,c:COL[i%COL.length],r:3+Math.random()*4,rot:Math.random()*6,vr:(Math.random()-.5)*.3,sq:Math.random()<.5});}
+  if(!raf)raf=requestAnimationFrame(tick);}
+ function tick(){ctx.clearRect(0,0,innerWidth,innerHeight);
+  parts=parts.filter(p=>p.life>0);
+  for(const p of parts){p.x+=p.vx;p.y+=p.vy;p.vy+=p.g;p.vx*=.985;p.life-=.012;p.rot+=p.vr;
+   ctx.save();ctx.globalAlpha=Math.max(0,p.life);ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.fillStyle=p.c;
+   if(p.sq)ctx.fillRect(-p.r,-p.r/2,p.r*2,p.r);else{ctx.beginPath();ctx.arc(0,0,p.r*.7,0,7);ctx.fill();}
+   ctx.restore();}
+  raf=parts.length?requestAnimationFrame(tick):0;if(!raf)ctx.clearRect(0,0,innerWidth,innerHeight);}
+ function confetti(){burst(innerWidth/2,innerHeight*.35,110,7,.16);}
+ function fireworks(){let k=0;const go=()=>{burst(innerWidth*(.2+Math.random()*.6),innerHeight*(.15+Math.random()*.35),70,6,.07);if(++k<6)setTimeout(go,380);};go();}
+ function starFloat(el,txt){try{const r=el.getBoundingClientRect();const d=document.createElement('div');d.className='fx-star';d.textContent=txt||'+⭐';
+  d.style.left=(r.left+r.width/2-16)+'px';d.style.top=(r.top-4)+'px';document.body.appendChild(d);setTimeout(()=>d.remove(),1400);
+  el.classList.remove('fx-bump');void el.offsetWidth;el.classList.add('fx-bump');}catch(e){}}
+ function banner(txt){const d=document.createElement('div');d.className='fx-banner';d.textContent=txt;document.body.appendChild(d);setTimeout(()=>d.remove(),3300);}
+ /* بريق حول قطعة جديدة في المشروع (SVG) */
+ function sparkle(g){try{const svg=g.ownerSVGElement;if(!svg)return;const b=g.getBBox();if(!b.width)return;
+  const cx=b.x+b.width/2,cy=b.y+b.height/2,R=Math.max(b.width,b.height)/2+6;
+  const ns='http://www.w3.org/2000/svg';const ring=document.createElementNS(ns,'circle');
+  ring.setAttribute('cx',cx);ring.setAttribute('cy',cy);ring.setAttribute('r',R);ring.setAttribute('fill','none');
+  ring.setAttribute('stroke','#FFD75E');ring.setAttribute('stroke-width','4');ring.setAttribute('class','fx-ring');svg.appendChild(ring);
+  for(let i=0;i<8;i++){const a=i*Math.PI/4;const t=document.createElementNS(ns,'text');t.textContent='✦';
+   t.setAttribute('x',cx+Math.cos(a)*R);t.setAttribute('y',cy+Math.sin(a)*R+5);t.setAttribute('font-size','14');t.setAttribute('fill',i%2?'#FFD75E':'#fff');
+   t.setAttribute('text-anchor','middle');t.setAttribute('class','fx-spark');t.style.animationDelay=(i*.06)+'s';svg.appendChild(t);
+   setTimeout(()=>t.remove(),1400);}
+  setTimeout(()=>ring.remove(),1100);}catch(e){}}
+ /* مراقبة تلقائيَّة: عدَّاد النُّجوم ، القطع الجديدة ، اكتمال المشروع */
+ let lastStars=null,fwDone='';
+ function watch(){
+  const st=document.getElementById('starTop')||document.getElementById('stars');
+  if(st){const read=()=>st.textContent.replace(/[^\d٠-٩]/g,'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+   lastStars=+read()||0;
+   new MutationObserver(()=>{const v=+read()||0;if(v>lastStars){starFloat(st,'+'+String(v-lastStars).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d])+' ⭐');}lastStars=v;}).observe(st,{childList:true,characterData:true,subtree:true});}
+  const stage=document.getElementById('stage');
+  if(stage)new MutationObserver(()=>{
+   stage.querySelectorAll('.an-new[data-new="1"],g.an-new:not([data-fx])').forEach(g=>{g.setAttribute('data-fx','1');setTimeout(()=>sparkle(g),350);});
+   const t=stage.textContent||'';const done=t.includes('🏆');
+   if(done&&fwDone!==location.hash+t.length){fwDone=location.hash+t.length;fireworks();setTimeout(fireworks,900);}
+  }).observe(stage,{childList:true,subtree:true});
+ }
+ if(document.readyState==='loading')addEventListener('DOMContentLoaded',watch);else watch();
+ window.FX={confetti,fireworks,starFloat,banner,sparkle,burst};
+ /* ربط الاحتفال الصَّوتيّ بالقصاصات */
+ const wrap=()=>{if(typeof window.tada==='function'&&!window.tada.__fx&&!String(window.tada).includes('FX.confetti')){const o=window.tada;const w=function(){try{confetti();}catch(e){}return o.apply(this,arguments);};w.__fx=1;window.tada=w;}};
+ wrap();setTimeout(wrap,0);
+})();
+
+
 /* ============ helpers ============ */
 const A=n=>String(n).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
 const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
@@ -404,7 +486,7 @@ function goTower(){cur=-1;document.getElementById('backB').style.visibility='vis
  let svg=`<svg viewBox="0 0 320 ${H}" width="100%" style="max-width:420px;display:block;border-radius:18px;background:linear-gradient(180deg,#0B1A3A 0%,#3F6FB0 45%,#BFE0F8 100%)">`;
  for(let k=0;k<26;k++)svg+=`<circle class="an-twinkle" style="animation-delay:${(k%7)*.3}s" cx="${(k*67)%320}" cy="${(k*41)%Math.max(60,H*.35)}" r="${1+k%2}" fill="#fff"/>`;
  svg+=`<circle cx="270" cy="${Math.max(40,H*.12)}" r="18" fill="#FFF3B0"/><circle cx="262" cy="${Math.max(40,H*.12)-4}" r="16" fill="#0B1A3A" opacity=".25"/>`;
- svg+=`<ellipse cx="60" cy="${H*.55}" rx="34" ry="12" fill="#fff" opacity=".85"/><ellipse cx="250" cy="${H*.7}" rx="40" ry="13" fill="#fff" opacity=".85"/>`;
+ svg+=`<ellipse class="fxdr" cx="60" cy="${H*.55}" rx="34" ry="12" fill="#fff" opacity=".85"/><ellipse class="fxdr" cx="250" cy="${H*.7}" rx="40" ry="13" fill="#fff" opacity=".85"/>`;
  svg+=`<rect x="0" y="${groundY}" width="320" height="${H-groundY}" fill="#7DB86A"/>`;
  // floors
  floors.forEach((li,k)=>{const y=groundY-(k+1)*FH,c=PAL[L[li].ch];svg+=`<rect x="${X}" y="${y}" width="${W}" height="${FH}" fill="${c[0]}" stroke="${c[1]}" stroke-width="2"/>`;

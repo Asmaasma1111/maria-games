@@ -122,6 +122,88 @@ footer{text-align:center;font-size:12px;color:#B39A8B;margin-top:26px}footer but
 <div id="ovl"><div class="inner"></div></div><div id="toast"></div>
 
 <script>
+/* ==================== ✨ مؤثِّرات الفرح (مشتركة لكلّ الألعاب) ==================== */
+(function(){
+ if(window.FX)return;
+ const S=document.createElement('style');
+ S.textContent=`
+ #fxc{position:fixed;inset:0;pointer-events:none;z-index:9998}
+ .fx-star{position:fixed;font-weight:900;font-size:22px;color:#E3A400;text-shadow:0 2px 0 #fff;
+   pointer-events:none;z-index:9999;animation:fxrise 1.3s ease-out forwards}
+ @keyframes fxrise{0%{transform:translateY(0) scale(.6);opacity:0}15%{opacity:1;transform:translateY(-8px) scale(1.2)}100%{transform:translateY(-70px) scale(1);opacity:0}}
+ .fx-bump{animation:fxbump .5s cubic-bezier(.2,1.6,.4,1)}
+ @keyframes fxbump{0%{transform:scale(1)}40%{transform:scale(1.35)}100%{transform:scale(1)}}
+ .fx-spark{transform-box:fill-box;transform-origin:center;animation:fxspark 1.2s ease-out forwards}
+ @keyframes fxspark{0%{opacity:0;transform:scale(.2) rotate(0)}30%{opacity:1}100%{opacity:0;transform:scale(1.6) rotate(90deg)}}
+ .fx-ring{transform-box:fill-box;transform-origin:center;animation:fxring 1s ease-out forwards}
+ @keyframes fxring{0%{opacity:.9;transform:scale(.3)}100%{opacity:0;transform:scale(2.2)}}
+ .fx-banner{position:fixed;left:50%;top:18%;transform:translateX(-50%) scale(.6);background:#fff;color:#2B2450;
+   font-weight:900;font-size:24px;padding:14px 28px;border-radius:999px;box-shadow:0 10px 40px rgba(0,0,0,.25);
+   z-index:9999;pointer-events:none;animation:fxban 3.2s cubic-bezier(.2,1.4,.4,1) forwards;white-space:nowrap}
+ .fxdr{animation:fxdrift 14s ease-in-out infinite alternate}
+ @keyframes fxdrift{from{transform:translateX(-14px)}to{transform:translateX(18px)}}
+ .fxbob{animation:fxbob 3.2s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+ @keyframes fxbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+ .fxtw{animation:fxtw 2.2s ease-in-out infinite}
+ @keyframes fxtw{0%,100%{opacity:.35}50%{opacity:1}}
+ @keyframes fxban{0%{opacity:0;transform:translateX(-50%) scale(.5)}12%{opacity:1;transform:translateX(-50%) scale(1.05)}18%{transform:translateX(-50%) scale(1)}85%{opacity:1}100%{opacity:0;transform:translateX(-50%) scale(.9)}}
+ `;
+ document.head.appendChild(S);
+ let cv=null,ctx=null,parts=[],raf=0;
+ function canvas(){if(cv)return cv;cv=document.createElement('canvas');cv.id='fxc';document.body.appendChild(cv);ctx=cv.getContext('2d');
+  const rs=()=>{cv.width=innerWidth*devicePixelRatio;cv.height=innerHeight*devicePixelRatio;ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);};
+  rs();addEventListener('resize',rs);return cv;}
+ const COL=['#FF5E7E','#FFC53D','#4FA3C7','#6FBF73','#B678D8','#FF8A3D','#fff'];
+ function burst(x,y,n,spread,grav){canvas();
+  for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,v=(2+Math.random()*spread);
+   parts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-2,g:grav,life:1,c:COL[i%COL.length],r:3+Math.random()*4,rot:Math.random()*6,vr:(Math.random()-.5)*.3,sq:Math.random()<.5});}
+  if(!raf)raf=requestAnimationFrame(tick);}
+ function tick(){ctx.clearRect(0,0,innerWidth,innerHeight);
+  parts=parts.filter(p=>p.life>0);
+  for(const p of parts){p.x+=p.vx;p.y+=p.vy;p.vy+=p.g;p.vx*=.985;p.life-=.012;p.rot+=p.vr;
+   ctx.save();ctx.globalAlpha=Math.max(0,p.life);ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.fillStyle=p.c;
+   if(p.sq)ctx.fillRect(-p.r,-p.r/2,p.r*2,p.r);else{ctx.beginPath();ctx.arc(0,0,p.r*.7,0,7);ctx.fill();}
+   ctx.restore();}
+  raf=parts.length?requestAnimationFrame(tick):0;if(!raf)ctx.clearRect(0,0,innerWidth,innerHeight);}
+ function confetti(){burst(innerWidth/2,innerHeight*.35,110,7,.16);}
+ function fireworks(){let k=0;const go=()=>{burst(innerWidth*(.2+Math.random()*.6),innerHeight*(.15+Math.random()*.35),70,6,.07);if(++k<6)setTimeout(go,380);};go();}
+ function starFloat(el,txt){try{const r=el.getBoundingClientRect();const d=document.createElement('div');d.className='fx-star';d.textContent=txt||'+⭐';
+  d.style.left=(r.left+r.width/2-16)+'px';d.style.top=(r.top-4)+'px';document.body.appendChild(d);setTimeout(()=>d.remove(),1400);
+  el.classList.remove('fx-bump');void el.offsetWidth;el.classList.add('fx-bump');}catch(e){}}
+ function banner(txt){const d=document.createElement('div');d.className='fx-banner';d.textContent=txt;document.body.appendChild(d);setTimeout(()=>d.remove(),3300);}
+ /* بريق حول قطعة جديدة في المشروع (SVG) */
+ function sparkle(g){try{const svg=g.ownerSVGElement;if(!svg)return;const b=g.getBBox();if(!b.width)return;
+  const cx=b.x+b.width/2,cy=b.y+b.height/2,R=Math.max(b.width,b.height)/2+6;
+  const ns='http://www.w3.org/2000/svg';const ring=document.createElementNS(ns,'circle');
+  ring.setAttribute('cx',cx);ring.setAttribute('cy',cy);ring.setAttribute('r',R);ring.setAttribute('fill','none');
+  ring.setAttribute('stroke','#FFD75E');ring.setAttribute('stroke-width','4');ring.setAttribute('class','fx-ring');svg.appendChild(ring);
+  for(let i=0;i<8;i++){const a=i*Math.PI/4;const t=document.createElementNS(ns,'text');t.textContent='✦';
+   t.setAttribute('x',cx+Math.cos(a)*R);t.setAttribute('y',cy+Math.sin(a)*R+5);t.setAttribute('font-size','14');t.setAttribute('fill',i%2?'#FFD75E':'#fff');
+   t.setAttribute('text-anchor','middle');t.setAttribute('class','fx-spark');t.style.animationDelay=(i*.06)+'s';svg.appendChild(t);
+   setTimeout(()=>t.remove(),1400);}
+  setTimeout(()=>ring.remove(),1100);}catch(e){}}
+ /* مراقبة تلقائيَّة: عدَّاد النُّجوم ، القطع الجديدة ، اكتمال المشروع */
+ let lastStars=null,fwDone='';
+ function watch(){
+  const st=document.getElementById('starTop')||document.getElementById('stars');
+  if(st){const read=()=>st.textContent.replace(/[^\d٠-٩]/g,'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+   lastStars=+read()||0;
+   new MutationObserver(()=>{const v=+read()||0;if(v>lastStars){starFloat(st,'+'+String(v-lastStars).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d])+' ⭐');}lastStars=v;}).observe(st,{childList:true,characterData:true,subtree:true});}
+  const stage=document.getElementById('stage');
+  if(stage)new MutationObserver(()=>{
+   stage.querySelectorAll('.an-new[data-new="1"],g.an-new:not([data-fx])').forEach(g=>{g.setAttribute('data-fx','1');setTimeout(()=>sparkle(g),350);});
+   const t=stage.textContent||'';const done=t.includes('🏆');
+   if(done&&fwDone!==location.hash+t.length){fwDone=location.hash+t.length;fireworks();setTimeout(fireworks,900);}
+  }).observe(stage,{childList:true,subtree:true});
+ }
+ if(document.readyState==='loading')addEventListener('DOMContentLoaded',watch);else watch();
+ window.FX={confetti,fireworks,starFloat,banner,sparkle,burst};
+ /* ربط الاحتفال الصَّوتيّ بالقصاصات */
+ const wrap=()=>{if(typeof window.tada==='function'&&!window.tada.__fx&&!String(window.tada).includes('FX.confetti')){const o=window.tada;const w=function(){try{confetti();}catch(e){}return o.apply(this,arguments);};w.__fx=1;window.tada=w;}};
+ wrap();setTimeout(wrap,0);
+})();
+
+
 /* ==================== الدروس ==================== */
 const U=['مراجعة','الوحدة الأولى: التعامل مع الآخرين','الوحدة الثانية: رُبوع من بلادي','الوحدة الثالثة: أخلاق المسلم','الوحدة الرابعة: وسائل الاتّصالات'];
 const BIMG={
@@ -476,7 +558,7 @@ const VILL=[
   s:`<path d="M240 262 L340 150 L440 262 Z" fill="#A6BFA0"/><path d="M340 150 L440 262 L340 262 Z" fill="#8FAA88"/><path d="M180 262 L250 190 L320 262 Z" fill="#B9CDB3"/><path d="M330 166 L340 150 L350 166 Z" fill="#fff"/>
   <line x1="300" y1="262" x2="420" y2="170" stroke="#2B3A55" stroke-width="2"/><circle cx="300" cy="262" r="3" fill="#2B3A55"/><circle cx="420" cy="170" r="3" fill="#2B3A55"/>
   <g class="an-cabin"><g transform="translate(308,254)"><line x1="0" y1="0" x2="0" y2="10" stroke="#2B3A55" stroke-width="2"/><rect x="-10" y="10" width="20" height="16" rx="4" fill="#EF7FA8"/><rect x="-6" y="14" width="12" height="7" fill="#EAF3FB"/></g></g>
-  <g class="an-drift"><ellipse cx="90" cy="60" rx="30" ry="11" fill="#fff" opacity=".9"/></g><g class="an-drift" style="animation-duration:38s;animation-direction:alternate-reverse"><ellipse cx="520" cy="90" rx="36" ry="12" fill="#fff" opacity=".9"/></g>`},
+  <g class="an-drift"><ellipse class="fxdr" cx="90" cy="60" rx="30" ry="11" fill="#fff" opacity=".9"/></g><g class="an-drift" style="animation-duration:38s;animation-direction:alternate-reverse"><ellipse class="fxdr" cx="520" cy="90" rx="36" ry="12" fill="#fff" opacity=".9"/></g>`},
  {n:'حديقة التعاون',z:3,st:'تعاون التلاميذ فتحوّلت الساحة إلى حديقة غنّاء.',
   s:`<rect x="150" y="318" width="120" height="40" rx="8" fill="#9A6440"/>${[160,182,204,226,248].map((x,i)=>`<g class="an-sway" style="animation-duration:${3+i*.4}s"><line x1="${x+8}" y1="352" x2="${x+8}" y2="326" stroke="#4E9B57" stroke-width="3"/><path d="M${x-1} 328 q9 -22 18 0 q-9 8 -18 0z" fill="${['#EF7FA8','#F5C544','#FF8A5B','#F49BBB','#7FB3E6'][i]}"/><circle cx="${x+8}" cy="321" r="2.5" fill="#FFF3B0"/></g>`).join('')}
   <g class="an-bob"><path d="M282 330 h20 v18 h-20z" fill="#4EB39A"/><path d="M302 336 l10 -4 v6 l-10 2z" fill="#4EB39A"/><rect x="286" y="326" width="12" height="4" fill="#227A63"/></g><g class="an-drop" stroke="#7EB9DC" stroke-width="2" stroke-linecap="round"><path d="M314 334 l6 12 M318 332 l8 12"/></g>`},
