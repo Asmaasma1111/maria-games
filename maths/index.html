@@ -1135,6 +1135,319 @@ const EXAM_PAPERS=[
  {t:'word',m:2,items:[{L:27,t:'word',q:'يقف ٤٥ مصليًا في ٩ صفوف متساوية. كم مصليًا في كل صف؟',ans:5,why:'٩ × ٥ = ٤٥'}]}]}
 ];
 
+window.WHEEL_APP={key:'maths',subj:'maths'};
+/* ==================== 🎡 عجلة الألغاز (مشتركة لكلّ الألعاب) ==================== */
+(function(){
+if(window.wheelOpen)return;
+const APPK=(window.WHEEL_APP||{}),SUBJ=APPK.subj||'maths';
+const AR=n=>String(n).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
+
+/* ---------- الأصوات والنُّجوم والاسم (تتكيَّف مع كلِّ لعبة) ---------- */
+function soundOn(){try{if(typeof sndOn==='function')return !!sndOn();if(typeof SND!=='undefined')return !!SND;}catch(e){}return true;}
+let AC=null;
+function tk(f,d,v,type){if(!soundOn())return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+ const o=AC.createOscillator(),g=AC.createGain();o.type=type||'square';o.frequency.value=f;g.gain.value=v||.05;
+ o.connect(g);g.connect(AC.destination);o.start();g.gain.exponentialRampToValueAtTime(.0005,AC.currentTime+d);o.stop(AC.currentTime+d);}catch(e){}}
+function win(){try{if(typeof tada==='function'){tada();return;}}catch(e){}[523,659,784,1047].forEach((f,i)=>setTimeout(()=>tk(f,.25,.12,'sine'),i*100));}
+function oops(){tk(200,.25,.08,'triangle');}
+function who(){try{if(typeof PROFILE!=='undefined'&&PROFILE&&PROFILE.name)return PROFILE.name;}catch(e){}return 'بطلتي';}
+function giveStars(n){
+ try{if(typeof addStars==='function'){addStars(n);return;}}catch(e){}
+ try{ST.stars=(ST.stars||0)+n;if(typeof save==='function')save();if(typeof drawStars==='function')drawStars();}catch(e){}
+}
+
+/* ---------- جمع الأسئلة من دُروس اللُّعبة ---------- */
+const strip=h=>String(h==null?'':h);
+const BAD=/<img|bookimg|<svg|الصُّورة|الصورة|الصُّور|الرَّسم|الشَّكل المُجاور|picture|photo/i;
+function lessons(){try{if(typeof LESSONS!=='undefined'&&Array.isArray(LESSONS))return LESSONS;}catch(e){}
+ try{if(typeof L!=='undefined'&&Array.isArray(L))return L;}catch(e){}return [];}
+function norm(it){
+ if(!it||!it.t||!it.q||BAD.test(it.q))return null;
+ if(it.t==='mcq'&&Array.isArray(it.o)&&it.o.length>=2){
+  if(it.o.some(x=>BAD.test(String(x))))return null;
+  let c=typeof it.c==='number'?it.c:it.o.indexOf(it.c);
+  if(c<0||c>=it.o.length)return null;
+  return {k:'mcq',q:it.q,o:it.o.slice(),c,why:it.why||it.fix||''};}
+ if(it.t==='tf'){const v=it.a!==undefined?it.a:it.c;if(typeof v!=='boolean')return null;
+  return {k:'tf',q:it.q,tf:v,why:it.why||it.fix||''};}
+ if(it.t==='num'){const v=it.a!==undefined?it.a:it.ans;if(v===undefined||v===null||isNaN(+v))return null;
+  return {k:'write',q:it.q,a:+v,num:1,why:it.why||''};}
+ if(it.t==='short'&&(it.a||it.accept)){return {k:'write',q:it.q,a:it.a||(it.accept||[])[0],accept:it.accept||[it.a],why:it.why||''};}
+ return null;
+}
+const unitKey=l=>l.u!==undefined?l.u:(l.ch!==undefined?l.ch:0);
+function units(){const out=[],map={};lessons().forEach((l,i)=>{const k=String(unitKey(l));
+  if(!map[k]){map[k]={k,raw:unitKey(l),idx:[]};out.push(map[k]);}map[k].idx.push(i);});return out;}
+function unitName(U){
+ if(typeof U.raw==='string'&&isNaN(+U.raw))return U.raw;
+ try{if(typeof CH!=='undefined'&&CH[U.raw])return 'الفصل: '+CH[U.raw];}catch(e){}
+ const row=rowOf(U.idx[0]);let h=row&&row.previousElementSibling;
+ while(h&&h.querySelector&&h.querySelector('[onclick^="startPrep"]'))h=h.previousElementSibling;
+ const t=h&&h.textContent.trim();return t&&t.length<70?t:'الوحدة '+AR(units().indexOf(U)+1);
+}
+/* ألغاز من كلمات الدَّرس نفسه: «أنا … فمَن أنا؟» */
+const EMO=/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{200D}]/gu;
+const DIA='[\\u064B-\\u0652\\u0640]*';
+function mask(meaning,term){
+ let m=String(meaning);const words=String(term).replace(EMO,'').replace(/[()«»:،,.]/g,' ').split(/\s+/).filter(w=>w.replace(/[ً-ْـ]/g,'').length>=3);
+ words.forEach(w=>{const bare=w.replace(/[ً-ْـ]/g,'').replace(/^ال/,'');if(bare.length<2)return;
+  const rx=new RegExp('(ال)?'+[...bare].map(c=>c.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join(DIA)+DIA,'gi');m=m.replace(rx,'…');});
+ return m;
+}
+function vocabOf(l){const v=l.vocab||l.words||[];return v.filter(x=>Array.isArray(x)&&x[0]&&x[1]&&!BAD.test(x[1]));}
+function buildPool(U){
+ const pool={riddle:[],mcq:[],tf:[],write:[]};
+ const all=lessons(),idx=U?U.idx:all.map((_,i)=>i);
+ const uv=[];idx.forEach(i=>vocabOf(all[i]).forEach(v=>uv.push([v[0],v[1],i])));
+ const sv=[];all.forEach((l,i)=>vocabOf(l).forEach(v=>sv.push(v[0])));
+ uv.forEach(([term,meaning,li])=>{
+  const clue=mask(String(meaning).replace(/<[^>]*>/g,''),term);if(clue.replace(/[….\s]/g,'').length<6)return;
+  let others=shuf(uv.filter(x=>x[2]===li&&x[0]!==term).map(x=>x[0]));
+  if(others.length<2)others=others.concat(shuf(uv.map(x=>x[0]).filter(t=>t!==term&&!others.includes(t))));
+  if(others.length<2)others=others.concat(shuf(sv.filter(t=>t!==term&&!others.includes(t))));
+  if(others.length<2)return;
+  pool.riddle.push({k:'mcq',q:`🧩 لُغز: «${clue}»<br>فمَن أنا؟`,o:[term,others[0],others[1]],c:0,rid:1});});
+ idx.forEach(i=>{const l=all[i];const items=[].concat(l.test||[],l.think||[]);
+  if(typeof l.g==='function'){for(const kind of ['try','try','think','think']){try{const it=l.g(kind);if(it){if(kind==='think'&&!vocabOf(l).length)it.__rid=1;items.push(it);}}catch(e){}}}
+  items.forEach(it=>{const n=norm(it);if(!n)return;if(it.__rid){n.rid=1;pool.riddle.push(n);}else pool[n.k].push(n);});});
+ return pool;
+}
+function rowOf(i){const b=document.querySelector(`#stage [onclick="startPrep(${i})"]`);if(!b)return null;
+ let el=b;while(el.parentElement&&el.parentElement.id!=='stage'){
+  const p=el.parentElement;if(p.querySelectorAll('[onclick^="startPrep"]').length>1)return el;el=p;}return el;}
+
+/* ---------- الذَّاكرة: لا تكرار حتَّى تنتهي الأسئلة ---------- */
+const hash=s=>{let h=5381;s=String(s);for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return (h>>>0).toString(36);};
+let UNIT=null;
+const MEMK=()=>'wheel_seen::'+(APPK.key||location.pathname)+'::'+(UNIT?UNIT.k:'all')+'::'+who();
+function seen(){try{return JSON.parse(localStorage.getItem(MEMK())||'{}');}catch(e){return{};}}
+function markSeen(q){const s=seen();s[hash(q)]=1;try{localStorage.setItem(MEMK(),JSON.stringify(s));}catch(e){}}
+function draw(list){
+ if(!list.length)return null;
+ const s=seen();let fresh=list.filter(x=>!s[hash(x.q)]);
+ if(!fresh.length){const all=seen();list.forEach(x=>delete all[hash(x.q)]);try{localStorage.setItem(MEMK(),JSON.stringify(all));}catch(e){}fresh=list;}
+ return fresh[Math.floor(Math.random()*fresh.length)];
+}
+
+/* ---------- المظهر ---------- */
+const CSS=`
+.wh-open{display:inline-block;margin-top:10px;font-family:inherit;font-weight:900;font-size:18px;color:#fff;border:none;border-radius:999px;
+ padding:12px 26px;background:linear-gradient(90deg,#E84A5F,#F08A4B,#F2C14E,#C73E6B);background-size:300% 100%;
+ box-shadow:0 5px 0 #A83279;animation:whbg 4s linear infinite,whwig 3s ease-in-out infinite;cursor:pointer}
+.wh-unit{text-align:center;margin:8px 0 18px}
+.wh-unitsub{font-size:12.5px;font-weight:700;color:#9a6a7e;margin-top:6px;padding:0 10px}
+.wh-open:active{transform:translateY(3px);box-shadow:0 2px 0 #A83279}
+@keyframes whbg{to{background-position:300% 0}}
+@keyframes whwig{0%,86%,100%{transform:rotate(0)}90%{transform:rotate(-4deg)}94%{transform:rotate(4deg)}}
+#whov{position:fixed;inset:0;z-index:9000;background:radial-gradient(circle at 50% 30%,#FFF3E6,#F9D9C4 70%,#F2B8A2);
+ overflow-y:auto;-webkit-overflow-scrolling:touch;font-family:inherit;direction:rtl}
+#whov *{box-sizing:border-box}
+.wh-top{display:flex;align-items:center;justify-content:space-between;gap:8px;max-width:560px;margin:10px auto 0;padding:0 12px}
+.wh-top b{font-size:20px;color:#5A1E3A}
+.wh-sc{background:#fff;border-radius:999px;padding:5px 12px;font-weight:800;font-size:14px;color:#5A1E3A;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.wh-x{background:#fff;border:none;border-radius:50%;width:40px;height:40px;font-size:18px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.wh-box{max-width:560px;margin:10px auto 30px;padding:0 12px;text-align:center}
+.wh-wrap{position:relative;width:min(92vw,440px);margin:6px auto 0}
+.wh-wrap svg{width:100%;height:auto;display:block;filter:drop-shadow(0 8px 18px rgba(90,30,58,.25))}
+.wh-rot{transform-origin:200px 200px;transition:transform 4.6s cubic-bezier(.12,.72,.08,1)}
+.wh-hub{cursor:pointer}
+.wh-tip{font-size:16px;font-weight:800;color:#7A2E4E;margin:10px 0 0}
+.wh-card{background:#fff;border-radius:24px;padding:18px 16px;box-shadow:0 10px 30px rgba(90,30,58,.18);text-align:right;animation:whin .45s cubic-bezier(.2,1.4,.4,1)}
+@keyframes whin{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
+.wh-cat{display:inline-block;color:#fff;font-weight:900;border-radius:999px;padding:5px 16px;font-size:15px;margin-bottom:10px}
+.wh-q{font-size:19px;font-weight:800;line-height:1.8;color:#3A1B2C;margin:4px 0 12px}
+.wh-o{display:block;width:100%;font-family:inherit;font-size:17px;font-weight:700;text-align:right;margin:8px 0;padding:13px 16px;
+ border-radius:16px;border:2px solid #F3D2DC;background:#FFF7F9;color:#3A1B2C;cursor:pointer}
+.wh-o.no{background:#FBE4E0;border-color:#E0556B;opacity:.55;text-decoration:line-through}
+.wh-o.ok{background:#DFF3E6;border-color:#227A63}
+.wh-in{width:100%;font-family:inherit;font-size:22px;font-weight:800;text-align:center;border:3px solid #F3D2DC;border-radius:16px;padding:10px 12px;direction:auto}
+.wh-in:focus{outline:none;border-color:#E84A5F}
+.wh-btn{font-family:inherit;font-weight:900;font-size:17px;border:none;border-radius:999px;padding:12px 26px;color:#fff;cursor:pointer;
+ background:#E84A5F;box-shadow:0 4px 0 #A83279;margin:6px 4px}
+.wh-btn.alt{background:#fff;color:#7A2E4E;border:2px solid #F3D2DC;box-shadow:none}
+.wh-fb{min-height:28px;font-weight:800;font-size:16px;margin-top:8px;text-align:center}
+.wh-shake{animation:whsh .45s}
+@keyframes whsh{0%,100%{transform:translateX(0)}20%{transform:translateX(-10px)}40%{transform:translateX(10px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+.wh-hint{background:#FFF6D6;border:2px dashed #F2C14E;border-radius:14px;padding:8px 12px;margin-top:8px;font-weight:700;color:#6B5212}
+.wh-land{animation:whland .9s ease-in-out 2}
+@keyframes whland{0%,100%{opacity:1}50%{opacity:.35}}
+.wh-big{font-size:64px;line-height:1;animation:whpop .7s cubic-bezier(.2,1.6,.4,1)}
+@keyframes whpop{from{transform:scale(.2) rotate(-30deg)}to{transform:scale(1) rotate(0)}}
+`;
+function ensureCss(){if(document.getElementById('whcss'))return;const s=document.createElement('style');s.id='whcss';s.textContent=CSS;document.head.appendChild(s);}
+
+/* ---------- العجلة ---------- */
+const COLS=['#F2C14E','#F08A4B','#E84A5F','#C73E6B','#A83279','#E8A1C4','#F5B971','#EE6C4D','#D6457A','#F7A072'];
+const CATS={riddle:{t:'لغز 🧩',c:'#A83279'},mcq:{t:'اختاري 🔘',c:'#E84A5F'},tf:{t:'صح أم خطأ ⚖️',c:'#F08A4B'},
+ write:{t:SUBJ==='maths'?'احسبي 🔢':'اكتبي ✏️',c:'#C73E6B'},bonus:{t:'مفاجأة 🎁 ×٢',c:'#F2C14E'}};
+let POOL=null,SEGS=[],ROT=0,SPIN=false,SESSION={stars:0,streak:0,won:0},CUR=null;
+const esc2=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+
+function makeSegs(){
+ const avail=['riddle','mcq','tf','write'].filter(k=>POOL[k].length);
+ let s=[];avail.forEach(k=>{s.push(k,k);});
+ if(s.length<6)s=s.concat(s);
+ s.push('bonus');if(s.length>=10)s.push('bonus');
+ s=shuf(s);
+ /* لا يتجاور قسمان متشابهان */
+ for(let i=1;i<s.length;i++){if(s[i]===s[i-1]){for(let j=i+1;j<s.length;j++){if(s[j]!==s[i]&&s[j]!==s[i-1]){[s[i],s[j]]=[s[j],s[i]];break;}}}}
+ return s;
+}
+function wheelSVG(){
+ const n=SEGS.length,R=190,cx=200,cy=200,seg=360/n;
+ const pt=(deg,r)=>{const a=(deg-90)*Math.PI/180;return [cx+r*Math.cos(a),cy+r*Math.sin(a)];};
+ let g='';
+ SEGS.forEach((k,i)=>{
+  const a0=i*seg,a1=(i+1)*seg,[x0,y0]=pt(a0,R),[x1,y1]=pt(a1,R);
+  const col=k==='bonus'?'#F2C14E':COLS[(i*3)%COLS.length];
+  g+=`<path id="whs${i}" d="M${cx} ${cy} L${x0} ${y0} A${R} ${R} 0 0 1 ${x1} ${y1}Z" fill="${col}" stroke="#fff" stroke-width="3"/>`;
+  const mid=a0+seg/2,[tx,ty]=pt(mid,R*.62),flip=mid>180;
+  const rot=flip?mid+90:mid-90;
+  g+=`<text x="${tx}" y="${ty}" transform="rotate(${rot} ${tx} ${ty})" text-anchor="middle" dominant-baseline="middle"
+   font-size="${n>10?15:17}" font-weight="900" fill="#fff" font-family="inherit" style="paint-order:stroke;stroke:rgba(0,0,0,.18);stroke-width:2px">${CATS[k].t}</text>`;
+ });
+ /* حلقة خارجيَّة بمصابيح */
+ let bulbs='';for(let i=0;i<24;i++){const [bx,by]=pt(i*15,R+5);bulbs+=`<circle cx="${bx}" cy="${by}" r="3.4" fill="${i%2?'#FFF3B0':'#fff'}" class="fxtw" style="animation-delay:${(i%4)*.3}s"/>`;}
+ return `<svg viewBox="0 0 400 400" role="img" aria-label="عجلة الألغاز">
+  <circle cx="200" cy="200" r="199" fill="#F9C9D6"/><circle cx="200" cy="200" r="196" fill="#fff" opacity=".6"/>
+  <g class="wh-rot" id="whrot" style="transform:rotate(${ROT}deg)">${g}</g>
+  ${bulbs}
+  <g class="wh-hub" id="whhub">
+   <path d="M200 132 L214 170 A36 36 0 1 1 186 170 Z" fill="#141414"/>
+   <circle cx="200" cy="200" r="36" fill="#141414" stroke="#fff" stroke-width="4"/>
+   <text x="200" y="202" text-anchor="middle" dominant-baseline="middle" font-size="19" font-weight="900" fill="#fff" font-family="inherit">لُفِّي</text>
+  </g></svg>`;
+}
+function top(){return `<div class="wh-top"><b>🎡 ${UNIT?esc2(UNIT.name):'عجلة الألغاز'}</b>
+ <span class="wh-sc">⭐ ${AR(SESSION.stars)} · 🔥 ${AR(SESSION.streak)}</span>
+ <button class="wh-x" onclick="wheelClose()" aria-label="إغلاق">✖</button></div>`;}
+function showWheel(){
+ SEGS=makeSegs();
+ const ov=document.getElementById('whov');
+ ov.innerHTML=top()+`<div class="wh-box"><div class="wh-wrap">${wheelSVG()}</div>
+  <p class="wh-tip">كلُّ الألغاز من دُروس هذه الوحدة 📚<br>اضغطي «لُفِّي» يا ${who()}، وأجيبي عن سُؤال الجزء الَّذي يقف عنده السَّهم! 🎯</p>
+  <button class="wh-btn" onclick="wheelSpin()">🎡 لُفِّي العجلة</button></div>`;
+ document.getElementById('whhub').onclick=()=>window.wheelSpin();
+}
+window.wheelSpin=function(){
+ if(SPIN)return;SPIN=true;
+ const n=SEGS.length,seg=360/n,i=Math.floor(Math.random()*n);
+ const jitter=(Math.random()-.5)*seg*.6;
+ const base=Math.ceil(ROT/360)*360;
+ ROT=base+360*(5+Math.floor(Math.random()*3))+(360-(i*seg+seg/2+jitter));
+ const el=document.getElementById('whrot');el.style.transform=`rotate(${ROT}deg)`;
+ /* طقطقة تتباطأ */
+ let t=0,d=40;const tick=()=>{tk(900+Math.random()*200,.03,.04);t+=d;d*=1.09;if(t<4300)setTimeout(tick,d);};tick();
+ setTimeout(()=>{SPIN=false;const p=document.getElementById('whs'+i);if(p)p.classList.add('wh-land');
+  tk(1318,.2,.1,'sine');setTimeout(()=>ask(SEGS[i]),900);},4700);
+};
+
+/* ---------- السُّؤال: ننتظر الإجابة الصَّحيحة ---------- */
+function ask(cat){
+ let bonus=false,k=cat;
+ if(cat==='bonus'){bonus=true;const av=['riddle','mcq','tf','write'].filter(x=>POOL[x].length);k=av[Math.floor(Math.random()*av.length)];}
+ const item=draw(POOL[k]);if(!item){showWheel();return;}
+ CUR={item,cat:k,bonus,tries:0,hints:0};
+ let body='';
+ if(item.k==='mcq'){
+  const order=shuf(item.o.map((x,j)=>j));
+  body=order.map(j=>`<button class="wh-o" dir="auto" data-j="${j}">${item.o[j]}</button>`).join('');
+ }else if(item.k==='tf'){
+  body=`<button class="wh-o" data-v="1" style="text-align:center">✔ صحيحة</button><button class="wh-o" data-v="0" style="text-align:center">✘ خاطئة</button>`;
+ }else{
+  body=`<input class="wh-in" id="whin" ${item.num?'inputmode="numeric"':''} placeholder="${item.num?'اكتبي العدد…':'اكتبي إجابتكِ…'}" autocomplete="off">
+   <div style="text-align:center;margin-top:10px"><button class="wh-btn" id="whok">تحقَّقي ✔</button></div>`;
+ }
+ const ov=document.getElementById('whov');
+ ov.innerHTML=top()+`<div class="wh-box">
+  ${bonus?'<div class="wh-big">🎁</div><p class="wh-tip">مفاجأة! نُجوم هذا السُّؤال مُضاعفة ×٢</p>':''}
+  <div class="wh-card" id="whcard">
+   <span class="wh-cat" style="background:${CATS[k].c}">${item.rid?'لغز 🧩':CATS[k].t}</span>
+   <div class="wh-q" dir="auto">${item.q}</div>${body}
+   <div class="wh-fb" id="whfb"></div><div id="whhint"></div>
+   <div style="text-align:center"><button class="wh-btn alt" id="whhb" style="display:none">💡 مُساعدة</button></div>
+  </div></div>`;
+ const card=document.getElementById('whcard');
+ if(item.k==='mcq'){card.querySelectorAll('.wh-o').forEach(b=>b.onclick=()=>{
+   if(b.classList.contains('no'))return;
+   if(+b.dataset.j===item.c){b.classList.add('ok');right();}else{b.classList.add('no');wrong();}});}
+ else if(item.k==='tf'){card.querySelectorAll('.wh-o').forEach(b=>b.onclick=()=>{
+   if(b.classList.contains('no'))return;
+   if((b.dataset.v==='1')===item.tf){b.classList.add('ok');right();}else{b.classList.add('no');wrong();}});}
+ else{const inp=document.getElementById('whin'),ok=document.getElementById('whok');
+  const go=()=>{const v=inp.value.trim();if(!v)return;if(match(v,item)){inp.style.borderColor='#227A63';right();}else{wrong();inp.select();}};
+  ok.onclick=go;inp.onkeydown=e=>{if(e.key==='Enter')go();};setTimeout(()=>inp.focus(),300);}
+ document.getElementById('whhb').onclick=hint;
+}
+const clean=s=>String(s==null?'':s).toLowerCase().replace(/[ً-ْـ]/g,'').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي')
+ .replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[.,!?؟،"'«»()\-]/g,' ').replace(/\s+/g,' ').trim();
+const core=s=>clean(s).replace(/^(ال|the |a |an )/,'').replace(/ /g,'');
+function match(v,item){
+ if(item.num)return +clean(v).replace(/[^\d.]/g,'')===+item.a&&clean(v).replace(/[^\d.]/g,'')!=='';
+ const list=[].concat(item.accept||[],item.a!==undefined?[item.a]:[]);
+ const cv=core(v);return list.some(x=>core(x)===cv);
+}
+function wrong(){
+ CUR.tries++;SESSION.streak=0;oops();
+ const c=document.getElementById('whcard');c.classList.remove('wh-shake');void c.offsetWidth;c.classList.add('wh-shake');
+ const msgs=['حاولي مرَّة أُخرى 💪','قريبة! فكِّري قليلًا 🤔','لا تستسلمي، أنتِ قادرة 🌟','جرِّبي من جديد 💖'];
+ document.getElementById('whfb').innerHTML=`<span style="color:#C9553F">${msgs[(CUR.tries-1)%msgs.length]}</span>`;
+ const top=document.querySelector('.wh-sc');if(top)top.textContent=`⭐ ${AR(SESSION.stars)} · 🔥 ${AR(SESSION.streak)}`;
+ if(CUR.tries>=1)document.getElementById('whhb').style.display='inline-block';
+}
+function hint(){
+ const it=CUR.item;CUR.hints++;const box=document.getElementById('whhint');
+ if(it.k==='mcq'){const wrongs=[...document.querySelectorAll('#whcard .wh-o:not(.no)')].filter(b=>+b.dataset.j!==it.c);
+  if(wrongs.length){wrongs[0].classList.add('no');box.innerHTML='<div class="wh-hint">💡 أزلتُ إجابةً خاطئة، اختاري من الباقي.</div>';}
+  else box.innerHTML='<div class="wh-hint">💡 بقيت إجابة واحدة… إنَّها هي!</div>';}
+ else if(it.k==='tf'){box.innerHTML=`<div class="wh-hint">💡 اقرئي العبارة كلمةً كلمة، وتذكَّري درسكِ.${it.why?'<br>'+it.why:''}</div>`;}
+ else{const ans=String(it.num?AR(it.a):it.a).trim();
+  if(it.num){const ds=[...ans];box.innerHTML=`<div class="wh-hint">💡 الجواب عددٌ من ${AR(ds.length)} ${ds.length<=2?'رقم':'أرقام'}، يبدأ بـ <b>${ds.slice(0,Math.min(ds.length-1,CUR.hints)||1).join('')}</b></div>`;return;}
+  const words=ans.split(/\s+/),letters=[...ans.replace(/\s+/g,'')];
+  const shown=[...ans].slice(0,Math.min(ans.length-1,CUR.hints+(ans.startsWith('ال')?2:0))).join('');
+  box.innerHTML=`<div class="wh-hint">💡 تبدأ الإجابة بـ «<b dir="auto">${shown}</b>» · عدد حروفها ${AR(letters.length)}${words.length>1?' · '+(words.length===2?'كلمتان':AR(words.length)+' كلمات'):''}</div>`;}
+}
+function right(){
+ const it=CUR.item;let n=CUR.tries===0?3:CUR.tries===1?2:1;if(CUR.bonus)n*=2;
+ SESSION.stars+=n;SESSION.streak++;SESSION.won++;
+ markSeen(it.q);giveStars(n);win();
+ try{if(window.FX){FX.confetti();if(CUR.tries===0)FX.fireworks();
+  FX.banner((SESSION.streak>=3?'🔥 سلسلة '+AR(SESSION.streak)+'! ':'🎉 ')+'أحسنتِ يا '+who()+'! +'+AR(n)+' ⭐');}}catch(e){}
+ const praise=['رائعة! 🌟','عبقريَّة! 🧠','ممتاز! 🏆','مُبدعة! 🎨','بطلة! 👑'];
+ document.getElementById('whcard').querySelectorAll('.wh-o,.wh-in,#whok,#whhb').forEach(x=>x.disabled=true);
+ document.getElementById('whfb').innerHTML=`<div class="wh-big" style="font-size:52px">${CUR.tries===0?'🏆':'⭐'}</div>
+  <span style="color:#227A63;font-size:19px">${praise[Math.floor(Math.random()*praise.length)]} +${AR(n)} ⭐</span>
+  ${it.why?`<div style="font-weight:600;color:#5b5b6b;font-size:14px;margin-top:6px">${it.why}</div>`:''}
+  <div><button class="wh-btn" onclick="wheelAgain()">🎡 لفَّة جديدة</button></div>`;
+ document.getElementById('whhb').style.display='none';document.getElementById('whhint').innerHTML='';
+ const top=document.querySelector('.wh-sc');if(top)top.textContent=`⭐ ${AR(SESSION.stars)} · 🔥 ${AR(SESSION.streak)}`;
+}
+window.wheelDebug=function(k){const U=k==null?null:(typeof k==='number'?units()[k]:units().find(u=>u.k===String(k)));const p=buildPool(U);if(arguments[1])return p[arguments[1]].slice(0,arguments[2]||4).map(x=>x.q.replace(/<br>/g,' / ')+(x.o?'  ['+x.o.join(' | ')+']':''));const o={};for(const k in p)o[k]=p[k].length;return o;};
+window.wheelAgain=function(){POOL=buildPool(UNIT);showWheel();};
+window.wheelOpen=function(k){
+ ensureCss();const U=typeof k==='number'?units()[k]:units().find(u=>u.k===String(k));UNIT=U?{k:U.k,idx:U.idx,name:U.name||unitName(U)}:null;POOL=buildPool(UNIT);SESSION={stars:0,streak:0,won:0};
+ let ov=document.getElementById('whov');if(!ov){ov=document.createElement('div');ov.id='whov';document.body.appendChild(ov);}
+ ov.style.display='block';document.body.style.overflow='hidden';showWheel();
+};
+window.wheelClose=function(){const ov=document.getElementById('whov');if(ov){ov.style.display='none';ov.innerHTML='';}
+ document.body.style.overflow='';
+ try{if(typeof goMap==='function'&&document.querySelector('#stage [onclick^="exChoose"]'))goMap();}catch(e){}};
+
+/* ---------- عجلة بعد كلِّ وحدة على الخريطة (تُضاف تلقائيًّا) ---------- */
+function addBtn(){const st=document.getElementById('stage');if(!st)return;
+ if(!st.querySelector('[onclick^="exChoose"]')||st.querySelector('.wh-unit'))return;
+ ensureCss();
+ units().forEach((U,n)=>{const last=rowOf(U.idx[U.idx.length-1]);if(!last)return;U.name=unitName(U);
+  const lessonsTxt=U.idx.map(i=>lessons()[i].name).filter(Boolean);
+  const d=document.createElement('div');d.className='wh-unit';
+  d.innerHTML=`<button class="wh-open" onclick="wheelOpen(${n})">🎡 عجلة ألغاز ${U.idx.length>1?'الوحدة':'الدَّرس'}</button>
+   <div class="wh-unitsub">${lessonsTxt.length>3?'من '+AR(lessonsTxt.length)+' دُروس: '+esc2(lessonsTxt.slice(0,3).join('، '))+'…':'من دُروس: '+esc2(lessonsTxt.join('، '))}</div>`;
+  last.parentNode.insertBefore(d,last.nextSibling);});}
+function boot(){const st=document.getElementById('stage');if(!st)return;addBtn();new MutationObserver(addBtn).observe(st,{childList:true,subtree:true});}
+if(document.readyState==='loading')addEventListener('DOMContentLoaded',boot);else setTimeout(boot,0);
+})();
+
 drawStars();applySound();profBoot();
 </script>
 </body>
