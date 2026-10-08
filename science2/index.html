@@ -315,7 +315,7 @@ function profKnown(){try{return JSON.parse(localStorage.getItem(PROF_KEY+'_all')
 function profAsk(change){
  const cur=(PROFILE&&PROFILE.name)||'';const known=profKnown();
  document.getElementById('backB').style.visibility='hidden';
- stage.innerHTML=`<div class="card" style="text-align:center"><div style="font-size:44px">✨👧</div>
+ stage().innerHTML=`<div class="card" style="text-align:center"><div style="font-size:44px">✨👧</div>
   <h1>${change?'تغيير الاسم':'أهلًا بكِ يا بطلة!'}</h1>
   <p class="sub">اكتبي اسمكِ مرة واحدة فقط؛ سيبقى محفوظًا على هذا الجهاز، وتُكملين دائمًا من حيث توقّفتِ.</p>
   <input id="pname" maxlength="20" placeholder="اسمكِ هنا…" value="${esc(cur)}"
